@@ -1,0 +1,23 @@
+{
+  "name": "student-workspace",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.json",
+    "dev:vercel": "vercel dev",
+    "checar": "node checar.mjs"
+  },
+  "devDependencies": {
+    "@vercel/node": "^13.0.0",
+    "jsdom": "^29.1.1",
+    "vercel": "^59.16.0",
+    "vite": "^8.3.0"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.18.0"
+  }
+}

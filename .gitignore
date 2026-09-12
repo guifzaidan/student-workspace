@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.vite/
+.DS_Store
+
+# credenciais
+.env
+.env.local
+.vercel
+
+# config local do Claude Code
+.claude/
