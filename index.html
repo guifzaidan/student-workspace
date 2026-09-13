@@ -732,11 +732,19 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
 
    A largura acompanha o espaço que existe, em vez de um número fixo: recolher
    o menu e o painel é um pedido por mais área de escrita, e devolver a mesma
-   medida de antes ignora o gesto. O teto existe porque linha comprida demais
-   cansa de ler; o piso, para a coluna não espremer em tela estreita. */
+   medida de antes ignora o gesto. O piso existe para a coluna não espremer em
+   tela estreita.
+
+   O teto caiu de 1320px para 980px porque os dois tetos discordavam: a folha
+   ia até 1320px enquanto a medida do texto trava em 92ch, e a diferença — mais
+   de 400px no modo foco — virava uma faixa branca à direita de toda linha.
+   Folha não é área de leitura; ela existe para segurar o texto. Com 980px o
+   respiro que sobra é pequeno, e o que sobra dele a centralização do corpo
+   divide dos dois lados. A largura da leitura não mudou: quem manda nela
+   continua sendo o 92ch. */
 .coluna-leitura {
   width: 100%;
-  max-width: clamp(600px, 92%, 1320px);
+  max-width: clamp(600px, 92%, 980px);
   margin: 0 auto;
   display: flex;
   flex-direction: column;
@@ -882,9 +890,14 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
   margin: 0 auto;
   padding: 44px 56px 60px;
 }
-/* A medida do texto também cresce, senão alargar a folha só acrescentaria
-   espaço vazio à direita das linhas. O `min` é quem segura em tela estreita. */
-.arquivo-corpo { font-size: 15px; line-height: 1.7; max-width: min(100%, 92ch); }
+/* O `min` é quem segura em tela estreita; o 92ch, quem impede a linha de ficar
+   comprida demais para ler.
+
+   `margin-inline: auto` centra o que sobrar: a folha é medida em pixels e o
+   texto em `ch`, então a diferença entre os dois depende da fonte e nunca dá
+   exatamente zero. Encostado à esquerda, esse resto se acumulava todo num lado
+   e lia como buraco; dividido, lê como margem. */
+.arquivo-corpo { font-size: 15px; line-height: 1.7; max-width: min(100%, 92ch); margin-inline: auto; }
 .arquivo-corpo h1 { font-size: 27px; line-height: 1.2; font-weight: 800; letter-spacing: -.02em; margin: 0 0 14px; text-wrap: balance; scroll-margin-top: 20px; }
 .arquivo-corpo h2 { font-size: 19.5px; line-height: 1.3; font-weight: 800; letter-spacing: -.015em; margin: 38px 0 10px; text-wrap: balance; scroll-margin-top: 20px; }
 .arquivo-corpo h3 { font-size: 15px; line-height: 1.4; font-weight: 700; margin: 26px 0 8px; color: var(--gray); scroll-margin-top: 20px; }
@@ -2811,7 +2824,12 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
 .pasta-num b { font-size: 11.5px; font-weight: 500; line-height: 1.2; font-variant-numeric: tabular-nums; }
 
 /* ─── Linha de arquivo dentro de uma pasta ────────────────────────── */
+/* A linha deixou de ser um botão, para poder ter botões dentro — é o mesmo
+   caminho do cartão de pasta. Abrir virou uma camada invisível sobre a linha
+   inteira, então o alvo continua sendo a peça toda, sem aninhar um botão dentro
+   do outro (o que o HTML não permite e o teclado não sabe navegar). */
 .arquivo-linha {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -2822,7 +2840,41 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
   transition: background 0.12s;
 }
 .arquivo-linha:last-child { border-bottom: none; }
-.arquivo-linha:hover { background: color-mix(in srgb, var(--yellow) 5%, var(--white)); }
+.arquivo-linha:hover, .arquivo-linha:focus-within { background: color-mix(in srgb, var(--yellow) 5%, var(--white)); }
+.arquivo-linha-abrir { position: absolute; inset: 0; }
+.arquivo-linha-abrir:focus-visible { outline: none; }
+/* As ações ficam na linha, e não soltas por cima dela: o espaço já está
+   reservado, e um nome comprido nunca corre por baixo do botão. */
+.arquivo-acoes {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  flex-shrink: 0;
+  margin-right: -6px;
+}
+.arquivo-acao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px; height: 26px;
+  border-radius: var(--radius-sm);
+  color: var(--gray2);
+  opacity: 0;
+  flex-shrink: 0;
+  transition: background var(--transition), color var(--transition), opacity var(--transition);
+}
+.arquivo-linha:hover .arquivo-acao,
+.arquivo-linha:focus-within .arquivo-acao { opacity: 1; }
+.arquivo-acao:hover { background: var(--gray4); color: var(--black); }
+.arquivo-acao.perigo:hover { background: var(--red-soft); color: var(--red); }
+.arquivo-acao:focus-visible { outline: none; opacity: 1; box-shadow: 0 0 0 2px var(--gray2); }
+/* No toque não existe hover: sem isto o botão de excluir ficaria invisível para
+   sempre em celular e tablet. Vale para o cartão de pasta pela mesma razão. */
+@media (hover: none) {
+  .arquivo-acao, .pasta-acao { opacity: 1; }
+}
 .arquivo-linha-ico { color: var(--gray2); flex-shrink: 0; }
 .arquivo-linha-texto { flex: 1; min-width: 0; }
 .arquivo-linha-nome { font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -10179,13 +10231,18 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     caixa.hidden = visiveis.length === 0;
     $("vazioArquivos").hidden = visiveis.length > 0;
     visiveis.forEach(function (d) {
-      var linha = document.createElement("button");
-      linha.type = "button";
+      var linha = document.createElement("div");
       linha.className = "arquivo-linha";
+      /* Abrir vem primeiro no DOM para o Tab chegar nele antes da lixeira: a
+         ação principal da linha é entrar no texto. */
       linha.innerHTML =
+        '<button type="button" class="arquivo-linha-abrir"></button>' +
         '<span class="arquivo-linha-ico">' + ICO_ARQUIVO + '</span>' +
         '<span class="arquivo-linha-texto"><span class="arquivo-linha-nome"></span><span class="arquivo-linha-sub" style="display:block"></span></span>' +
-        '<span class="arquivo-linha-meta"></span>';
+        '<span class="arquivo-linha-meta"></span>' +
+        '<span class="arquivo-acoes">' +
+          '<button type="button" class="arquivo-acao perigo" data-acao="excluir">' + ICO_LIXEIRA + '</button>' +
+        '</span>';
       /* Contagem sai do que existe, e não de um número guardado ao lado: o
          banco devolve o arquivo sem `palavras` nem `cards`, e confiar neles
          escrevia "undefined flashcards" na linha. */
@@ -10204,9 +10261,75 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       linha.insertBefore(faixa, linha.querySelector(".arquivo-linha-meta"));
       pintarSelosEm(faixa, d.tags);
 
-      linha.addEventListener("click", function () { abrirArquivo(null, d); });
+      /* A camada de abrir não está dentro de nada que a nomeie: ela precisa se
+         nomear sozinha para quem navega por leitor de tela. */
+      var abrir = linha.querySelector(".arquivo-linha-abrir");
+      abrir.setAttribute("aria-label", "Abrir " + d.nome);
+      abrir.addEventListener("click", function () { abrirArquivo(null, d); });
+
+      var excluir = linha.querySelector('[data-acao="excluir"]');
+      excluir.title = "Excluir " + d.nome;
+      excluir.setAttribute("aria-label", excluir.title);
+      excluir.addEventListener("click", function () { perguntarExcluirArquivo(pastaAberta, d); });
+
       caixa.appendChild(linha);
     });
+  }
+
+  /* Excluir um arquivo leva junto o texto, os grifos e as notas — todos moram
+     dentro do corpo. Os flashcards não vão: eles vivem nos decks, e a coluna
+     `arquivo_id` é `ON DELETE SET NULL` justamente para que apagar a origem não
+     apague o que se aprendeu com ela. A pergunta diz isso quando há cards, em
+     vez de deixar a pessoa descobrir depois. */
+  function perguntarExcluirArquivo(pasta, d) {
+    var cards = cardsDoArquivo(d);
+    var notas = (d.comentarios || []).length;
+    var sobras = [];
+    if (notas) sobras.push(notas + (notas === 1 ? " nota" : " notas"));
+    var frase = ['Tem certeza que deseja excluir "', { forte: d.nome }, '"?'];
+    if (sobras.length) frase.push(" O texto e " + sobras.join(" e ") + " vão junto.");
+    if (cards) {
+      frase.push(cards === 1
+        ? " O flashcard criado a partir dele continua no deck."
+        : " Os " + cards + " flashcards criados a partir dele continuam nos decks.");
+    }
+    frase.push(" Esta ação não pode ser desfeita.");
+    perguntar({
+      titulo: "Excluir arquivo",
+      descricao: frase,
+      rotuloOk: "Excluir",
+      onConfirmar: function () { excluirArquivo(pasta, d); }
+    });
+  }
+
+  function excluirArquivo(pasta, d) {
+    var dona = pasta || pastaDoArquivo(d);
+    if (!dona) return;
+    var i = dona.lista.indexOf(d);
+    if (i < 0) return;
+    dona.lista.splice(i, 1);
+
+    /* O vínculo em memória some junto com o arquivo, como o banco faz com o
+       `SET NULL`: sem isto os cards continuariam apontando para um id que não
+       existe mais, e a contagem de outro arquivo poderia herdá-lo. */
+    ACERVO_CARDS.forEach(function (c) { if (d.id && c.arquivoId === d.id) c.arquivoId = null; });
+
+    /* Se era o arquivo aberto, a tela volta para a pasta: continuar editando um
+       texto que já não existe grava num id que o banco apagou. */
+    if (arquivoAberto === d) {
+      /* A gravação em espera guarda o arquivo por referência e dispararia 400ms
+         depois da exclusão, escrevendo num id que o banco acabou de apagar. */
+      clearTimeout(relogioGravarArquivo);
+      arquivoAberto = null;
+      if (vistaAtual === "arquivo") irVista("pasta");
+    }
+
+    pintarPastas();
+    pintarArquivos();
+    pintarTabela();
+    pintarInbox();
+    avisar("success", "Arquivo excluído", d.nome + " saiu de " + dona.nome + ".");
+    if (d.id) gravar({ acao: "arquivo.excluir", id: d.id });
   }
 
   /* Os selos de etiqueta são os mesmos em toda parte — cartão, linha, cabeçalho
