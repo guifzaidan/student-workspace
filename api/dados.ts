@@ -24,6 +24,10 @@ type Linha = Record<string, unknown>;
 
 const texto = (v: unknown) => (v == null ? '' : String(v));
 const numero = (v: unknown, padrao = 0) => (v == null || v === '' ? padrao : Number(v));
+
+/* O teto de uma imagem. Print de tela cabe com folga; foto de câmera moderna
+   não, e é melhor dizer isso do que estourar a memória da função. */
+const TETO_IMAGEM = 5 * 1024 * 1024;
 /* As etiquetas vão num campo só. O separador é o 0x1F do ASCII, que existe
    para exatamente isto e não pode aparecer num texto digitado. Escrito como
    escape, e não como o caractere cru: invisível no editor, ele viraria uma
@@ -306,6 +310,31 @@ async function gravar(corpo: Record<string, unknown>) {
       ]);
       return { proxima: emDias(passo.intervalo) };
     }
+
+    /* A imagem entra em base64 e sai pela `/api/imagem`, que devolve os bytes.
+       O teto existe porque o corpo da requisição é uma string em memória dentro
+       da função: sem ele, um arquivo grande derruba a gravação inteira em vez
+       de receber um recado. */
+    case 'imagem.criar': {
+      const dados = texto(corpo.dados);
+      const bytes = Math.floor((dados.length * 3) / 4);
+      if (!dados) throw new Error('A imagem veio vazia.');
+      if (bytes > TETO_IMAGEM) {
+        throw new Error(`A imagem tem ${Math.round(bytes / 1048576)} MB, e o limite é ${TETO_IMAGEM / 1048576} MB.`);
+      }
+      const tipo = texto(corpo.tipo) || 'image/png';
+      if (!tipo.startsWith('image/')) throw new Error('Só imagem entra por aqui.');
+      const id = novoId('img');
+      await cx.execute(
+        `INSERT INTO sinapse_imagens (id, arquivo_id, nome, tipo, bytes, dados, criada_em)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [id, texto(corpo.arquivoId) || null, texto(corpo.nome), tipo, bytes, dados, t],
+      );
+      return { id, url: `/api/imagem?id=${id}` };
+    }
+    case 'imagem.excluir':
+      await cx.execute('DELETE FROM sinapse_imagens WHERE id = ?', [texto(corpo.id)]);
+      return { ok: true };
 
     case 'ciclo.comecar': {
       const r = await cx.execute(

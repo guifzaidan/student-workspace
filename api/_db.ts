@@ -106,6 +106,23 @@ const SCHEMA = [
    )`,
   `CREATE INDEX IF NOT EXISTS idx_revisoes_dia ON sinapse_revisoes (revisado_em)`,
 
+  /* As imagens do texto ficam fora do corpo do arquivo. Embutidas como data:
+     URL elas entrariam na mesma coluna que o texto, e o `GET /api/dados` carrega
+     o corpo de todo arquivo de uma vez: meia duzia de prints e a primeira tela
+     passaria a puxar megabytes antes de desenhar qualquer coisa.
+     Aqui cada uma tem endereco proprio, o corpo guarda so a referencia, e o
+     navegador as busca sob demanda e as guarda em cache. */
+  `CREATE TABLE IF NOT EXISTS sinapse_imagens (
+     id         TEXT PRIMARY KEY,
+     arquivo_id TEXT REFERENCES sinapse_arquivos(id) ON DELETE CASCADE,
+     nome       TEXT NOT NULL DEFAULT '',
+     tipo       TEXT NOT NULL,
+     bytes      INTEGER NOT NULL DEFAULT 0,
+     dados      TEXT NOT NULL,
+     criada_em  TEXT NOT NULL
+   )`,
+  `CREATE INDEX IF NOT EXISTS idx_imagens_arquivo ON sinapse_imagens (arquivo_id)`,
+
   `CREATE TABLE IF NOT EXISTS sinapse_ciclos (
      id          INTEGER PRIMARY KEY AUTOINCREMENT,
      rotulo      TEXT NOT NULL DEFAULT '',

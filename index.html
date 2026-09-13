@@ -45,6 +45,11 @@
   --link: #0B63CE;
 
   --campo-altura: 38px;
+  /* A largura do trilho de estudo mora aqui porque três lugares dependem dela:
+     a coluna da grade, o painel sobreposto das telas estreitas e o desvio do
+     botão de ações rápidas. Escrita em cada um, ela sairia do lugar no primeiro
+     ajuste. */
+  --trilho-largura: 348px;
   --radius-sm:   8px;
   --radius-md:   12px;
   --radius-lg:   16px;
@@ -164,12 +169,10 @@ body {
 .revelar.aberto { grid-template-rows: 1fr; opacity: 1; }
 .lista-anima > * { animation: entraLista .2s var(--curva-anti) backwards; }
 .surge { animation: entraLista .18s var(--curva-anti) backwards; }
-/* Área que muda de conteúdo sem mudar de lugar — as abas do Pomodoro. Entra só
-   em opacidade: não houve travessia, e fingir uma leria como troca de tela. */
-.troca { animation: apareceSuave .16s var(--curva-anti) backwards; }
 
 @media (prefers-reduced-motion: reduce) {
-  .lista-anima > *, .troca, .surge, .qs-panel, .toast-balao, .conta-menu { animation: none; }
+  .lista-anima > *, .surge, .qs-panel, .toast-balao, .conta-menu { animation: none; }
+  .painel.entrando, .painel.saindo { animation: none; }
   /* O ponto que pisca vira um ponto aceso: quem desligou movimento não quer
      um pisca-pisca eterno na quina da tela. */
   .atividade-balao { transition: none; transform: none; }
@@ -609,17 +612,6 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
 .seg-opt svg { fill: transparent; transition: fill .18s; }
 .seg-opt.on svg { fill: currentColor; }
 
-/* A variante que acende: um ícone só, do lado direito, como o de um controle
-   remoto. Desligada, o pino descansa no slot vazio da esquerda e o ícone fica
-   esmaecido; ligada, o pino corre para baixo dele e acende — é o pino que dá o
-   "preenchido", e o ícone vira o desenho recortado nele. */
-.seg.acende .seg-opt { color: var(--gray2); }
-.seg.acende[data-lado="b"] .seg-thumb { background: var(--yellow); }
-.seg.acende[data-lado="b"] .seg-opt.on { color: var(--on-yellow); }
-/* Este ícone fica no traço mesmo quando escolhido: o arco do símbolo de
-   ligar é um traço aberto, e preenchê-lo fecha a corda e vira um borrão. */
-.seg.acende .seg-opt.on svg { fill: none; }
-
 @media (prefers-reduced-motion: reduce) { .seg-thumb, .seg-opt { transition: none; } }
 
 /* ─── Área de estudo ─────────────────────────────────────────────────── */
@@ -638,7 +630,7 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
    da sua própria regra. */
 .estudo-area {
   --col-indice: 236px;
-  --col-trilho: 348px;
+  --col-trilho: var(--trilho-largura);
   flex: 1;
   min-height: 0;
   min-width: 0;
@@ -793,6 +785,27 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
   margin: 0;
   font-weight: 400;
 }
+/* A descrição se edita onde se lê, como o título logo acima — mesma moldura,
+   mesmos estados. Só o `display` muda: o título é `inline-block` para a moldura
+   parar no fim do nome, e aqui a frase é mais longa e ganha a linha inteira. */
+.texto-editavel {
+  display: block;
+  max-width: 100%;
+  padding: 2px 6px;
+  margin-left: -6px;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-sm);
+  outline: none;
+  cursor: text;
+  transition: border-color var(--transition-spring), box-shadow var(--transition-spring), background var(--transition-spring);
+}
+.texto-editavel:hover { background: var(--bg); }
+.texto-editavel:focus { background: var(--white); border-color: var(--gray2); box-shadow: 0 0 0 3px var(--gray4); }
+/* Vazia, ela não some: sem nada na tela não haveria onde clicar para escrever a
+   primeira descrição. O convite sai de cena assim que o campo recebe o foco,
+   senão ele e o cursor dividiriam a mesma linha. */
+.texto-editavel:empty::before { content: attr(data-vazio); color: var(--gray2); }
+.texto-editavel:focus:empty::before { content: none; }
 .cabecalho-acoes { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .admin-toolbar-btn {
   width: 34px;
@@ -880,6 +893,67 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
 .arquivo-corpo li { position: relative; padding-left: 22px; }
 .arquivo-corpo li::before { content: ''; position: absolute; left: 5px; top: .72em; width: 5px; height: 5px; border-radius: 50%; background: var(--gray2); }
 .arquivo-corpo strong { font-weight: 700; }
+/* O link. O acento da casa é claro demais para virar cor de texto sobre a
+   folha, então o que entra é ele puxado para o preto: fica com a mesma família
+   do resto e com contraste para ser lido. O fio embaixo é o que anuncia o link
+   sem depender só da cor. */
+.arquivo-corpo a {
+  color: color-mix(in srgb, var(--yellow-forte) 62%, var(--black));
+  text-decoration: underline;
+  text-decoration-color: var(--yb);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 2px;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: background var(--transition), text-decoration-color var(--transition);
+}
+.arquivo-corpo a:hover {
+  background: var(--yd);
+  text-decoration-color: color-mix(in srgb, var(--yellow-forte) 62%, var(--black));
+}
+.arquivo-corpo a:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--yd); }
+
+/* A imagem é um bloco à parte, e não se edita: o cursor não entra nela, então
+   ela não se parte ao meio quando se escreve em volta. Clicar abre a prévia, e
+   é o `zoom-in` que promete isso antes do clique. */
+.arquivo-corpo .figura {
+  margin: 0 0 16px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 100%;
+}
+.arquivo-corpo .figura img {
+  display: block;
+  max-width: 100%;
+  max-height: 460px;
+  width: auto;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--gray3);
+  background: var(--gray4);
+  cursor: zoom-in;
+  transition: border-color var(--transition-spring), box-shadow var(--transition-spring);
+}
+.arquivo-corpo .figura img:hover {
+  border-color: var(--yb);
+  box-shadow: var(--shadow-card);
+}
+/* Enquanto a imagem sobe, o lugar dela já existe: sem isto o texto dá um salto
+   quando ela chega, e quem colou não sabe se alguma coisa aconteceu. */
+.arquivo-corpo .figura-subindo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 22px 18px;
+  border: 1px dashed var(--gray3);
+  border-radius: var(--radius-md);
+  background: var(--gray4);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--gray2);
+}
 .arquivo-corpo:focus { outline: none; }
 .arquivo-corpo ol {
   margin: 0 0 16px;
@@ -1030,11 +1104,48 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
 /* O grifo é chapa, e o comentário é fio embaixo: um marca o que importa, o
    outro diz que há algo escrito a respeito. Se fossem os dois chapa, um trecho
    grifado e comentado viraria uma mancha só. */
+/* A cor do grifo é escolha de quem lê: ela separa assunto, e não gravidade —
+   por isso os matizes vivem aqui, e não saem da paleta de estado do sistema.
+   Cada cor é um token só, guardado cheio: a bolinha da paleta usa o matiz puro,
+   e o grifo usa o mesmo matiz lavado, para o texto continuar legível por cima.
+   Duas variáveis por cor dessincronizariam na primeira troca de tom. */
+:root {
+  --gr-rosa:     #F2A0C0;
+  --gr-verde:    #57C98A;
+  --gr-azul:     #6EA8F5;
+  --gr-amarelo:  #F5D04E;
+  --gr-laranja:  #F2A25A;
+  --gr-roxo:     #B48CF5;
+  --gr-vermelho: #F0796E;
+}
 mark.grifo {
-  background: var(--yd);
+  /* Sem `data-cor` o grifo é rosa: é a cor da casa, e é a que os trechos
+     grifados antes desta paleta já têm no texto salvo. */
+  --gr-cor: var(--gr-rosa);
+  background: color-mix(in srgb, var(--gr-cor) 42%, transparent);
   color: inherit;
   border-radius: 3px;
   padding: 1px 0;
+}
+mark.grifo[data-cor="rosa"]     { --gr-cor: var(--gr-rosa); }
+mark.grifo[data-cor="verde"]    { --gr-cor: var(--gr-verde); }
+mark.grifo[data-cor="azul"]     { --gr-cor: var(--gr-azul); }
+mark.grifo[data-cor="amarelo"]  { --gr-cor: var(--gr-amarelo); }
+mark.grifo[data-cor="laranja"]  { --gr-cor: var(--gr-laranja); }
+mark.grifo[data-cor="roxo"]     { --gr-cor: var(--gr-roxo); }
+mark.grifo[data-cor="vermelho"] { --gr-cor: var(--gr-vermelho); }
+/* No escuro a chapa lavada some contra a folha quase preta e ainda clareia o
+   fundo por baixo de um texto claro. Ela perde corpo e o texto do trecho passa
+   a ser escuro, como numa fita de marca-texto de verdade. */
+:root[data-theme="dark"] mark.grifo {
+  background: color-mix(in srgb, var(--gr-cor) 72%, transparent);
+  color: #121316;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) mark.grifo {
+    background: color-mix(in srgb, var(--gr-cor) 72%, transparent);
+    color: #121316;
+  }
 }
 .comentado {
   border-bottom: 2px solid var(--yb);
@@ -1105,7 +1216,9 @@ mark.grifo {
   flex-direction: column;
   min-height: 0;
 }
-.trilho-dentro { width: 348px; min-width: 348px; height: 100%; display: flex; flex-direction: column; min-height: 0; }
+/* Largura fixa por dentro: é o que segura o conteúdo enquanto a coluna encolhe
+   até zero, em vez de ele se espremer linha a linha durante a animação. */
+.trilho-dentro { width: var(--trilho-largura); min-width: var(--trilho-largura); height: 100%; display: flex; flex-direction: column; min-height: 0; }
 .trilho-topo {
   flex-shrink: 0;
   height: 56px;
@@ -1171,8 +1284,32 @@ mark.grifo {
 .pulso { width: 7px; height: 7px; border-radius: 50%; background: var(--gray2); }
 @keyframes pisca { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
 
-.painel { flex: 1; overflow-y: auto; min-height: 0; padding: 18px 14px 20px; display: flex; flex-direction: column; gap: 14px; }
+/* Os dois painéis ocupam a mesma caixa, sobrepostos. Em fila, um por vez, o
+   que sai some no mesmo quadro em que o que entra começa a aparecer, e no meio
+   da troca o trilho fica vazio; sobrepostos, um atravessa o outro. */
+.paineis { position: relative; flex: 1; min-height: 0; }
+.painel { position: absolute; inset: 0; overflow-y: auto; padding: 18px 14px 20px; display: flex; flex-direction: column; gap: 14px; }
 .painel[hidden] { display: none; }
+/* A travessia segue o caminho da pílula: quem entra vem do lado para onde a
+   chapa correu, e quem sai recua para o lado oposto. `--lado` diz qual é o
+   lado, e o script o acerta a cada troca.
+   Quem sai vai mais rápido do que quem entra: o novo painel é o que se quer
+   ler, então ele merece o tempo, e o antigo só precisa sair do caminho. */
+.painel.entrando { z-index: 1; animation: abaEntra .26s var(--curva-anti) backwards; }
+.painel.saindo {
+  animation: abaSai .16s var(--curva-anti) forwards; /* espelhado em `ABA_SAIDA` */
+  pointer-events: none;
+  /* Rolagem em painel que já está indo embora é alvo que foge da mão. */
+  overflow: hidden;
+}
+@keyframes abaEntra {
+  from { opacity: 0; transform: translateX(var(--lado, 0px)); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes abaSai {
+  from { opacity: 1; transform: none; }
+  to { opacity: 0; transform: translateX(calc(var(--lado, 0px) * -1)); }
+}
 .painel-rotulo {
   font-size: 11px;
   font-weight: 600;
@@ -1214,13 +1351,15 @@ mark.grifo {
   transition: all var(--transition-spring);
 }
 .ctrl:hover { border-color: var(--yellow); background: var(--yd); color: var(--black); transform: translateY(-1px); }
-/* O interruptor do foco. É a mecânica do switch de tema: um botão só, com um
-   pino que desliza entre os dois lados. O ícone não é alvo, é decoração que
-   troca de cor - quem recebe o clique é o botão inteiro.
+/* O interruptor do foco, o mesmo no Pomodoro e no topo. É a mecânica do switch
+   de tema: um botão só, com um pino que desliza entre os dois lados. O ícone
+   não é alvo, é decoração que troca de cor - quem recebe o clique é o botão
+   inteiro.
    Ligado, a chapa acende e o pino vai para a direita, sob o símbolo; desligado,
    o pino volta para a esquerda e o símbolo esmaece. */
 .foco-seg {
   --seg-w: 36px;
+  --seg-h: 34px;
   --seg-gap: 2px;
   --seg-curva: cubic-bezier(0.4, 0, 0.2, 1);
   --seg-dur: 0.22s;
@@ -1242,7 +1381,7 @@ mark.grifo {
   top: 3px;
   left: 3px;
   width: var(--seg-w);
-  height: 34px;
+  height: var(--seg-h);
   border-radius: 999px;
   background: var(--white);
   box-shadow: 0 1px 3px rgba(0,0,0,0.18);
@@ -1257,7 +1396,7 @@ mark.grifo {
   align-items: center;
   justify-content: center;
   width: var(--seg-w);
-  height: 34px;
+  height: var(--seg-h);
   pointer-events: none;
   color: var(--gray2);
   transition: color .18s;
@@ -1270,27 +1409,15 @@ mark.grifo {
 .foco-seg[data-ligado="true"]:hover { background: var(--yellow-forte); border-color: var(--yellow-forte); }
 .foco-seg[data-ligado="true"] .foco-seg-thumb { transform: translateX(calc(var(--seg-w) + var(--seg-gap))); }
 .foco-seg[data-ligado="true"] .foco-seg-ico { color: var(--on-yellow); }
+/* No topo a mesma peça vem menor. Lá os controles têm 30px de altura, e a de
+   42px do Pomodoro encostaria nas duas bordas de uma faixa de 60px. Só as
+   medidas mudam: a chapa que acende continua sendo a mesma. */
+.foco-seg.pequeno { --seg-w: 30px; --seg-h: 26px; }
 .ciclos { display: flex; align-items: center; justify-content: center; gap: 10px; margin-top: 24px; }
 .ciclo { width: 9px; height: 9px; border-radius: 50%; border: 1.5px solid var(--gray3); transition: background var(--transition), border-color var(--transition), box-shadow var(--transition); }
 .ciclo.feito { background: var(--yellow); border-color: var(--yellow); }
 .ciclo.atual { border-color: var(--yellow); box-shadow: 0 0 0 3px var(--yd); }
 .ciclo-nota { text-align: center; font-size: 12px; font-weight: 500; color: var(--gray2); margin-top: 10px; }
-
-.kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.kpi {
-  background: var(--white);
-  border: 1px solid var(--gray3);
-  border-left: 4px solid var(--yellow);
-  border-radius: var(--radius-lg);
-  padding: 10px 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  box-shadow: var(--shadow-card);
-  transition: border-color var(--transition-spring), box-shadow var(--transition-spring), background var(--transition-spring), transform var(--transition-spring);
-}
-.kpi-valor { font-size: 20px; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1.2; }
-.kpi-chave { font-size: 11.5px; font-weight: 600; color: var(--gray2); }
 
 .linha-switch {
   display: flex;
@@ -1513,6 +1640,10 @@ textarea.form-input { resize: vertical; min-height: 84px; line-height: 1.55; }
 .select-gatilho:hover { border-color: var(--gray2); }
 .select-gatilho[aria-expanded="true"] { border-color: var(--gray2); box-shadow: 0 0 0 3px var(--gray4); }
 .select-gatilho .rotulo { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Sem nada escolhido o botão ficava em branco, e campo em branco não diz se
+   está vazio ou quebrado. O texto de espera entra em cinza, como o placeholder
+   de um input — e sai assim que a escolha existe. */
+.select-gatilho.select-vazio .rotulo { color: var(--gray2); }
 .select-gatilho .seta { color: var(--gray2); transition: transform var(--transition-spring); }
 .select-gatilho[aria-expanded="true"] .seta { transform: rotate(180deg); }
 
@@ -1576,7 +1707,47 @@ textarea.form-input { resize: vertical; min-height: 84px; line-height: 1.55; }
   border-bottom: 1.5px solid var(--gray3);
   transform: rotate(45deg);
 }
-.pop-sep { width: 1px; height: 20px; background: var(--gray3); margin: 0 2px; }
+/* O balão é o alvo do próprio gesto: enquanto ele aparece, arrastar por cima
+   dele não pode desfazer a seleção que o trouxe. */
+.sel-pop { user-select: none; -webkit-user-select: none; }
+/* Entrada própria, e não a `.surge` genérica: aquela termina em
+   `transform: none`, e o `none` levava junto o `translate(-50%, -100%)` que põe
+   o balão centrado acima do trecho. Durante os 0,18s ele aparecia ancorado pela
+   quina, longe do texto, e só pulava para o lugar no fim da animação. */
+@keyframes surgeBalao {
+  from { opacity: 0; transform: translate(-50%, calc(-100% + 4px)); }
+  to   { opacity: 1; transform: translate(-50%, -100%); }
+}
+.sel-pop.surge { animation: surgeBalao .16s var(--curva-anti) backwards; }
+
+/* O balão tem duas faces na mesma moldura: as três ações, e a paleta do grifo.
+   Trocar a face no lugar, em vez de abrir um segundo balão, mantém a seta
+   apontando para o mesmo trecho — um pop-up sobre o pop-up esconderia o texto
+   que a pessoa está justamente tentando marcar. */
+.sel-acoes, .sel-cores { display: flex; align-items: center; gap: 4px; }
+.pop-sep { width: 1px; height: 20px; background: var(--gray3); margin: 0 2px; flex-shrink: 0; }
+.grifo-cor {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid color-mix(in srgb, var(--gr-cor) 70%, transparent);
+  background: var(--gr-cor);
+  flex-shrink: 0;
+  transition: transform var(--transition-spring), box-shadow var(--transition-spring);
+}
+/* A bolinha cresce sob o ponteiro em vez de mudar de cor: a cor é o conteúdo do
+   botão, e trocá-la no hover diria que aquela outra é a que seria aplicada. */
+.grifo-cor:hover, .grifo-cor:focus-visible {
+  outline: none;
+  transform: scale(1.16);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--gr-cor) 28%, transparent);
+}
+.grifo-cor[data-cor="rosa"]     { --gr-cor: var(--gr-rosa); }
+.grifo-cor[data-cor="verde"]    { --gr-cor: var(--gr-verde); }
+.grifo-cor[data-cor="azul"]     { --gr-cor: var(--gr-azul); }
+.grifo-cor[data-cor="amarelo"]  { --gr-cor: var(--gr-amarelo); }
+.grifo-cor[data-cor="laranja"]  { --gr-cor: var(--gr-laranja); }
+.grifo-cor[data-cor="roxo"]     { --gr-cor: var(--gr-roxo); }
+.grifo-cor[data-cor="vermelho"] { --gr-cor: var(--gr-vermelho); }
 
 /* ─── Busca rápida ───────────────────────────────────────────────────── */
 .qs-overlay {
@@ -1670,6 +1841,186 @@ textarea.form-input { resize: vertical; min-height: 84px; line-height: 1.55; }
   animation: fadeIn 0.14s var(--curva-anti) both;
 }
 .admin-modal-overlay[hidden] { display: none; }
+
+/* ─── Prévia de arquivo: tela cheia ──────────────────────────────────── */
+/* A mesma peça do portal de referência, e pela mesma razão que lá: um print é
+   lido para se achar o detalhe que quem escreveu não soube nomear, e dentro de
+   uma moldura de 960px isso vira apertar os olhos. Aqui a página sai do
+   caminho: o fundo escurece, a imagem ocupa o que tiver, e as ações ficam
+   soltas no canto de cima.
+
+   O escuro é fixo, e não token: a prévia é a mesma peça nos dois temas, porque
+   o que ela mostra é uma imagem, e imagem se olha sobre fundo neutro, não
+   sobre a folha do sistema. */
+.previa-tela {
+  position: fixed;
+  inset: 0;
+  z-index: 10002;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 10, 12, .88);
+  backdrop-filter: blur(4px);
+  animation: fadeIn .14s var(--curva-anti) both;
+}
+.previa-tela.saindo { animation: fadeOut .18s var(--curva-anti) both; }
+
+/* O topo não é barra: é uma linha solta sobre o arquivo. Uma faixa opaca ali
+   comeria justamente a altura que a imagem tem para crescer. */
+.previa-topo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  pointer-events: none;
+}
+.previa-nome {
+  flex: 1;
+  min-width: 0;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, .72);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .5);
+}
+.previa-acoes {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+  pointer-events: auto;
+}
+.previa-botao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .12);
+  color: #fff;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.previa-botao:hover { background: rgba(255, 255, 255, .24); }
+.previa-botao:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, .3);
+}
+
+/* O palco é o que segura o clique: fora dele, o clique fecha. */
+.previa-palco {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 94vw;
+  max-height: 88vh;
+}
+.previa-img {
+  display: block;
+  max-width: 94vw;
+  max-height: 88vh;
+  object-fit: contain;
+  border-radius: var(--radius-sm);
+}
+.previa-recado {
+  text-align: center;
+  color: rgba(255, 255, 255, .8);
+  font-size: 13px;
+  padding: 40px;
+}
+
+/* A legenda e o folheador, no pé e sobre o escuro. */
+.previa-legenda {
+  position: absolute;
+  left: 50%;
+  bottom: 64px;
+  transform: translateX(-50%);
+  max-width: min(80vw, 70ch);
+  margin: 0;
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  background: rgba(0, 0, 0, .45);
+  color: rgba(255, 255, 255, .85);
+  font-size: 12.5px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+/* O folheador só aparece quando há mais de uma: uma seta que não leva a lugar
+   nenhum é um botão morto. Fica no pé, e não no topo com as ações, porque
+   passar de imagem é o gesto repetido e não deve dividir espaço com o de
+   fechar. */
+.previa-folheador {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, .12);
+}
+.previa-folheador span {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, .8);
+  padding: 0 6px;
+  font-variant-numeric: tabular-nums;
+}
+.previa-folheador button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: #fff;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.previa-folheador button:hover { background: rgba(255, 255, 255, .2); }
+
+@media (prefers-reduced-motion: reduce) {
+  .previa-tela,
+  .previa-tela.saindo { animation: none; }
+  .previa-botao,
+  .previa-folheador button { transition: none; }
+}
+
+/* ─── O campo de endereço do balão de seleção ────────────────────────── */
+/* Terceira face do balão, ao lado das ações e da paleta: mesma mecânica, para
+   o link não precisar de uma janela só dele. */
+.sel-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px;
+}
+.sel-link input {
+  width: 236px;
+  height: 30px;
+  padding: 0 10px;
+  border: 1.5px solid var(--gray3);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--black);
+  font-size: 12.5px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color var(--transition-spring), box-shadow var(--transition-spring);
+}
+.sel-link input:focus { border-color: var(--gray2); box-shadow: 0 0 0 3px var(--gray4); }
+.sel-link input::placeholder { color: var(--gray2); }
 .admin-modal-overlay.saindo { animation: fadeOut .18s var(--curva-anti) both; }
 .admin-modal-overlay.saindo .admin-modal { animation: saiDireita .18s var(--curva-anti) both; }
 /* A gaveta encosta na borda direita; o diálogo fica no meio da tela. Um degrau
@@ -1813,13 +2164,26 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
 }
 .painel-titulo-campo:hover { background: var(--bg); }
 .painel-titulo-campo:focus { background: var(--white); border-color: var(--gray2); box-shadow: 0 0 0 3px var(--gray4); }
-/* Travado, ele não se oferece para ser editado: sem chapa no hover, sem cursor
-   de texto. É rótulo do que está aberto, e não um campo que não funciona. */
-.painel-titulo-campo:read-only { cursor: default; }
-.painel-titulo-campo:read-only:hover, .painel-titulo-campo:read-only:focus {
-  background: transparent;
-  border-color: transparent;
-  box-shadow: none;
+/* O trecho marcado no texto, dentro da gaveta da nota. Mesma linguagem do aviso
+   da casa, fio do acento à esquerda e o tom lavado atrás, porque é a mesma
+   ideia: um bloco que não se edita, ali para dar contexto ao que se escreve.
+   Vem depois do campo porque o que se veio fazer é escrever; o trecho é a
+   referência, e referência se consulta. */
+.gaveta-trecho {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--yd);
+  border-left: 3px solid var(--yellow);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--gray);
+  white-space: pre-wrap;
+  /* Trecho longo não empurra o campo para fora da tela: rola dentro do próprio
+     bloco, que é onde o assunto dele termina. */
+  max-height: 10em;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .admin-modal-body { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 20px 24px 24px; display: flex; flex-direction: column; gap: 16px; }
 .painel-rodape {
@@ -1935,6 +2299,32 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
   flex-direction: column;
   align-items: flex-end;
   gap: 12px;
+  /* Acompanha o trilho no mesmo tempo que a grade leva para abrir e fechar a
+     coluna, senão o botão saltaria para o lugar novo antes de haver lugar. */
+  transition: right var(--transition-spring), opacity var(--transition);
+}
+
+/* Na tela do arquivo o trilho é uma coluna encostada na direita, e o botão de
+   ações rápidas caía bem em cima do rodapé dele — justamente sobre o seletor de
+   deck e o "Salvar flashcards". Aqui ele se desloca para antes do trilho, e
+   volta ao canto sozinho quando o trilho fecha ou a tela é outra.
+
+   A condição mora no `body` porque o botão é `fixed` e vive fora da árvore da
+   tela: `:has` é o que deixa uma peça reagir ao estado de outro ramo, sem ter
+   de espelhar o estado do trilho num segundo atributo lá em cima. */
+@media (min-width: 1181px) {
+  body:has(.pagina:not([hidden]) .vista[data-vista="arquivo"]:not([hidden]) .estudo-area[data-trilho="aberto"]) .fab {
+    right: calc(var(--trilho-largura) + 24px);
+  }
+}
+/* Mais estreito o trilho vira painel sobreposto, e não há para onde desviar:
+   deslocar por 348px jogaria o botão para fora da tela. Ele sai de cena
+   enquanto o painel está aberto, em vez de furá-lo por cima. */
+@media (min-width: 901px) and (max-width: 1180px) {
+  body:has(.pagina:not([hidden]) .vista[data-vista="arquivo"]:not([hidden]) .estudo-area[data-trilho="aberto"]) .fab {
+    opacity: 0;
+    pointer-events: none;
+  }
 }
 /* Ancorado nas duas pontas em vez de ter altura fixa: os 22px de cima param no
    centro da primeira bolha e os 56px de baixo na aresta do botão, seja qual for
@@ -2392,16 +2782,33 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
   color: var(--black);
   flex-shrink: 0;
 }
-.pasta-nome { font-size: 15px; font-weight: 800; letter-spacing: -.01em; }
+.pasta-nome { display: block; font-size: 15px; font-weight: 800; letter-spacing: -.01em; }
 .pasta-sub { font-size: 11.5px; font-weight: 500; color: var(--gray2); margin-top: 2px; }
-.pasta-numeros { display: flex; gap: 16px; }
-.pasta-num { display: inline-flex; align-items: center; gap: 6px; color: var(--gray2); }
+/* Prévia da descrição, e prévia mesmo: duas linhas e reticências. Sem o corte,
+   uma pasta de descrição longa esticaria o cartão e desalinharia a grade
+   inteira — os cartões vizinhos ficariam com um vão embaixo. */
+.pasta-resumo {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--gray2);
+  margin: 3px 0 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+/* A contagem é rodapé do cartão, não manchete: fica miúda e sem peso, porque o
+   que se lê no cartão é o nome da pasta. Em negrito e em 14px ela competia com
+   ele de igual para igual. */
+.pasta-numeros { display: flex; gap: 12px; }
+.pasta-num { display: inline-flex; align-items: center; gap: 5px; color: var(--gray2); }
 /* Os dois ícones vêm de origens com medidas diferentes; aqui eles se igualam,
    senão um contador pareceria maior que o outro. */
-.pasta-num svg { width: 15px; height: 15px; }
+.pasta-num svg { width: 13px; height: 13px; }
 /* Número na mesma cor do ícone: os dois são a mesma informação, e o contraste
    entre eles só disputava atenção com o nome da pasta, que é o que se lê. */
-.pasta-num b { font-size: 14px; font-weight: 800; line-height: 1.2; font-variant-numeric: tabular-nums; }
+.pasta-num b { font-size: 11.5px; font-weight: 500; line-height: 1.2; font-variant-numeric: tabular-nums; }
 
 /* ─── Linha de arquivo dentro de uma pasta ────────────────────────── */
 .arquivo-linha {
@@ -2438,7 +2845,6 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
 .pagina-cristal .bloco,
 .pagina-cristal .revisao-card,
 .pagina-cristal .grau,
-.pagina-cristal .kpi,
 .pagina-cristal .pasta-card,
 .pagina-cristal .deck-card,
 .pagina-cristal .fcard,
@@ -2453,9 +2859,9 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
     transform var(--transition-spring),
     background var(--transition);
 }
-/* A borda esquerda do cartão é a cor do acento, e continua sendo. */
-.pagina-cristal .admin-stat-card-v2 { border-left-color: var(--accent-color, var(--yellow)); }
-.pagina-cristal .kpi { border-left-color: var(--yellow); }
+/* A folha de cristal troca a borda de todas as peças, e aqui ela pararia a
+   faixa junto: a esquerda continua sendo o acento. */
+.pagina-cristal .admin-stat-card-v2 { border-left-color: var(--yellow); }
 
 .pagina-cristal .admin-toolbar-btn:hover:not(:disabled),
 .pagina-cristal .filter-dropdown-btn:hover,
@@ -2478,7 +2884,6 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
    levantada, e não só com a borda mais escura. */
 .pagina-cristal .comentario:hover,
 .pagina-cristal .comentario.ativo,
-.pagina-cristal .kpi:hover,
 .pagina-cristal .admin-stat-card-v2:hover {
   transform: translateY(-2px);
   border-color: var(--cristal-borda-forte);
@@ -2487,8 +2892,7 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
     inset 0 -1px 0 var(--cristal-base),
     var(--shadow-card-hover);
 }
-.pagina-cristal .admin-stat-card-v2:hover { border-left-color: var(--accent-color, var(--yellow)); }
-.pagina-cristal .kpi:hover { border-left-color: var(--yellow); }
+.pagina-cristal .admin-stat-card-v2:hover { border-left-color: var(--yellow); }
 /* O ícone da barra é apoio, não par do texto. */
 .pagina-cristal .admin-toolbar-btn { color: var(--gray2); }
 .pagina-cristal .admin-toolbar-btn:hover:not(:disabled) { color: var(--black); }
@@ -2497,22 +2901,61 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
 .pagina { flex: 1; min-height: 0; min-width: 0; display: flex; flex-direction: column; }
 .pagina[hidden] { display: none; }
 
-/* ─── Cartão de número ───────────────────────────────────────────────── */
-.kpi-fila { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+/* ─── Cartão de indicador ────────────────────────────────────────────── */
+/* A fileira é a grade que recebe os cartões; quem a preenche é
+   `pintarFileiraKpi`, e nenhuma página traz cartão escrito no markup. */
+/* `auto-fit` em vez de quatro colunas fixas porque as fileiras não têm todas o
+   mesmo tamanho — a do pomodoro tem três cartões, e numa grade de quatro ela
+   ficaria com um buraco à direita. Assim cada fileira ocupa a largura inteira
+   com os cartões que tem, e encolhe sozinha quando a tela aperta. */
+.kpi-fila { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+
+/* O desenho é o do portal: faixa à esquerda, rótulo miúdo em caixa alta, número
+   grande na cor da faixa e uma linha de contexto embaixo. Aqui ele era de duas
+   linhas e com o número sempre preto — a faixa não chegava ao valor, e o rótulo
+   ficava abaixo dele em vez de acima.
+
+   A cor é uma só, o rosa da casa, em todos os cartões do sistema. O acento ficou
+   escrito direto na regra e não mais atrás de um `--accent-color`: com a
+   variável, cada tela podia trocar a sua, e era o que estava acontecendo. */
 .admin-stat-card-v2 {
   background: var(--white);
   border-radius: var(--radius-lg);
   border: 1px solid var(--gray3);
-  border-left: 4px solid var(--accent-color, var(--yellow));
-  padding: 12px 16px;
+  border-left: 4px solid var(--yellow);
+  padding: 10px 14px;
   display: flex;
   flex-direction: column;
   gap: 4px;
   box-shadow: var(--shadow-card);
   transition: transform var(--transition-spring), box-shadow var(--transition-spring), background var(--transition-spring);
+  animation: slideUp .4s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
-.admin-stat-value { font-size: 26px; font-weight: 800; color: var(--black); line-height: 1.1; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
-.admin-stat-label { font-size: 11px; font-weight: 700; color: var(--gray2); text-transform: uppercase; letter-spacing: 0.08em; }
+.stat-v2-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gray2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0;
+}
+.stat-v2-value {
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--yellow);
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  animation: countUp .5s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+.stat-v2-desc { font-size: 12px; color: var(--gray2); font-weight: 400; margin: 0; }
+/* Cartão que filtra acende a moldura enquanto o recorte está de pé. */
+.admin-stat-card-v2.active-filter { border-color: var(--yellow); box-shadow: var(--shadow-yellow); }
+@keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes countUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .admin-stat-card-v2, .stat-v2-value { animation: none; }
+}
 
 /* ─── Busca e filtros de seção ───────────────────────────────────────── */
 /* A faixa de filtros: rótulo em caixa alta, os filtros, e o que sobra da
@@ -2762,28 +3205,57 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 .estado.novo { background: var(--gray4); color: var(--gray); }
 
 /* ─── Revisão ────────────────────────────────────────────────────────── */
+/* A tela é uma coluna estreita e centrada: durante a revisão só existe um card,
+   e tudo que não for ele é apoio. A medida de 620px é a mesma da coluna de
+   leitura em proporção — linha curta o bastante para a pergunta ser lida de
+   uma vez. */
 .revisao-palco { display: flex; flex-direction: column; gap: 16px; align-items: center; padding-top: 6px; }
 .barra-fila { width: 100%; max-width: 620px; display: flex; flex-direction: column; gap: 7px; }
-.barra-fila-topo { display: flex; align-items: baseline; justify-content: space-between; font-size: 12px; font-weight: 600; color: var(--gray2); }
+.barra-fila-topo { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; font-size: 12px; font-weight: 600; color: var(--gray2); }
 .barra-fila-topo b { font-size: 13px; color: var(--black); font-variant-numeric: tabular-nums; }
 .barra-trilho { height: 6px; border-radius: var(--radius-pill); background: var(--gray3); overflow: hidden; }
 .barra-cheia { height: 100%; border-radius: var(--radius-pill); background: var(--yellow); transition: width var(--transition-spring); }
+.barra-fila-placar { display: flex; gap: 14px; min-height: 16px; }
+.placar-item {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 11.5px; font-weight: 500; color: var(--gray2);
+  animation: entraLista .2s var(--curva-anti) backwards;
+}
+.placar-item b { font-weight: 800; color: var(--green); font-variant-numeric: tabular-nums; }
+.placar-item.volta b { color: var(--gray); }
+.placar-item svg { color: var(--green); }
+.placar-item.volta svg { color: var(--gray2); }
 
+/* A pista guarda o lugar do card enquanto ele troca. Sem ela, o card saindo
+   levava a altura junto e os botões davam um salto para cima no meio da
+   animação. */
+.revisao-pista { width: 100%; max-width: 620px; display: grid; }
+.revisao-pista > .revisao-card { grid-area: 1 / 1; }
 .revisao-card {
   width: 100%;
-  max-width: 620px;
   background: var(--white);
   border: 1.5px solid var(--gray3);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
-  padding: 32px 30px;
+  padding: 30px 30px 28px;
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
-.revisao-origem { font-size: 10.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--gray2); }
+.revisao-cabeca { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.revisao-origem { font-size: 10.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--gray2); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* O selo diz por que este card está na fila — atrasado, de hoje, ou nunca
+   estudado. É a única informação de estado que o palco mostra, e por isso ela
+   pode ter cor. */
+.revisao-selo {
+  flex-shrink: 0;
+  font-size: 10.5px; font-weight: 700; letter-spacing: .02em;
+  padding: 3px 9px; border-radius: var(--radius-pill);
+  background: var(--gray4); color: var(--gray);
+}
+.revisao-selo.atrasado { background: var(--red-soft); color: var(--red); }
+.revisao-selo.novo { background: var(--yd); color: var(--black); }
 .revisao-frente { font-size: 21px; font-weight: 800; line-height: 1.35; letter-spacing: -.015em; text-wrap: balance; }
-.revisao-verso-caixa { margin-top: 4px; }
 .revisao-verso {
   padding-top: 16px;
   margin-top: 12px;
@@ -2792,24 +3264,80 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   line-height: 1.6;
   color: var(--gray);
 }
+/* O trecho de origem entra recuado e com a barra do acento, como um callout:
+   ele é citação do texto, e não a resposta. */
+.revisao-trecho {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-left: 3px solid var(--yellow);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--yd);
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--gray);
+}
+
+/* A saída sai para o lado da resposta: errou volta pela esquerda, acertou segue
+   pela direita. É o que faz o gesto ter peso — sem isso o texto simplesmente
+   trocava no lugar e a sessão inteira parecia uma coisa só. */
+.revisao-card.sai-erro { animation: revSaiErro .22s cubic-bezier(.4, 0, 1, 1) forwards; }
+.revisao-card.sai-acerto { animation: revSaiAcerto .22s cubic-bezier(.4, 0, 1, 1) forwards; }
+.revisao-card.sai-pulo { animation: revSaiPulo .18s cubic-bezier(.4, 0, 1, 1) forwards; }
+.revisao-card.entra { animation: revEntra .3s cubic-bezier(.2, .9, .3, 1.2) both; }
+@keyframes revSaiErro { to { opacity: 0; transform: translateX(-40px) rotate(-1.6deg); } }
+@keyframes revSaiAcerto { to { opacity: 0; transform: translateX(40px) rotate(1.6deg); } }
+@keyframes revSaiPulo { to { opacity: 0; transform: scale(.97); } }
+@keyframes revEntra { from { opacity: 0; transform: translateY(16px) scale(.985); } to { opacity: 1; transform: none; } }
+
 .revisao-acoes { width: 100%; max-width: 620px; display: flex; flex-direction: column; gap: 10px; }
 .graus { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+/* Entram escalonados da esquerda para a direita, na ordem em que os olhos
+   passam por eles depois de ler a resposta. */
+.graus:not([hidden]) > .grau { animation: entraLista .22s var(--curva-anti) backwards; }
+.graus > .grau:nth-child(1) { animation-delay: 0s; }
+.graus > .grau:nth-child(2) { animation-delay: .04s; }
+.graus > .grau:nth-child(3) { animation-delay: .08s; }
+.graus > .grau:nth-child(4) { animation-delay: .12s; }
 .grau {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  padding: 10px 6px;
+  padding: 12px 6px 10px;
   border: 1.5px solid var(--gray3);
   border-radius: var(--radius-md);
   background: var(--white);
-  transition: all var(--transition-spring);
+  transition: border-color var(--transition-spring), background var(--transition-spring), transform var(--transition-spring), box-shadow var(--transition-spring);
 }
-.grau:hover { background: var(--bg); transform: translateY(-2px); }
+.grau:hover, .grau:focus-visible { outline: none; background: var(--bg); transform: translateY(-2px); box-shadow: var(--shadow-card); }
 .grau b { font-size: 13px; font-weight: 700; color: var(--black); }
 .grau span { font-size: 11px; font-weight: 600; color: var(--gray2); font-variant-numeric: tabular-nums; }
-.grau.errei:hover { border-color: var(--red); }
-.grau.facil:hover { border-color: var(--yellow); }
+.grau:hover { border-color: var(--gray2); }
+.grau.errei:hover, .grau.errei:focus-visible { border-color: var(--red); }
+.grau.bom:hover, .grau.bom:focus-visible { border-color: var(--green); }
+.grau.facil:hover, .grau.facil:focus-visible { border-color: var(--yellow); }
+/* O toque do teclado acende o botão como se a mão tivesse clicado nele: sem
+   isso a tecla funcionava e nada na tela confirmava qual foi apertada. */
+.grau.tocado { transform: scale(.95); border-color: var(--gray2); background: var(--gray4); }
+
+/* A tecla de atalho, no canto de cima do botão. Miúda de propósito: ela é dica,
+   e quem já sabe o atalho não precisa relê-la a cada card. */
+.tecla {
+  position: absolute;
+  top: 5px; right: 6px;
+  font-family: inherit;
+  font-size: 9.5px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 3px 4.5px;
+  border-radius: 4px;
+  background: var(--gray4);
+  color: var(--gray2);
+}
+.tecla.clara { position: static; margin-left: 2px; background: rgba(255, 255, 255, .28); color: var(--on-yellow); }
+.grau:hover .tecla { background: var(--white); }
+
 .revisao-fim {
   width: 100%;
   max-width: 620px;
@@ -2819,10 +3347,26 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   align-items: center;
   gap: 14px;
   padding: 40px 24px;
+  animation: revEntra .34s cubic-bezier(.2, .9, .3, 1.2) both;
 }
-.revisao-fim-ico { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; background: var(--yd); color: var(--black); }
+.revisao-fim-ico {
+  width: 54px; height: 54px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--yd); color: var(--black);
+  animation: seloPula .5s cubic-bezier(.2, .9, .3, 1.4) both .08s;
+}
+.revisao-fim-ico.calmo { background: var(--gray4); color: var(--gray2); animation: none; }
+@keyframes seloPula { from { transform: scale(.4); opacity: 0; } 60% { transform: scale(1.1); } to { transform: scale(1); opacity: 1; } }
 .revisao-fim h2 { font-size: 20px; font-weight: 800; letter-spacing: -.02em; }
 .revisao-fim p { font-size: 13.5px; color: var(--gray2); font-weight: 500; }
+.revisao-fim-numeros { width: 100%; text-align: left; margin-top: 4px; }
+.revisao-fim-acoes { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+
+/* Quem desligou movimento continua revisando: o que sai é a encenação, e não a
+   troca de card. */
+@media (prefers-reduced-motion: reduce) {
+  .revisao-card, .revisao-fim, .revisao-fim-ico, .placar-item, .graus:not([hidden]) > .grau { animation: none; }
+}
 
 /* ─── Pomodoro em tela cheia ─────────────────────────────────────────── */
 .pomodoro-grade { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 14px; align-items: start; }
@@ -2965,7 +3509,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     position: fixed;
     top: 60px; right: 0; bottom: 0;
     z-index: 290;
-    width: min(348px, 90vw);
+    width: min(var(--trilho-largura), 90vw);
     transform: translateX(101%);
     transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
     box-shadow: -16px 0 40px -18px rgba(20, 22, 30, .5);
@@ -3102,7 +3646,6 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 }
 @media (max-width: 1080px) {
   .pomodoro-grade { grid-template-columns: minmax(0, 1fr); }
-  .kpi-fila { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 560px) {
   /* Centrado em absoluto, o modo foco passa por cima da marca — a centralização
@@ -3117,7 +3660,6 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
      tamanho fixo e não encolhem. */
   .topo-dir { flex-shrink: 0; }
 
-  .kpi-fila { grid-template-columns: 1fr; }
   .graus { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .revisao-card { padding: 24px 20px; }
   .revisao-frente { font-size: 19px; }
@@ -3179,13 +3721,13 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       <!-- Um ícone só, à direita, como o de um controle remoto. O slot da
            esquerda é vazio de propósito: é onde o pino descansa quando a chave
            está desligada. -->
-      <button type="button" class="seg acende" id="segFoco" data-lado="a"
+      <button type="button" class="foco-seg pequeno" id="segFoco" data-ligado="false"
         role="switch" aria-checked="false" aria-label="Modo foco"
         title="Recolhe o menu e o painel de estudo, deixando só o conteúdo">
-        <span class="seg-thumb" aria-hidden="true"></span>
-        <span class="seg-opt" aria-hidden="true"></span>
-        <span class="seg-opt" id="optFoco" aria-hidden="true">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3.5v8"/><path d="M17.7 7a8 8 0 1 1-11.4 0"/></svg>
+        <span class="foco-seg-thumb" aria-hidden="true"></span>
+        <span class="foco-seg-vazio" aria-hidden="true"></span>
+        <span class="foco-seg-ico" aria-hidden="true">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v9"/><path d="M18.36 6.64a9 9 0 1 1-12.72 0"/></svg>
         </span>
       </button>
     </div>
@@ -3297,12 +3839,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
          </div>
        </div>
 
-       <div class="kpi-fila">
-         <div class="admin-stat-card-v2"><span class="admin-stat-value" id="kpiRevisadosHoje">0</span><span class="admin-stat-label">Revisados hoje</span></div>
-         <div class="admin-stat-card-v2"><span class="admin-stat-value" id="kpiFocoHoje">0h</span><span class="admin-stat-label">Em foco hoje</span></div>
-         <div class="admin-stat-card-v2" style="--accent-color: var(--green)"><span class="admin-stat-value" id="kpiAcerto30">—</span><span class="admin-stat-label">Acerto em 30 dias</span></div>
-         <div class="admin-stat-card-v2" style="--accent-color: var(--green)"><span class="admin-stat-value" id="kpiSequencia">0</span><span class="admin-stat-label">Dias seguidos</span></div>
-       </div>
+       <div class="kpi-fila" id="kpisPainel"></div>
 
        <div class="bloco grafico">
          <div class="grafico-topo">
@@ -3387,7 +3924,10 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
              <h1 class="admin-page-title titulo-editavel" id="pastaTitulo"
                contenteditable="true" role="textbox" spellcheck="false"
                aria-label="Nome da pasta" title="Clique para renomear"></h1>
-             <p class="admin-page-desc" id="pastaDesc"></p>
+             <p class="admin-page-desc texto-editavel" id="pastaDesc"
+               contenteditable="true" role="textbox" spellcheck="false"
+               data-vazio="Adicionar uma descrição…"
+               aria-label="Descrição da pasta" title="Clique para descrever a pasta"></p>
              <div class="arquivo-etiquetas" id="pastaEtiquetas" hidden></div>
            </div>
            <div class="cabecalho-acoes">
@@ -3479,48 +4019,50 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
           </div>
 
 
-          <section class="painel" id="painelCards" role="tabpanel" aria-labelledby="abaCards">
-            <p class="painel-rotulo"><span>Rascunhos desta sessão</span><b id="contaRascunhos">0</b></p>
+          <div class="paineis">
+            <section class="painel" id="painelCards" role="tabpanel" aria-labelledby="abaCards">
+              <p class="painel-rotulo"><span>Rascunhos desta sessão</span><b id="contaRascunhos">0</b></p>
 
-            <div class="cards-lista" id="listaCards"></div>
+              <div class="cards-lista" id="listaCards"></div>
 
-            <div class="vazio" id="estadoVazio">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="14" height="13" rx="2.5"/><path d="M8 3h10a3 3 0 0 1 3 3v10"/></svg>
-              <span><b>Nenhum rascunho.</b><br>Selecione um trecho no texto e use <b>Criar flashcard</b>.</span>
-            </div>
-
-            <div class="bloco-salvar">
-              <button type="button" class="select-gatilho" id="gatilhoDeck" aria-haspopup="listbox" aria-expanded="false">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 17l9 5 9-5"/></svg>
-                <span class="rotulo" id="deckRotulo"></span>
-                <svg class="seta" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-              </button>
-              <button type="button" class="btn btn-primary" id="btnSalvar" disabled>
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
-                <span id="rotuloSalvar">Nada para salvar</span>
-              </button>
-            </div>
-          </section>
-
-          <section class="painel" id="painelComentarios" role="tabpanel" aria-labelledby="abaComentarios" hidden>
-            <p class="painel-rotulo"><span>Notas deste arquivo</span><b id="contaComentarios">0</b></p>
-
-            <div class="comentario-compor" id="comporComentario" hidden>
-              <p class="comentario-trecho" id="comentarioTrecho"></p>
-              <textarea class="form-input" id="comentarioTexto" placeholder="O que você quer lembrar sobre este trecho?" aria-label="Nota sobre o trecho"></textarea>
-              <div class="painel-rodape" style="padding:0;border:none">
-                <button type="button" class="modal-acao" id="comentarioCancelar">Cancelar</button>
-                <button type="button" class="modal-acao-primaria" id="comentarioGravar">Guardar nota</button>
+              <div class="vazio" id="estadoVazio">
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="14" height="13" rx="2.5"/><path d="M8 3h10a3 3 0 0 1 3 3v10"/></svg>
+                <span><b>Nenhum rascunho.</b><br>Selecione um trecho no texto e use <b>Criar flashcard</b>.</span>
               </div>
-            </div>
 
-            <div class="comentarios-lista" id="listaComentarios"></div>
+              <div class="bloco-salvar">
+                <button type="button" class="select-gatilho" id="gatilhoDeck" aria-haspopup="listbox" aria-expanded="false">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 17l9 5 9-5"/></svg>
+                  <span class="rotulo" id="deckRotulo"></span>
+                  <svg class="seta" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <button type="button" class="btn btn-primary" id="btnSalvar" disabled>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
+                  <span id="rotuloSalvar">Nada para salvar</span>
+                </button>
+              </div>
+            </section>
 
-            <div class="vazio" id="vazioComentarios" hidden>
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg>
-              <span><b>Nenhuma nota.</b><br>Selecione um trecho no texto e use <b>Comentar</b>.</span>
-            </div>
-          </section>
+            <section class="painel" id="painelComentarios" role="tabpanel" aria-labelledby="abaComentarios" hidden>
+              <p class="painel-rotulo"><span>Notas deste arquivo</span><b id="contaComentarios">0</b></p>
+
+              <div class="comentario-compor" id="comporComentario" hidden>
+                <p class="comentario-trecho" id="comentarioTrecho"></p>
+                <textarea class="form-input" id="comentarioTexto" placeholder="O que você quer lembrar sobre este trecho?" aria-label="Nota sobre o trecho"></textarea>
+                <div class="painel-rodape" style="padding:0;border:none">
+                  <button type="button" class="modal-acao" id="comentarioCancelar">Cancelar</button>
+                  <button type="button" class="modal-acao-primaria" id="comentarioGravar">Guardar nota</button>
+                </div>
+              </div>
+
+              <div class="comentarios-lista" id="listaComentarios"></div>
+
+              <div class="vazio" id="vazioComentarios" hidden>
+                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg>
+                <span><b>Nenhuma nota.</b><br>Selecione um trecho no texto e use <b>Comentar</b>.</span>
+              </div>
+            </section>
+          </div>
         </div>
       </aside>
     </div>
@@ -3621,42 +4163,76 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
        <div class="admin-page-header">
          <div style="min-width:0">
            <h1 class="admin-page-title">Revisão de hoje</h1>
-           <p class="admin-page-desc">A fila do dia, por repetição espaçada.</p>
+           <!-- A linha diz qual é o recorte da sessão: o acervo todo, ou um
+                deck só. Vinda de dentro de um deck, a fila é outra, e a tela
+                tem de dizer isso. -->
+           <p class="admin-page-desc" id="revEscopo">A fila do dia, por repetição espaçada.</p>
          </div>
          <div class="cabecalho-acoes">
            <button type="button" class="btn btn-secondary btn-cabecalho" id="btnPularCard">Pular card</button>
          </div>
        </div>
 
-       <div class="revisao-palco" id="revisaoPalco">
+       <div class="revisao-palco" id="revisaoPalco" hidden>
          <div class="barra-fila">
            <div class="barra-fila-topo">
-             <span>Progresso da fila</span>
-             <b id="revProgresso">0 de 6</b>
+             <span id="revEtapa">Progresso da fila</span>
+             <b id="revProgresso">0 de 0</b>
            </div>
            <div class="barra-trilho">
              <div class="barra-cheia" id="revBarra" style="width:0%"></div>
            </div>
+           <!-- O placar da sessão: acertos e o que voltou para a fila. Fica
+                embaixo da barra porque é leitura de apoio, não o número que
+                manda. -->
+           <div class="barra-fila-placar">
+             <span class="placar-item" id="revPlacarAcertos" hidden>
+               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg>
+               <b>0</b> de primeira
+             </span>
+             <span class="placar-item volta" id="revPlacarVoltas" hidden>
+               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/></svg>
+               <b>0</b> de volta na fila
+             </span>
+           </div>
          </div>
 
-         <article class="revisao-card" id="revCard">
-           <p class="revisao-origem" id="revOrigem">Introdução</p>
-           <h2 class="revisao-frente" id="revFrente">Carregando</h2>
-           <div class="revelar" id="revVersoCaixa"><div>
-             <p class="revisao-verso" id="revVerso"></p>
-           </div></div>
-         </article>
+         <div class="revisao-pista">
+           <article class="revisao-card" id="revCard">
+             <div class="revisao-cabeca">
+               <p class="revisao-origem" id="revOrigem"></p>
+               <span class="revisao-selo" id="revSelo" hidden></span>
+             </div>
+             <h2 class="revisao-frente" id="revFrente"></h2>
+             <div class="revelar" id="revVersoCaixa"><div>
+               <p class="revisao-verso" id="revVerso"></p>
+               <p class="revisao-trecho" id="revTrecho" hidden></p>
+             </div></div>
+           </article>
+         </div>
 
          <div class="revisao-acoes">
            <button type="button" class="btn btn-primary" id="btnMostrar" style="width:100%">
              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
              Mostrar resposta
+             <kbd class="tecla clara">espaço</kbd>
            </button>
+           <!-- Os quatro graus, com a tecla de cada um e o intervalo de verdade
+                daquele card — não um número escrito à mão que vale só para quem
+                nunca foi estudado. -->
            <div class="graus" id="revGraus" hidden>
-             <button type="button" class="grau errei" data-grau="0"><b>Errei</b><span>de novo</span></button>
-             <button type="button" class="grau" data-grau="1"><b>Difícil</b><span>1 dia</span></button>
-             <button type="button" class="grau" data-grau="2"><b>Bom</b><span>3 dias</span></button>
-             <button type="button" class="grau facil" data-grau="3"><b>Fácil</b><span>8 dias</span></button>
+             <button type="button" class="grau errei" data-grau="0">
+               <kbd class="tecla">1</kbd><b>Errei</b><span data-quando>de novo</span>
+             </button>
+             <button type="button" class="grau" data-grau="1">
+               <kbd class="tecla">2</kbd><b>Difícil</b><span data-quando></span>
+             </button>
+             <button type="button" class="grau bom" data-grau="2">
+               <kbd class="tecla">3</kbd><b>Bom</b><span data-quando></span>
+             </button>
+             <button type="button" class="grau facil" data-grau="3">
+               <kbd class="tecla">4</kbd><b>Fácil</b><span data-quando></span>
+             </button>
            </div>
          </div>
        </div>
@@ -3668,9 +4244,29 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
            </span>
            <div>
              <h2>Fila concluída</h2>
-             <p id="revResumo">6 cards revisados em 4 minutos.</p>
+             <p id="revResumo"></p>
            </div>
-           <button type="button" class="btn btn-secondary btn-sm" id="btnRefazer">Refazer a fila</button>
+           <div class="kpi-fila revisao-fim-numeros" id="revFimNumeros"></div>
+           <div class="revisao-fim-acoes">
+             <button type="button" class="btn btn-secondary btn-sm" id="btnRefazer">Refazer a fila</button>
+             <button type="button" class="btn btn-primary btn-sm" id="btnFimDecks">Ir para os decks</button>
+           </div>
+         </div>
+       </div>
+
+       <!-- Fila vazia não é a mesma coisa que fila terminada: uma diz "você
+            acabou agora", a outra diz "não havia nada a fazer". Dizer as duas
+            com a mesma tela faria o app parecer que engoliu os cards. -->
+       <div class="revisao-palco" id="revisaoVazio" hidden>
+         <div class="revisao-fim">
+           <span class="revisao-fim-ico calmo" aria-hidden="true">
+             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a9 9 0 1 0 9 9"/><path d="M12 7v5l3 2"/><path d="M16 3h5v5"/></svg>
+           </span>
+           <div>
+             <h2 id="revVazioTitulo">Nada vencido por aqui</h2>
+             <p id="revVazioNota"></p>
+           </div>
+           <button type="button" class="btn btn-primary btn-sm" id="btnVazioDecks">Ver os decks</button>
          </div>
        </div>
       </div>
@@ -3686,11 +4282,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
          </div>
        </div>
 
-       <div class="kpi-fila">
-         <div class="admin-stat-card-v2"><span class="admin-stat-value" id="pgFocoHoje">0h</span><span class="admin-stat-label">Em foco hoje</span></div>
-         <div class="admin-stat-card-v2"><span class="admin-stat-value" id="pgCiclos">0</span><span class="admin-stat-label">Ciclos fechados</span></div>
-         <div class="admin-stat-card-v2" style="--accent-color: var(--green)"><span class="admin-stat-value" id="pgSequencia">0</span><span class="admin-stat-label">Dias seguidos</span></div>
-       </div>
+       <div class="kpi-fila" id="kpisPomodoro"></div>
 
        <div class="pomodoro-grade">
          <div class="bloco">
@@ -3797,21 +4389,56 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 </div>
 
 <!-- ═══ Pop-up de seleção ═══ -->
+<!-- Três ícones, e só: grifar, nota, flashcard. O botão grande do flashcard
+     dizia que aquela era a ação principal, mas as três são o mesmo gesto sobre
+     o mesmo trecho — e ele ainda dobrava a largura do balão, que precisa caber
+     acima da linha selecionada sem tapar o texto em volta. -->
 <div class="sel-pop" id="selPop" hidden>
-  <button type="button" class="btn btn-primary btn-sm" id="btnCriarCard">
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13.2 2.5 5.1 13.2a.5.5 0 0 0 .4.8h5l-.8 7.5a.5.5 0 0 0 .9.35l8.1-10.7a.5.5 0 0 0-.4-.8h-5l.8-7.5a.5.5 0 0 0-.9-.35Z"/></svg>
-    Criar flashcard
-  </button>
-  <span class="pop-sep" aria-hidden="true"></span>
-  <button type="button" class="topo-icone" id="btnGrifar" title="Destacar trecho" aria-label="Destacar trecho">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h3l6-6"/><path d="M14 5.5 18.5 10 21 7.5 16.5 3Z"/><path d="m12.5 7 4.5 4.5-5 5L7.5 12Z"/></svg>
-  </button>
-  <button type="button" class="topo-icone" id="btnComentar" title="Comentar trecho" aria-label="Comentar trecho">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg>
-  </button>
-  <button type="button" class="topo-icone" aria-label="Explicar em outras palavras">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5V6a2 2 0 0 1 2-2h13v16H6.5A2.5 2.5 0 0 0 4 22.5"/><path d="M8 8h7M8 12h5"/></svg>
-  </button>
+  <div class="sel-acoes" id="selAcoes">
+    <button type="button" class="topo-icone" id="btnGrifar" title="Grifar trecho" aria-label="Grifar trecho" aria-expanded="false">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>
+    </button>
+    <button type="button" class="topo-icone" id="btnComentar" title="Escrever uma nota" aria-label="Escrever uma nota">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg>
+    </button>
+    <!-- O mesmo desenho de flashcard dos contadores e das listas: o raio dizia
+         "rápido", não "cartão", e era o único lugar do sistema onde criar um
+         flashcard tinha outro símbolo. -->
+    <button type="button" class="topo-icone" id="btnCriarCard" title="Criar flashcard" aria-label="Criar flashcard">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="14" height="13" rx="2.5"/><path d="M8 3h10a3 3 0 0 1 3 3v10"/></svg>
+    </button>
+    <button type="button" class="topo-icone" id="btnLink" title="Inserir link (Ctrl+K)" aria-label="Inserir link" aria-expanded="false">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
+    </button>
+  </div>
+  <!-- A terceira face: o endereço do link. Mesma mecânica da paleta, para o
+       link não precisar de uma janela só dele. O trecho escolhido fica guardado
+       enquanto se digita aqui, porque escrever no campo desfaz a seleção. -->
+  <div class="sel-link" id="selLink" hidden>
+    <input type="text" id="selLinkCampo" placeholder="Cole o endereço" aria-label="Endereço do link" autocomplete="off" spellcheck="false">
+    <button type="button" class="topo-icone" id="selLinkOk" title="Aplicar" aria-label="Aplicar o link">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg>
+    </button>
+    <button type="button" class="topo-icone" id="selLinkTirar" title="Tirar o link" aria-label="Tirar o link">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 7l3-3a5 5 0 0 1 0 7l-1.5 1.5"/><path d="M7 17l-3 3a5 5 0 0 1 0-7L5.5 11.5"/><path d="M2 2l20 20"/></svg>
+    </button>
+  </div>
+  <!-- A paleta e a borracha. `data-cor` é a mesma chave que vai parar no
+       atributo da marca no texto, então a lista de cores existe aqui e no CSS,
+       e o JS só lê o que foi clicado. -->
+  <div class="sel-cores" id="selCores" hidden role="group" aria-label="Cor do grifo">
+    <button type="button" class="grifo-cor" data-cor="rosa" title="Rosa" aria-label="Grifar em rosa"></button>
+    <button type="button" class="grifo-cor" data-cor="verde" title="Verde" aria-label="Grifar em verde"></button>
+    <button type="button" class="grifo-cor" data-cor="azul" title="Azul" aria-label="Grifar em azul"></button>
+    <button type="button" class="grifo-cor" data-cor="amarelo" title="Amarelo" aria-label="Grifar em amarelo"></button>
+    <button type="button" class="grifo-cor" data-cor="laranja" title="Laranja" aria-label="Grifar em laranja"></button>
+    <button type="button" class="grifo-cor" data-cor="roxo" title="Roxo" aria-label="Grifar em roxo"></button>
+    <button type="button" class="grifo-cor" data-cor="vermelho" title="Vermelho" aria-label="Grifar em vermelho"></button>
+    <span class="pop-sep" aria-hidden="true"></span>
+    <button type="button" class="topo-icone" id="btnDesgrifar" title="Tirar o grifo" aria-label="Tirar o grifo">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7 21-4.3-4.3a1.7 1.7 0 0 1 0-2.4l9.6-9.6a1.7 1.7 0 0 1 2.4 0l5.6 5.6a1.7 1.7 0 0 1 0 2.4L13 21"/><path d="M22 21H7"/><path d="m5 11 8 8"/></svg>
+    </button>
+  </div>
 </div>
 
 <!-- ═══ Busca rápida ═══ -->
@@ -3863,6 +4490,9 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     <div class="admin-modal-header">
       <div style="flex:1;min-width:0">
         <p class="painel-rotulo" id="gavetaRotulo"></p>
+        <!-- Gaveta que não nomeia nada mostra um título fixo no lugar do campo:
+             a nota não tem nome, e um campo ali convida a inventar um. -->
+        <p class="painel-titulo" id="gavetaTituloFixo" hidden></p>
         <input class="painel-titulo painel-titulo-campo" id="gavetaTitulo" autocomplete="off">
       </div>
       <button type="button" class="rodape-icone" id="gavetaFechar" title="Fechar" aria-label="Fechar">
@@ -4044,10 +4674,18 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     decks.forEach(function (d) {
       var meus = ACERVO_CARDS.filter(function (c) { return c.deck === d.nome; });
       var vistos = meus.filter(function (c) { return c.tentativas > 0; });
-      var acertos = vistos.reduce(function (t, c) { return t + c.acertos; }, 0);
+      /* `certos` é o número; `acertos` é a frase que a tabela mostra ("3 de 5").
+         Somar a frase dava "0sem histórico3 de 5", e a retenção do deck saía
+         NaN — que aparecia como "NaN%" no cartão assim que houvesse a primeira
+         revisão. */
+      var acertos = vistos.reduce(function (t, c) { return t + (c.certos || 0); }, 0);
       var tentativas = vistos.reduce(function (t, c) { return t + c.tentativas; }, 0);
       d.conta = meus.length;
-      d.hoje = meus.filter(function (c) { return c.estado === "hoje" || c.estado === "atrasado"; }).length;
+      /* O selo do deck conta o que a revisão realmente vai oferecer hoje — a
+         mesma função que monta a fila. Contado à parte, ele prometia um número
+         e a tela entregava outro: os novos entram com teto, e o selo os ignorava
+         por completo. */
+      d.hoje = filaDoDia(d.nome).length;
       d.retencao = tentativas ? Math.round(acertos / tentativas * 100) : 0;
       d.ultimo = d.ultimo || (meus.length ? "Sem revisão ainda" : "Ainda não estudado");
     });
@@ -4070,7 +4708,8 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     decks.length = 0;
     (d.decks || []).forEach(function (dk) {
       nomeDoDeck[dk.id] = dk.nome;
-      decks.push({ id: dk.id, nome: dk.nome, desc: dk.desc, conta: 0, hoje: 0, retencao: 0, ultimo: "" });
+      decks.push({ id: dk.id, nome: dk.nome, desc: dk.desc, conta: 0, hoje: 0,
+                   retencao: 0, ultimo: "", novosPorDia: dk.novosPorDia || 20 });
     });
 
     ACERVO_CARDS.length = 0;
@@ -4078,19 +4717,20 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       ACERVO_CARDS.push({
         id: c.id, frente: c.frente, verso: c.verso, trecho: c.trecho,
         deck: nomeDoDeck[c.deckId] || "", deckId: c.deckId, arquivoId: c.arquivoId,
-        origem: c.origem, estado: c.estado, quando: quandoDe(c),
+        origem: c.origem, estado: c.estado, proxima: c.proxima, quando: quandoDe(c),
         acertos: c.tentativas ? c.acertos + " de " + c.tentativas : "sem histórico",
-        tentativas: c.tentativas
+        tentativas: c.tentativas,
+        /* O agendamento vem junto porque a tela de revisão precisa dele para
+           dizer, em cada botão, daqui a quanto o card volta. Sem isto ela
+           anunciava "1 dia, 3 dias, 8 dias" para todo card, que é o intervalo de
+           quem nunca foi estudado — e mentia em todos os outros. */
+        intervalo: c.intervalo || 0,
+        facilidade: c.facilidade || 2.5,
+        repeticoes: c.repeticoes || 0,
+        certos: c.acertos || 0
       });
     });
     recontarDecks();
-
-    /* A fila do dia é o que venceu: atrasado primeiro, depois o de hoje. */
-    FILA_BASE.length = 0;
-    ACERVO_CARDS
-      .filter(function (c) { return c.estado === "atrasado" || c.estado === "hoje"; })
-      .sort(function (a, b) { return a.estado === "atrasado" ? -1 : 1; })
-      .forEach(function (c) { FILA_BASE.push(c); });
 
     SETE_DIAS.length = 0;
     var nomes = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
@@ -4145,24 +4785,31 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     });
     var taxa = soma ? Math.round(acertos / soma * 100) + "%" : "—";
     var seq = diasSeguidos();
+    var ciclos = FOCO_HOJE.ciclos;
+    var naFila = filaDoDia("").length;
 
-    var valores = {
-      kpiRevisadosHoje: doDia ? String(doDia.total) : "0",
-      kpiFocoHoje: emHoras(FOCO_HOJE.minutos),
-      kpiAcerto30: taxa,
-      kpiSequencia: String(seq),
-      pgFocoHoje: emHoras(FOCO_HOJE.minutos),
-      pgCiclos: String(FOCO_HOJE.ciclos),
-      pgSequencia: String(seq)
-    };
-    Object.keys(valores).forEach(function (id) {
-      var e = $(id);
-      if (e) e.textContent = valores[id];
-    });
+    pintarFileiraKpi("kpisPainel", [
+      { rotulo: "Revisados hoje", valor: doDia ? String(doDia.total) : "0",
+        nota: naFila ? naFila + (naFila === 1 ? " ainda na fila" : " ainda na fila") : "fila vazia" },
+      { rotulo: "Em foco hoje", valor: emHoras(FOCO_HOJE.minutos),
+        nota: ciclos + (ciclos === 1 ? " ciclo" : " ciclos") },
+      { rotulo: "Acerto em 30 dias", valor: taxa,
+        nota: soma ? soma + (soma === 1 ? " revisão" : " revisões") : "sem histórico" },
+      { rotulo: "Dias seguidos", valor: String(seq),
+        nota: seq ? "sem quebrar a sequência" : "comece hoje" }
+    ]);
+
+    pintarFileiraKpi("kpisPomodoro", [
+      { rotulo: "Em foco hoje", valor: emHoras(FOCO_HOJE.minutos), nota: "somando os ciclos" },
+      { rotulo: "Ciclos fechados", valor: String(ciclos), nota: "hoje" },
+      { rotulo: "Dias seguidos", valor: String(seq),
+        nota: seq ? "sem quebrar a sequência" : "comece hoje" }
+    ]);
   }
 
-  /* Banco vazio ganha o conteúdo de partida: um app que abre sem nada não
-     mostra o que ele faz. Roda uma vez, e só. */
+  /* Redesenha todas as telas a partir do estado em memória. É chamada depois de
+     cada carga do banco e depois de cada gravação, porque uma pasta criada numa
+     tela aparece em contadores e listas de outras. */
   function repintarTudo() {
     pintarPastas();
     pintarGradeDecks();
@@ -4173,7 +4820,10 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     pintarPorPasta();
     pintarKpis();
     desenhar();
-    montarFila();
+    /* A fila não é remontada aqui: quem a monta é a entrada na tela de revisão.
+       Refazê-la a cada repintura jogaria fora uma sessão em curso toda vez que
+       qualquer outra coisa do app mudasse. */
+    if (paginaAtual === "revisao" && !revisaoEmCurso()) montarFila();
   }
 
   function carregar() {
@@ -4276,11 +4926,10 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
      Fica antes do bloco do menu porque `ajustarLargura` já roda na partida e
      precisa do switcher montado. */
   var segFoco = $("segFoco"), focoAntes = null;
-  function focoLigado() { return segFoco.dataset.lado === "b"; }
+  function focoLigado() { return segFoco.dataset.ligado === "true"; }
   function pintarFoco(ligado) {
-    segFoco.dataset.lado = ligado ? "b" : "a";
+    segFoco.dataset.ligado = String(ligado);
     segFoco.setAttribute("aria-checked", String(ligado));
-    $("optFoco").classList.toggle("on", ligado);
   }
   /* Abrir o menu ou o painel na mão desliga o foco sem repor nada: a pessoa
      acabou de dizer o que quer ver, e restaurar o estado anterior desfaria
@@ -4446,7 +5095,10 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     { id: "toggle", nome: "Bloco recolhível", dica: "> e espaço", marca: ">", sinal: "›" },
     { id: "aviso", nome: "Destaque", dica: "! e espaço", marca: "!", sinal: "!" },
     { id: "hr", nome: "Linha divisória", dica: "--- e espaço", marca: "---", sinal: "—" },
-    { id: "tabela", nome: "Tabela", dica: "| e espaço", marca: "|", sinal: "▦" }
+    { id: "tabela", nome: "Tabela", dica: "| e espaço", marca: "|", sinal: "▦" },
+    /* Sem marcação de teclado: imagem não se digita. Os caminhos dela são este,
+       colar e arrastar para dentro do texto. */
+    { id: "imagem", nome: "Imagem", dica: "ou cole, ou arraste", marca: "", sinal: "▣" }
   ];
   var POR_MARCA = {};
   BLOCOS.forEach(function (b) { if (b.marca) POR_MARCA[b.marca] = b.id; });
@@ -4479,6 +5131,9 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 
   function virarBloco(bloco, tipo, conteudo) {
     if (!bloco) return;
+    /* A imagem não converte o bloco: ela entra depois dele. Converter apagaria
+       a linha em que se está escrevendo, e o que se quer é acrescentar. */
+    if (tipo === "imagem") { escolherImagem(bloco); return; }
     /* A última trava, e a que vale: os dois caminhos de conversão já barram a
        primeira linha, mas é aqui que a regra fica garantida para qualquer
        caminho novo que apareça depois. */
@@ -4938,8 +5593,22 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   });
 
   /* ═══ Pop-up de seleção ══════════════════════════════════════════════ */
-  var selPop = $("selPop");
+  var selPop = $("selPop"), selAcoes = $("selAcoes"), selCores = $("selCores");
+  var selLink = $("selLink");
   var textoPendente = "", secaoPendente = "Introdução";
+  /* `arrastando` é o botão do mouse apertado; `gestoNoTexto` diz se esse gesto
+     começou dentro do texto. Os dois juntos são o que separa "estou escolhendo
+     um trecho" de "estou clicando em outra coisa". */
+  var arrastando = false, gestoNoTexto = false;
+
+  /* As três faces do balão: as ações, a paleta do grifo, o campo do link. */
+  function trocarFace(qual) {
+    selAcoes.hidden = qual !== "acoes";
+    selCores.hidden = qual !== "cores";
+    selLink.hidden = qual !== "link";
+    $("btnGrifar").setAttribute("aria-expanded", String(qual === "cores"));
+    $("btnLink").setAttribute("aria-expanded", String(qual === "link"));
+  }
 
   function secaoDe(no) {
     var el = no && no.nodeType === 3 ? no.parentElement : no;
@@ -4953,40 +5622,508 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     }
     return "Introdução";
   }
+  /* A seleção que interessa: dentro do corpo do texto e com conteúdo de
+     verdade. Selecionar no cabeçalho, no trilho ou na barra lateral não é
+     trecho para grifar, e antes qualquer uma delas trazia o balão. */
+  function selecaoDoTexto() {
+    var sel = window.getSelection();
+    if (!sel || sel.isCollapsed || !sel.rangeCount) return null;
+    if (!arquivoCorpo.contains(sel.getRangeAt(0).commonAncestorContainer)) return null;
+    if (sel.toString().trim().length < 4) return null;
+    return sel;
+  }
+
   function posicionar(r) {
+    /* A metade da largura sai da medida, e não de um número escrito aqui: o
+       balão encolheu quando o botão grande saiu, e a folga antiga passava a
+       empurrar a seta para longe do trecho perto das bordas. */
+    var meia = selPop.offsetWidth / 2 || 60;
     var folga = 12;
-    var meio = Math.min(Math.max(r.left + r.width / 2, folga + 112), window.innerWidth - folga - 112);
-    selPop.hidden = false;
-    selPop.style.left = meio + "px";
+    selPop.style.left =
+      Math.min(Math.max(r.left + r.width / 2, folga + meia), window.innerWidth - folga - meia) + "px";
     selPop.style.top = Math.max(r.top - 10, 74) + "px";
   }
   function esconderPop() { selPop.hidden = true; }
 
-  editor.addEventListener("mouseup", function () {
-    setTimeout(function () {
-      var sel = window.getSelection();
-      if (!sel || sel.isCollapsed) return;
-      var texto = sel.toString().trim();
-      if (texto.length < 4) return;
-      textoPendente = texto;
-      secaoPendente = secaoDe(sel.anchorNode);
+  function mostrarPop(sel) {
+    var r = sel.getRangeAt(0).getBoundingClientRect();
+    /* Trecho que rolou para fora da janela não tem balão: ele ficaria preso na
+       borda apontando para um texto que já não está ali. */
+    if (r.bottom < 80 || r.top > window.innerHeight - 40) { esconderPop(); return; }
+    var nascendo = selPop.hidden;
+    /* Cada aparição começa pelas ações: paleta aberta é estado do gesto
+       anterior, e não do trecho que acabou de ser escolhido. A troca vem antes
+       de medir, senão a largura seria a da face que está saindo. */
+    if (nascendo) trocarFace("acoes");
+    selPop.hidden = false;
+    /* Mede antes de posicionar: escondido, `offsetWidth` é zero. */
+    posicionar(r);
+    /* A entrada roda só quando ele nasce. Repetida a cada ajuste de posição, o
+       balão piscava a cada letra esticada com Shift e a cada linha rolada. */
+    if (nascendo) {
       selPop.classList.remove("surge");
       void selPop.offsetWidth;
       selPop.classList.add("surge");
-      posicionar(sel.getRangeAt(0).getBoundingClientRect());
-    }, 10);
-  });
-  editor.addEventListener("scroll", function () {
-    marcarSecao();
-    if (selPop.hidden) return;
-    var sel = window.getSelection();
-    var r = (sel && !sel.isCollapsed) ? sel.getRangeAt(0).getBoundingClientRect() : null;
-    if (!r || r.bottom < 80 || r.top > window.innerHeight - 40) { esconderPop(); return; }
-    posicionar(r);
-  }, { passive: true });
+    }
+  }
+
+  function avaliarSelecao() {
+    /* Com o botão apertado a seleção ainda está sendo feita: o balão seguiria o
+       cursor e ficaria por baixo dele. Ele aparece quando o gesto termina. */
+    if (arrastando) { esconderPop(); return; }
+    var sel = selecaoDoTexto();
+    if (!sel) { esconderPop(); return; }
+    textoPendente = sel.toString().trim();
+    secaoPendente = secaoDe(sel.anchorNode);
+    mostrarPop(sel);
+  }
+
+  /* `selectionchange` é o único evento que o navegador dispara para toda forma
+     de mexer na seleção — mouse, teclado, digitar por cima, Ctrl+A, desfazer.
+     Por isso ele é a fonte. Antes cada gesto tinha o seu próprio caminho, e
+     nenhum deles cobria o caso mais comum: desfazer a seleção com um clique
+     dentro do próprio texto. O `mouseup` saía cedo quando a seleção estava
+     vazia — sem esconder nada —, e o balão ficava pendurado na tela. */
+  document.addEventListener("selectionchange", avaliarSelecao);
+
   document.addEventListener("mousedown", function (e) {
+    /* Apertar um botão do balão não é começar uma seleção nova, e não pode
+       apagar a que está no ar: é dela que o botão vive. */
     if (selPop.contains(e.target)) return;
-    if (!selPop.hidden && !editor.contains(e.target)) esconderPop();
+    arrastando = true;
+    /* Clique fora do texto não traz o balão de volta no `mouseup`. O navegador
+       nem sempre desfaz a seleção ao clicar num botão de outra parte da tela, e
+       era por aí que ele reaparecia sozinho depois de já dispensado. */
+    gestoNoTexto = editor.contains(e.target);
+    esconderPop();
+  });
+  document.addEventListener("mouseup", function () {
+    if (!arrastando) return;
+    arrastando = false;
+    if (gestoNoTexto) avaliarSelecao();
+  });
+  /* Esc dispensa o balão sem mexer na seleção: quem abriu a paleta por engano
+     não deve ter de refazer o trecho para se livrar dela. */
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && !selPop.hidden) esconderPop();
+  });
+
+  editor.addEventListener("scroll", marcarSecao, { passive: true });
+  /* Rolar move o trecho, e o balão é `fixed`: sem acompanhar, ele fica parado
+     sobre outra linha. Em captura porque a rolagem pode nascer de qualquer
+     caixa por dentro da página, e `scroll` não sobe por borbulhamento. */
+  window.addEventListener("scroll", function () {
+    if (!selPop.hidden) avaliarSelecao();
+  }, true);
+  window.addEventListener("resize", function () {
+    if (!selPop.hidden) avaliarSelecao();
+  });
+
+  /* ═══ Prévia de arquivo ══════════════════════════════════════════════
+     A mesma peça do portal de referência, no vanilla daqui. Tela cheia, e não
+     uma caixa no meio da página: um print é lido para se achar o detalhe que
+     quem escreveu não soube nomear, e dentro de uma moldura isso vira apertar
+     os olhos. A página sai do caminho, o fundo escurece, e as ações ficam
+     soltas no canto de cima.
+
+     Recebe o conjunto inteiro e a posição: com mais de uma imagem ela vira
+     folheador, com as setas do teclado e o contador no pé. */
+  var ICO_BAIXAR = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M4 20h16"/></svg>';
+  var ICO_FECHAR_PREVIA = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+  var ICO_ANTES = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14 6-6 6 6 6"/></svg>';
+  var ICO_DEPOIS = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m10 6 6 6-6 6"/></svg>';
+
+  var previaAberta = null;
+
+  function abrirPrevia(itens, indice) {
+    if (!itens.length) return;
+    fecharPrevia(true);
+
+    var pos = Math.max(0, Math.min(indice || 0, itens.length - 1));
+    var tela = document.createElement("div");
+    tela.className = "previa-tela";
+    tela.setAttribute("role", "dialog");
+    tela.setAttribute("aria-modal", "true");
+    tela.setAttribute("aria-label", "Prévia da imagem");
+    tela.innerHTML =
+      '<div class="previa-topo">' +
+        '<span class="previa-nome"></span>' +
+        '<div class="previa-acoes">' +
+          '<button type="button" class="previa-botao" data-acao="baixar" title="Baixar" aria-label="Baixar">' + ICO_BAIXAR + '</button>' +
+          '<button type="button" class="previa-botao" data-acao="fechar" title="Fechar (Esc)" aria-label="Fechar">' + ICO_FECHAR_PREVIA + '</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="previa-palco"><img class="previa-img" alt=""></div>' +
+      '<p class="previa-legenda" hidden></p>' +
+      '<div class="previa-folheador" hidden>' +
+        '<button type="button" data-acao="antes" aria-label="Imagem anterior" title="Anterior (seta esquerda)">' + ICO_ANTES + '</button>' +
+        '<span></span>' +
+        '<button type="button" data-acao="depois" aria-label="Próxima imagem" title="Próxima (seta direita)">' + ICO_DEPOIS + '</button>' +
+      '</div>';
+
+    var img = tela.querySelector(".previa-img");
+    var nome = tela.querySelector(".previa-nome");
+    var legenda = tela.querySelector(".previa-legenda");
+    var folheador = tela.querySelector(".previa-folheador");
+    var contador = folheador.querySelector("span");
+
+    function pintar() {
+      var it = itens[pos];
+      img.src = it.url;
+      img.alt = it.nome || "";
+      nome.textContent = it.nome || "Imagem";
+      nome.title = it.nome || "";
+      legenda.textContent = it.legenda || "";
+      legenda.hidden = !it.legenda;
+      folheador.hidden = itens.length < 2;
+      contador.textContent = (pos + 1) + " de " + itens.length;
+    }
+    function andar(passo) {
+      pos = (pos + passo + itens.length) % itens.length;
+      pintar();
+    }
+    pintar();
+
+    /* O palco segura o clique: fora dele, clicar fecha. Sem isto, olhar de
+       perto e encostar o ponteiro na imagem fecharia a janela. */
+    tela.addEventListener("click", function (e) {
+      var botao = e.target.closest("[data-acao]");
+      if (botao) {
+        var acao = botao.dataset.acao;
+        if (acao === "fechar") fecharPrevia();
+        if (acao === "baixar") baixarImagem(itens[pos]);
+        if (acao === "antes") andar(-1);
+        if (acao === "depois") andar(1);
+        return;
+      }
+      if (!e.target.closest(".previa-palco, .previa-legenda")) fecharPrevia();
+    });
+
+    function tecla(e) {
+      if (e.key === "Escape") { e.preventDefault(); fecharPrevia(); return; }
+      /* As setas só mandam quando há para onde ir: numa imagem só elas
+         continuam pertencendo à página atrás. */
+      if (itens.length < 2) return;
+      if (e.key === "ArrowLeft") { e.preventDefault(); andar(-1); }
+      if (e.key === "ArrowRight") { e.preventDefault(); andar(1); }
+    }
+    document.addEventListener("keydown", tecla, true);
+
+    document.body.appendChild(tela);
+    tela.querySelector('[data-acao="fechar"]').focus();
+    previaAberta = { tela: tela, tecla: tecla, relogio: null };
+  }
+
+  function fecharPrevia(agora) {
+    if (!previaAberta) return;
+    var aberta = previaAberta;
+    previaAberta = null;
+    document.removeEventListener("keydown", aberta.tecla, true);
+    clearTimeout(aberta.relogio);
+    if (agora) { aberta.tela.remove(); return; }
+    aberta.tela.classList.add("saindo");
+    aberta.relogio = setTimeout(function () { aberta.tela.remove(); }, 180);
+  }
+
+  /* O nome do arquivo vem do `download`, e o endereço é do próprio sistema:
+     não há blob para criar nem para soltar depois. */
+  function baixarImagem(item) {
+    var a = document.createElement("a");
+    a.href = item.url;
+    a.download = item.nome || "imagem";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  /* ═══ Imagens do texto ═══════════════════════════════════════════════
+     A imagem não mora no corpo do arquivo: ela sobe para `/api/imagem` e o que
+     fica no texto é o endereço dela. Embutida como data: URL ela viajaria junto
+     com o texto em toda carga da página, e meia dúzia de prints pesaria mais
+     que o acervo inteiro. */
+  var TETO_IMAGEM = 5 * 1024 * 1024;
+
+  function ehImagem(f) { return !!f && /^image\//.test(f.type); }
+
+  function lerBase64(arquivo) {
+    return new Promise(function (ok, erro) {
+      var leitor = new FileReader();
+      leitor.onload = function () { ok(String(leitor.result).split(",")[1] || ""); };
+      leitor.onerror = function () { erro(new Error("Não deu para ler o arquivo.")); };
+      leitor.readAsDataURL(arquivo);
+    });
+  }
+
+  /* O lugar da imagem já existe enquanto ela sobe: sem isto o texto dá um salto
+     quando ela chega, e quem colou fica sem saber se alguma coisa aconteceu. */
+  function figuraDeEspera(nome) {
+    var f = document.createElement("figure");
+    f.className = "figura";
+    f.setAttribute("contenteditable", "false");
+    var caixa = document.createElement("div");
+    caixa.className = "figura-subindo";
+    caixa.innerHTML = '<span class="dux-spinner sm" aria-hidden="true"></span><span></span>';
+    caixa.lastChild.textContent = "Subindo " + nome;
+    f.appendChild(caixa);
+    return f;
+  }
+
+  /* O bloco onde a imagem entra. Sem cursor no texto ela vai para o fim, que é
+     onde quem arrasta um arquivo para o meio da página espera vê-la. */
+  function blocoParaMidia() {
+    return blocoDoCursor() || arquivoCorpo.lastElementChild;
+  }
+
+  function inserirImagem(arquivo, bloco) {
+    if (!ehImagem(arquivo)) {
+      avisar("error", "Não é imagem", "Só imagem entra no texto por enquanto.");
+      return;
+    }
+    if (arquivo.size > TETO_IMAGEM) {
+      avisar("error", "Imagem grande demais",
+        "Ela tem " + Math.round(arquivo.size / 1048576) + " MB, e o limite é " +
+        (TETO_IMAGEM / 1048576) + " MB.");
+      return;
+    }
+
+    var depoisDe = bloco || blocoParaMidia();
+    var figura = figuraDeEspera(arquivo.name || "imagem");
+    /* Um parágrafo nasce junto: a figura não recebe cursor, e sem ele não
+       haveria como continuar escrevendo quando a imagem fica no fim do texto. */
+    var paragrafo = document.createElement("p");
+    paragrafo.innerHTML = "<br>";
+    if (depoisDe) {
+      depoisDe.after(figura);
+      figura.after(paragrafo);
+    } else {
+      arquivoCorpo.appendChild(figura);
+      arquivoCorpo.appendChild(paragrafo);
+    }
+    porCursorEm(paragrafo);
+
+    lerBase64(arquivo).then(function (base64) {
+      return gravar({
+        acao: "imagem.criar", tipo: arquivo.type, nome: arquivo.name || "",
+        arquivoId: (arquivoAberto && arquivoAberto.id) || "", dados: base64
+      });
+    }).then(function (r) {
+      if (!r || !r.url) {
+        /* Sem endereço não há o que mostrar: a espera sai, em vez de ficar
+           girando para sempre sobre uma imagem que não subiu. */
+        figura.remove();
+        return;
+      }
+      figura.innerHTML = "";
+      var img = document.createElement("img");
+      img.src = r.url;
+      img.alt = arquivo.name || "Imagem do arquivo";
+      img.dataset.img = r.id;
+      figura.appendChild(img);
+      salvarTexto();
+    }).catch(function (e) {
+      figura.remove();
+      avisar("error", "Não deu para inserir a imagem", e.message);
+    });
+  }
+
+  /* O seletor nasce e morre a cada uso: um input escondido preso na página
+     guardaria o arquivo anterior, e escolher o mesmo de novo não dispararia
+     nada, porque o valor não teria mudado. */
+  function escolherImagem(bloco) {
+    var entrada = document.createElement("input");
+    entrada.type = "file";
+    entrada.accept = "image/*";
+    entrada.multiple = true;
+    entrada.style.display = "none";
+    document.body.appendChild(entrada);
+    entrada.addEventListener("change", function () {
+      Array.prototype.slice.call(entrada.files).forEach(function (f, i) {
+        inserirImagem(f, i === 0 ? bloco : null);
+      });
+      entrada.remove();
+    });
+    entrada.click();
+  }
+
+  /* Colar um print é o caminho mais curto, e o mais usado: o que vem da área de
+     transferência entra aqui antes de o navegador colar a sua própria versão,
+     que seria uma data: URL dentro do texto. */
+  arquivoCorpo.addEventListener("paste", function (e) {
+    var dados = e.clipboardData;
+    if (!dados) return;
+
+    var imagens = Array.prototype.slice.call(dados.files || []).filter(ehImagem);
+    if (imagens.length) {
+      e.preventDefault();
+      imagens.forEach(function (f, i) { inserirImagem(f, i === 0 ? blocoParaMidia() : null); });
+      return;
+    }
+
+    /* Endereço colado sobre um trecho escolhido vira link daquele trecho. É o
+       gesto de sempre em editor de texto, e evita a viagem pelo balão. */
+    var texto = (dados.getData("text/plain") || "").trim();
+    var sel = window.getSelection();
+    if (texto && /^(https?:\/\/|www\.)\S+$/i.test(texto) && sel && !sel.isCollapsed
+        && arquivoCorpo.contains(sel.getRangeAt(0).commonAncestorContainer)) {
+      e.preventDefault();
+      aplicarLinkNaSelecao(normalizarUrl(texto));
+      salvarTexto();
+    }
+  });
+
+  /* Arrastar de fora para dentro do texto. O `dragover` precisa ser barrado,
+     senão o navegador abre a imagem no lugar da página. */
+  arquivoCorpo.addEventListener("dragover", function (e) {
+    if (!e.dataTransfer || !Array.prototype.some.call(e.dataTransfer.items || [], function (i) {
+      return i.kind === "file";
+    })) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+  });
+  arquivoCorpo.addEventListener("drop", function (e) {
+    var arquivos = Array.prototype.slice.call((e.dataTransfer && e.dataTransfer.files) || []).filter(ehImagem);
+    if (!arquivos.length) return;
+    e.preventDefault();
+    /* O bloco é o de onde o arquivo caiu, e não o do cursor: o cursor ficou
+       onde se estava escrevendo, e não é para lá que se arrastou. */
+    var alvo = e.target.closest && e.target.closest(".arquivo-corpo > *");
+    arquivos.forEach(function (f, i) { inserirImagem(f, i === 0 ? alvo : null); });
+  });
+
+  /* Clicar numa imagem abre a prévia, com todas as do arquivo dentro: é o mesmo
+     conjunto que se está lendo, e folhear entre elas é o gesto seguinte. */
+  arquivoCorpo.addEventListener("click", function (e) {
+    var img = e.target.closest && e.target.closest(".figura img");
+    if (!img || !arquivoCorpo.contains(img)) return;
+    var todas = Array.prototype.slice.call(arquivoCorpo.querySelectorAll(".figura img"));
+    abrirPrevia(todas.map(function (el) {
+      return { url: el.getAttribute("src"), nome: el.getAttribute("alt") || "Imagem" };
+    }), todas.indexOf(img));
+  });
+
+  /* ═══ Links do texto ═════════════════════════════════════════════════ */
+  /* Endereço sem esquema não é endereço para o navegador: "sinapse.app" vira
+     caminho relativo e leva a uma página que não existe. O que não for http,
+     mailto ou tel ganha https na frente, e é isso que fecha a porta para um
+     `javascript:` colado no campo. */
+  function normalizarUrl(cru) {
+    var v = (cru || "").trim();
+    if (!v) return "";
+    if (/^(https?:|mailto:|tel:)/i.test(v)) return v;
+    if (/^[\w.+-]+@[\w-]+\.[\w.-]+$/.test(v)) return "mailto:" + v;
+    /* Qualquer outro esquema é recusado em vez de remendado: pôr https na
+       frente de um `javascript:` só troca um link quebrado por outro. */
+    if (/^[a-z][\w+.-]*:/i.test(v)) return "";
+    return "https://" + v.replace(/^\/+/, "");
+  }
+
+  function linkEmVolta(no) {
+    var el = no && no.nodeType === 3 ? no.parentElement : no;
+    while (el && el !== arquivoCorpo) {
+      if (el.tagName === "A") return el;
+      el = el.parentElement;
+    }
+    return null;
+  }
+
+  function aplicarLinkNaSelecao(url) {
+    if (!url) return [];
+    return envolverSelecao(function () {
+      var a = document.createElement("a");
+      a.setAttribute("href", url);
+      /* Aba nova e sem passar a referência: o texto aberto continua onde
+         estava, e a página de destino não ganha alça para esta. */
+      a.setAttribute("target", "_blank");
+      a.setAttribute("rel", "noopener noreferrer");
+      return a;
+    });
+  }
+
+  /* O trecho escolhido fica guardado enquanto se digita o endereço: pôr o foco
+     no campo desfaz a seleção do texto, e sem esta cópia não haveria mais o que
+     envolver na hora de aplicar. */
+  var alcancePendente = null;
+
+  function abrirCampoLink() {
+    var sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return;
+    var alcance = sel.getRangeAt(0);
+    if (!arquivoCorpo.contains(alcance.commonAncestorContainer)) return;
+    var existente = linkEmVolta(alcance.commonAncestorContainer);
+    /* Sem trecho escolhido só há o que fazer se o cursor estiver dentro de um
+       link: aí o campo edita aquele. Fora disso não há o que transformar. */
+    if (alcance.collapsed && !existente) return;
+
+    alcancePendente = alcance.cloneRange();
+    var campo = $("selLinkCampo");
+    campo.value = existente ? existente.getAttribute("href") || "" : "";
+    $("selLinkTirar").hidden = !existente;
+
+    selPop.hidden = false;
+    trocarFace("link");
+    posicionar(alcance.getBoundingClientRect());
+    campo.focus();
+    campo.select();
+  }
+
+  function aplicarDoCampo() {
+    var url = normalizarUrl($("selLinkCampo").value);
+    if (!url || !alcancePendente) { esconderPop(); return; }
+
+    var existente = linkEmVolta(alcancePendente.commonAncestorContainer);
+    if (existente) {
+      existente.setAttribute("href", url);
+    } else {
+      var sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(alcancePendente);
+      aplicarLinkNaSelecao(url);
+    }
+    alcancePendente = null;
+    esconderPop();
+    salvarTexto();
+  }
+
+  function tirarLink() {
+    var existente = alcancePendente && linkEmVolta(alcancePendente.commonAncestorContainer);
+    if (existente) {
+      /* O texto fica; some só a marca em volta dele. */
+      var pai = existente.parentNode;
+      while (existente.firstChild) pai.insertBefore(existente.firstChild, existente);
+      existente.remove();
+      pai.normalize();
+    }
+    alcancePendente = null;
+    esconderPop();
+    salvarTexto();
+  }
+
+  $("btnLink").addEventListener("click", abrirCampoLink);
+  $("selLinkOk").addEventListener("click", aplicarDoCampo);
+  $("selLinkTirar").addEventListener("click", tirarLink);
+  $("selLinkCampo").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") { e.preventDefault(); aplicarDoCampo(); }
+    if (e.key === "Escape") { e.preventDefault(); alcancePendente = null; esconderPop(); }
+  });
+
+  arquivoCorpo.addEventListener("keydown", function (e) {
+    if ((e.ctrlKey || e.metaKey) && (e.key === "k" || e.key === "K")) {
+      e.preventDefault();
+      abrirCampoLink();
+    }
+  });
+
+  /* Dentro de um campo editável o navegador não segue link nenhum: clicar ali é
+     pôr o cursor. Aqui o clique abre em outra aba, que é o que um link no meio
+     de um texto de estudo existe para fazer. Para mexer no endereço, o balão:
+     ele reconhece o link em volta do cursor. */
+  arquivoCorpo.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest("a");
+    if (!a || !arquivoCorpo.contains(a)) return;
+    var url = a.getAttribute("href");
+    if (!url) return;
+    e.preventDefault();
+    window.open(url, "_blank", "noopener");
   });
 
   /* ═══ Grifar e comentar ══════════════════════════════════════════════
@@ -5005,11 +6142,16 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     return null;
   }
 
-  function desembrulhar(el) {
+  /* Tira a marca e deixa o conteúdo onde estava. `juntar` é o `normalize`, que
+     costura os pedaços de texto de volta num só — e é justamente o que não pode
+     rodar enquanto há uma seleção viva apontando para esses pedaços: costurá-los
+     invalida os limites do intervalo, e o grifo seguinte cairia no lugar errado.
+     Quem desembrulha no meio de um gesto passa `false` e junta no fim. */
+  function desembrulhar(el, juntar) {
     var pai = el.parentNode;
     while (el.firstChild) pai.insertBefore(el.firstChild, el);
     el.remove();
-    pai.normalize();
+    if (juntar !== false) pai.normalize();
   }
 
   /* Envolve o que está selecionado. A seleção pode cruzar a borda de blocos —
@@ -5047,18 +6189,100 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     return feitas;
   }
 
-  $("btnGrifar").addEventListener("click", function () {
+  /* Todos os grifos que o trecho encosta, e não só o que envolve o ponto de
+     partida. Era esse o buraco do "não consigo desgrifar": a checagem antiga
+     subia do `commonAncestorContainer`, então ela só achava a marca quando a
+     seleção caía inteirinha dentro dela. Bastava pegar um espaço a mais para o
+     ancestral virar o parágrafo, e aí o botão não tirava nada — pior, grifava
+     de novo por cima, empilhando marca dentro de marca. */
+  function grifosNaSelecao() {
     var sel = window.getSelection();
-    /* Já grifado: o mesmo botão tira. Um grifo que só soma vira mancha. */
-    var jaTem = sel && sel.rangeCount ? marcaEmVolta(sel.getRangeAt(0).commonAncestorContainer, "mark.grifo") : null;
-    if (jaTem) {
-      desembrulhar(jaTem);
-      if (sel) sel.removeAllRanges();
-    } else if (!envolverSelecao(function () {
-      var m = document.createElement("mark");
-      m.className = "grifo";
-      return m;
-    }).length) return;
+    if (!sel || !sel.rangeCount) return [];
+    var r = sel.getRangeAt(0);
+    if (!arquivoCorpo.contains(r.commonAncestorContainer)) return [];
+    var dentro = marcaEmVolta(r.commonAncestorContainer, "mark.grifo");
+    if (dentro) return [dentro];
+    return Array.prototype.filter.call(arquivoCorpo.querySelectorAll("mark.grifo"),
+      function (m) { return r.intersectsNode(m); });
+  }
+
+  /* Junta os pais no fim, e não a cada marca: `normalize` durante o gesto mata
+     a seleção que ainda falta usar. */
+  function tirarGrifos(marcas) {
+    var pais = [];
+    marcas.forEach(function (m) {
+      if (pais.indexOf(m.parentNode) < 0) pais.push(m.parentNode);
+      desembrulhar(m, false);
+    });
+    return pais;
+  }
+  function juntarTexto(pais) {
+    pais.forEach(function (p) { if (p && p.isConnected) p.normalize(); });
+  }
+
+  function grifarCom(cor) {
+    var sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return;
+    var antigos = grifosNaSelecao();
+
+    /* Encostar num grifo é pedir para repintá-lo inteiro. Se a seleção só pegou
+       metade dele, ela cresce até abraçar o todo antes de refazer: sem isso, a
+       metade não selecionada perderia a cor sem ninguém ter pedido. */
+    if (antigos.length) {
+      /* Cópia, e não o intervalo da própria seleção: `removeAllRanges` logo
+         abaixo largaria o original no meio do caminho. */
+      var r = sel.getRangeAt(0).cloneRange();
+      antigos.forEach(function (m) {
+        var rm = document.createRange();
+        rm.selectNode(m);
+        if (r.compareBoundaryPoints(Range.START_TO_START, rm) > 0) r.setStartBefore(m);
+        if (r.compareBoundaryPoints(Range.END_TO_END, rm) < 0) r.setEndAfter(m);
+      });
+      sel.removeAllRanges();
+      sel.addRange(r);
+      /* Tira as marcas antigas com a seleção ainda de pé: o que sobra é o texto
+         cru, e a marca nova entra por cima dele em uma peça só. */
+      var pais = tirarGrifos(antigos);
+      var feitas = envolverSelecao(function () { return novaMarca(cor); });
+      juntarTexto(pais);
+      if (!feitas.length) return;
+    } else if (!envolverSelecao(function () { return novaMarca(cor); }).length) {
+      return;
+    }
+    esconderPop();
+    salvarTexto();
+  }
+  function novaMarca(cor) {
+    var m = document.createElement("mark");
+    m.className = "grifo";
+    m.dataset.cor = cor;
+    return m;
+  }
+
+  /* Grifar abre a paleta em vez de pintar de imediato: a cor é a escolha, e não
+     um efeito colateral do clique. O balão troca de face no lugar. */
+  $("btnGrifar").addEventListener("click", function () {
+    trocarFace("cores");
+    /* A face nova tem outra largura, e a seta tem de continuar apontando para o
+       mesmo trecho: reposiciona depois de trocar. */
+    var sel = selecaoDoTexto();
+    if (sel) posicionar(sel.getRangeAt(0).getBoundingClientRect());
+  });
+
+  selCores.addEventListener("click", function (e) {
+    var bolinha = e.target.closest(".grifo-cor");
+    if (bolinha) grifarCom(bolinha.dataset.cor);
+  });
+
+  $("btnDesgrifar").addEventListener("click", function () {
+    var marcas = grifosNaSelecao();
+    if (!marcas.length) {
+      avisar("info", "Nada para tirar", "Selecione um trecho grifado.");
+      return;
+    }
+    juntarTexto(tirarGrifos(marcas));
+    var sel = window.getSelection();
+    if (sel) sel.removeAllRanges();
     esconderPop();
     salvarTexto();
   });
@@ -5169,16 +6393,20 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
      compositor do trilho é só para a nota que está nascendo, quando o trecho
      acabou de ser marcado e ainda não existe nada para listar.
 
-     O trecho citado vai no título travado — ele diz do que a nota trata, e só
-     muda mexendo no texto. */
+     O título é fixo e o mesmo para toda nota: nota não tem nome. O trecho vem
+     abaixo do campo, num bloco que se lê — ele é o contexto do que se escreve,
+     e só muda mexendo no texto. */
   function abrirGavetaNota(c) {
     var estado = { texto: c.texto };
     abrirPainel({
-      nome: "nota", rotulo: "Nota do arquivo", titulo: c.trecho, tituloFixo: true,
-      acao: "Gravar", rotuloTitulo: "Trecho comentado",
+      nome: "nota", rotulo: "Nota do arquivo", tituloEstatico: "Comentário do trecho",
+      acao: "Gravar",
+      podeGravar: function () { return !!estado.texto.trim(); },
       montar: function (corpo) {
-        corpo.appendChild(grupo("Nota", campoArea(c.texto,
-          "O que você quer lembrar sobre este trecho?", function (v) { estado.texto = v; })));
+        corpo.appendChild(grupo("Comentário", campoArea(c.texto,
+          "O que você quer lembrar sobre este trecho?",
+          function (v) { estado.texto = v; travarGravar(); })));
+        corpo.appendChild(grupoSoLeitura("Trecho no arquivo", blocoTrecho(c.trecho)));
       },
       gravar: function () {
         var t = estado.texto.trim();
@@ -5407,8 +6635,36 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   function opcoesDeDeck() {
     return decks.map(function (d) { return { nome: d.nome, nota: d.conta + " cards" }; });
   }
-  ligarSelect($("gatilhoDeck"), $("deckRotulo"), opcoesDeDeck,
-    function () { return deckAtual; }, function (nome) { deckAtual = nome; });
+
+  /* O deck do arquivo aberto, batizado pelo caminho até ele: pasta e arquivo.
+     É o nome que diz de onde os cards saíram sem ninguém ter de inventar um, e
+     dois arquivos de mesmo nome em pastas diferentes não colidem. */
+  function nomeDoDeckDoArquivo() {
+    if (!arquivoAberto) return "";
+    var pasta = pastaAberta ? pastaAberta.nome + " · " : "";
+    return pasta + arquivoAberto.nome;
+  }
+  /* A lista do trilho é a dos decks mais uma linha: o deck deste arquivo,
+     quando ele ainda não existe. Ele é o destino natural do que nasceu aqui, e
+     sem essa linha criá-lo obrigava a sair do texto, ir à tela de decks,
+     batizar à mão e voltar. Escolher qualquer outro deck continua a um clique,
+     e o campo de busca cria um terceiro nome na hora. */
+  function opcoesDeDeckNoArquivo() {
+    var lista = opcoesDeDeck();
+    var meu = nomeDoDeckDoArquivo();
+    if (meu && !acharDeck(meu)) lista.unshift({ nome: meu, nota: "criar para este arquivo" });
+    return lista;
+  }
+  ligarSelect($("gatilhoDeck"), $("deckRotulo"), opcoesDeDeckNoArquivo,
+    function () { return deckAtual; },
+    function (nome) {
+      /* Escolher um deck que ainda não existe é pedir para criá-lo. Vale para a
+         sugestão do arquivo e para o nome digitado na busca — `criarDeck`
+         devolve o que já existe, então chamar duas vezes não duplica nada. */
+      if (nome && !acharDeck(nome)) criarDeck(nome);
+      deckAtual = nome;
+    },
+    { rotulo: "deck", aoCriar: criarDeck });
 
   /* ═══ Flashcards ═════════════════════════════════════════════════════ */
   /* Começa vazio, e é o que o rótulo do painel sempre prometeu: "rascunhos
@@ -5494,7 +6750,13 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       frente: "Sobre " + secaoPendente.charAt(0).toLowerCase() + secaoPendente.slice(1) + ": o que o texto afirma?",
       verso: limpar(textoPendente),
       origem: secaoPendente,
-      trecho: limpar(textoPendente)
+      trecho: limpar(textoPendente),
+      /* O arquivo fica preso ao rascunho no momento em que ele nasce, e por
+         referência: lido só na hora de salvar, um rascunho feito aqui e salvo
+         depois de abrir outro texto sairia carimbado com o arquivo errado. A
+         referência, e não o id, porque arquivo recém-criado ainda espera o seu
+         id chegar do banco. */
+      arquivo: arquivoAberto
     };
     rascunhos.unshift(novo);
     escolherAba("cards");
@@ -5508,31 +6770,49 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   $("btnSalvar").addEventListener("click", function () {
     var n = rascunhos.length;
     if (!n) return;
+    if (!deckAtual) {
+      avisar("error", "Falta o deck", "Escolha para onde os flashcards vão, ou crie um pelo próprio campo.");
+      return;
+    }
+    /* O deck do arquivo nasce aqui, e não ao abrir o texto: só passear pelos
+       arquivos encheria a lista de decks vazios. Quem já existe volta como
+       está. */
+    var deck = acharDeck(deckAtual) || criarDeck(deckAtual,
+      "Flashcards tirados de " + deckAtual + ".");
+
     var indo = rascunhos.slice();
     /* Pinta primeiro: a lista esvazia no gesto, e os contadores sobem junto. */
     rascunhos = [];
     desenhar();
-    for (var i = 0; i < decks.length; i++) {
-      if (decks[i].nome !== deckAtual) continue;
-      decks[i].conta += n;
-      /* Card salvo hoje entra na fila de hoje: o selo sai da soma dos decks,
-         e não de um número escrito à mão que envelhece sozinho. */
-      decks[i].hoje += n;
-    }
+    deck.conta += n;
+    /* Card salvo hoje entra na fila de hoje: o selo sai da soma dos decks, e
+       não de um número escrito à mão que envelhece sozinho. */
+    deck.hoje += n;
     pintarGradeDecks();
-    avisar("success", n === 1 ? "1 flashcard salvo" : n + " flashcards salvos", "No deck " + deckAtual + ", na fila de revisão de hoje.");
+    avisar("success", n === 1 ? "1 flashcard salvo" : n + " flashcards salvos", "No deck " + deck.nome + ", na fila de revisão de hoje.");
     /* Os rascunhos vão numa remessa só: são três pedidos numa ida, e não três
-       idas em fila. */
+       idas em fila.
+
+       `arquivoId` viaja junto: é o que prende o card ao texto de onde ele saiu,
+       e sem ele a contagem da linha do arquivo ficava eternamente em zero. */
     var novos = indo.map(function (d) {
-      var c = { frente: d.frente, verso: d.verso, trecho: d.trecho || "", origem: d.origem || "" };
+      var arquivoId = (d.arquivo && d.arquivo.id) || null;
+      var c = { frente: d.frente, verso: d.verso, trecho: d.trecho || "",
+                origem: d.origem || "", arquivoId: arquivoId };
       ACERVO_CARDS.unshift({
-        frente: c.frente, verso: c.verso, trecho: c.trecho, deck: deckAtual, origem: c.origem,
+        frente: c.frente, verso: c.verso, trecho: c.trecho, deck: deck.nome,
+        origem: c.origem, arquivoId: arquivoId,
         estado: "hoje", quando: "Hoje", acertos: "sem histórico", tentativas: 0
       });
       return c;
     });
     pintarTabela();
-    gravar({ acao: "card.criar", deckId: idDoDeck(deckAtual), cards: novos });
+    if (barraArquivos) pintarArquivos();
+    /* Deck recém-criado ainda não tem id: os cards esperam o banco devolvê-lo,
+       senão saem apontando para lugar nenhum. */
+    Promise.resolve(deck.pronto).then(function () {
+      gravar({ acao: "card.criar", deckId: deck.id, cards: novos });
+    });
   });
 
   /* ═══ Gaveta da casa ═════════════════════════════════════════════════
@@ -5607,6 +6887,24 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     g.appendChild(l);
     g.appendChild(dentro);
     return g;
+  }
+  /* Bloco que só se lê, com o mesmo rótulo dos campos. O `grupo` usa <label>, e
+     rótulo sem controle é rótulo que não aponta para nada. */
+  function grupoSoLeitura(rotulo, dentro) {
+    var g = document.createElement("div");
+    g.className = "form-group";
+    var l = document.createElement("span");
+    l.className = "form-label";
+    l.textContent = rotulo;
+    g.appendChild(l);
+    g.appendChild(dentro);
+    return g;
+  }
+  function blocoTrecho(texto) {
+    var b = document.createElement("blockquote");
+    b.className = "gaveta-trecho";
+    b.textContent = texto;
+    return b;
   }
   function campoArea(valor, dica, aoMudar) {
     var t = document.createElement("textarea");
@@ -5891,7 +7189,9 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     d.textContent = texto;
     return d;
   }
-  function campoSelect(atual, opcoes, aoMudar, criar) {
+  /* `vazio` é o texto de espera de quando nada está escolhido — o caso de um
+     acervo recém-criado, em que não há pasta nenhuma para o campo mostrar. */
+  function campoSelect(atual, opcoes, aoMudar, criar, vazio) {
     var b = document.createElement("button");
     b.type = "button";
     b.className = "select-gatilho";
@@ -5900,13 +7200,17 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     b.innerHTML = '<span class="rotulo"></span>' +
       '<svg class="seta" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>';
     var rot = b.firstChild;
-    rot.textContent = atual;
+    function mostrar(nome) {
+      b.classList.toggle("select-vazio", !nome);
+      rot.textContent = nome || vazio || "";
+    }
+    mostrar(atual);
     var escolhido = atual;
     /* As opções vão por função: criar uma nova de dentro da lista muda o
        conjunto, e um array fixo deixaria a próxima abertura sem ela. */
     ligarSelect(b, rot, function () { return typeof opcoes === "function" ? opcoes() : opcoes; },
       function () { return escolhido; },
-      function (nome) { escolhido = nome; aoMudar(nome); }, criar);
+      function (nome) { escolhido = nome; mostrar(nome); aoMudar(nome); }, criar);
     return b;
   }
 
@@ -5917,25 +7221,35 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     aplicarLargura();
     $("gavetaRotulo").textContent = cfg.rotulo;
     $("gavetaAcao").textContent = cfg.acao || "Guardar";
+    /* Título fixo: a gaveta que não nomeia nada troca o campo por um texto.
+       Um campo travado continua parecendo campo, e fica pedindo para ser
+       preenchido sem nunca aceitar nada. */
     var campo = $("gavetaTitulo");
-    campo.value = cfg.titulo;
+    var fixo = $("gavetaTituloFixo");
+    var estatico = cfg.tituloEstatico || "";
+    fixo.textContent = estatico;
+    fixo.hidden = !estatico;
+    campo.hidden = !!estatico;
+    $("gavetaPainel").setAttribute("aria-labelledby",
+      estatico ? "gavetaTituloFixo" : "gavetaTitulo");
+    campo.value = estatico ? "" : cfg.titulo;
     campo.placeholder = cfg.dica || "";
     campo.setAttribute("aria-label", cfg.rotuloTitulo || "Título");
-    campo.title = cfg.titulo;
-    /* Há gaveta cujo título não se edita: o da nota é o trecho marcado no texto,
-       que só muda mexendo no texto. Ele fica ali para dizer do que se trata. */
-    campo.readOnly = !!cfg.tituloFixo;
+    campo.title = campo.value;
     var corpo = $("gavetaCorpo");
     corpo.innerHTML = "";
     cfg.montar(corpo);
     gravarAtual = cfg.gravar;
+    /* Sem campo de título não há campo para segurar o botão, então quem decide
+       é a gaveta. */
+    podeGravarAtual = cfg.podeGravar || null;
     gavetaOverlay.hidden = false;
     gavetaOverlay.classList.remove("saindo");
     /* O título nasce em foco e marcado: a primeira tecla substitui o texto de
        partida em vez de escrever depois dele. */
     requestAnimationFrame(function () {
-      /* Título travado não recebe o foco: quem abriu quer escrever no corpo. */
-      if (cfg.tituloFixo) {
+      /* Sem campo de título o foco vai direto ao corpo, que é onde se escreve. */
+      if (estatico) {
         var primeiro = corpo.querySelector("textarea, input, [contenteditable]");
         if (primeiro) primeiro.focus();
       } else {
@@ -5947,7 +7261,12 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   }
   /* O que segura o botão é o campo vazio, nunca o texto de partida: "Sem
      título" é título válido e é gravado como qualquer outro. */
-  function travarGravar() { $("gavetaGravar").disabled = !$("gavetaTitulo").value.trim(); }
+  var podeGravarAtual = null;
+  function travarGravar() {
+    $("gavetaGravar").disabled = podeGravarAtual
+      ? !podeGravarAtual()
+      : !$("gavetaTitulo").value.trim();
+  }
   $("gavetaTitulo").addEventListener("input", travarGravar);
 
   /* Sem o atraso o painel sumiria de estalo: é o tempo que a animação de saída
@@ -5970,48 +7289,86 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   gavetaOverlay.addEventListener("mousedown", function (e) { if (e.target === gavetaOverlay) fecharGaveta(); });
   $("gavetaGravar").addEventListener("click", function () {
     var titulo = $("gavetaTitulo").value.trim();
-    if (!titulo || !gravarAtual) return;
-    gravarAtual(titulo);
+    if (!gravarAtual) return;
+    /* Gaveta sem campo de título não tem título para exigir: ela já disse pelo
+       `podeGravar` se o que está preenchido serve. */
+    if (!podeGravarAtual && !titulo) return;
+    /* A gaveta pode recusar o que foi preenchido devolvendo `false` — e aí ela
+       fica aberta com tudo no lugar. Fechar antes de checar perderia o que a
+       pessoa acabou de escrever justamente quando faltava alguma coisa. */
+    if (gravarAtual(titulo) === false) return;
     fecharGaveta();
   });
 
   /* ── As gavetas de cada coisa ── */
+  /* Não achou é `null`, e não "a primeira da lista". A tolerância antiga
+     transformava toda pergunta sobre um nome novo num falso positivo: criar uma
+     segunda pasta devolvia a primeira e não criava nada, e renomear uma pasta
+     recusava com "já existe" apontando para outra. Quem chama trata o `null`. */
   function acharPasta(nome) {
     for (var i = 0; i < PASTAS.length; i++) if (PASTAS[i].nome === nome) return PASTAS[i];
-    return PASTAS[0];
+    return null;
   }
 
   function gavetaNovaPasta() {
-    var estado = { tags: [] };
+    var estado = { desc: "", tags: [] };
     abrirPainel({
       nome: "pasta", rotulo: "Nova pasta", titulo: TITULO_PADRAO,
       dica: "Clínica Médica", rotuloTitulo: "Nome da pasta",
       montar: function (corpo) {
+        corpo.appendChild(grupo("Descrição", campoArea("",
+          "Material de estudo da prova, por especialidade.", function (v) { estado.desc = v; })));
         corpo.appendChild(grupo("Etiquetas", campoEtiquetas(estado.tags,
           "UTI, provas, revisar…", function (v) { estado.tags = v; }, etiquetasDoAcervo)));
       },
-      gravar: function (titulo) { criarPasta(titulo, estado.tags); }
+      gravar: function (titulo) { criarPasta(titulo, estado.tags, estado.desc); }
     });
   }
 
   /* Criar pasta é a mesma coisa vinda de dois lugares: esta gaveta e o select
      do arquivo novo. Uma função só para as duas, senão a segunda esqueceria
      algum passo — gravar no banco, repintar a lista, avisar. */
-  function criarPasta(nome, tags) {
+  function criarPasta(nome, tags, desc) {
     var jaTem = acharPasta(nome);
     if (jaTem) return jaTem;
     var nova = {
       nome: nome, ultimo: "Ainda não estudado", situacao: "novo",
-      desc: "", tags: (tags || []).slice(), lista: []
+      desc: (desc || "").trim(), tags: (tags || []).slice(), lista: []
     };
     PASTAS.push(nova);
     pintarPastas();
     avisar("success", "Pasta criada", nome + " já aparece na lista.");
     /* O id vem do banco e volta para o objeto: é por ele que o arquivo criado
-       em seguida sabe onde morar. */
-    gravar({ acao: "pasta.criar", nome: nome, desc: "", tags: nova.tags })
-      .then(function (r) { if (r.id) nova.id = r.id; });
+       em seguida sabe onde morar. Quem depende dele espera por `pronto` — criar
+       a pasta pelo próprio campo e gravar o arquivo em seguida é rápido o
+       bastante para chegar antes da resposta, e aí o arquivo saía com
+       `pastaId` vazio e o banco recusava a linha sem ninguém ver. */
+    nova.pronto = gravar({ acao: "pasta.criar", nome: nome, desc: nova.desc, tags: nova.tags })
+      .then(function (r) { if (r.id) nova.id = r.id; return nova; });
     return nova;
+  }
+
+  /* ── O campo de pasta ──
+     Toda gaveta que escolhe uma pasta escolhe pela mesma peça, e essa peça
+     também cria: é o gesto do campo de etiquetas, onde procurar e criar entram
+     pela mesma porta. Ter isto escrito num lugar só é o que garante que um
+     campo novo não nasça sendo uma lista burra — era o que estava acontecendo
+     com o seletor de destino ao excluir uma pasta.
+
+     `fora` é a pasta que não deve aparecer na lista: ao excluir uma, ela mesma
+     não é destino possível para o próprio conteúdo. */
+  function opcoesDePasta(fora) {
+    return PASTAS.filter(function (c) { return c !== fora; }).map(function (c) {
+      var n = (c.lista || []).length;
+      return { nome: c.nome, nota: n + (n === 1 ? " arquivo" : " arquivos") };
+    });
+  }
+  var CRIAR_PASTA = { rotulo: "pasta", aoCriar: criarPasta };
+  var PASTA_VAZIA = "Escolha ou crie uma pasta";
+
+  function campoPasta(atual, aoMudar, fora) {
+    return campoSelect(atual, function () { return opcoesDePasta(fora); },
+      aoMudar, CRIAR_PASTA, PASTA_VAZIA);
   }
 
   function gavetaNovoArquivo() {
@@ -6020,20 +7377,21 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       nome: "arquivo", rotulo: "Novo arquivo", titulo: TITULO_PADRAO,
       dica: "Manejo da sepse na emergência", rotuloTitulo: "Título do arquivo",
       montar: function (corpo) {
-        corpo.appendChild(grupo("Pasta", campoSelect(estado.pasta,
-          function () {
-            return PASTAS.map(function (c) {
-              var n = c.lista.length;
-              return { nome: c.nome, nota: n + (n === 1 ? " arquivo" : " arquivos") };
-            });
-          },
-          function (v) { estado.pasta = v; },
-          { rotulo: "pasta", aoCriar: criarPasta })));
+        corpo.appendChild(grupo("Pasta", campoPasta(estado.pasta,
+          function (v) { estado.pasta = v; })));
         corpo.appendChild(grupo("Etiquetas", campoEtiquetas(estado.tags,
           "UTI, provas, revisar…", function (v) { estado.tags = v; }, etiquetasEmUso)));
       },
       gravar: function (titulo) {
-        var c = acharPasta(estado.pasta);
+        /* Sem pasta não há onde pôr o arquivo, e a gaveta fechava levando o
+           título junto para estourar na linha seguinte. Agora ela segura o
+           painel e diz o que falta — o campo logo acima cria a pasta ali
+           mesmo. */
+        var c = estado.pasta ? acharPasta(estado.pasta) : null;
+        if (!c) {
+          avisar("error", "Falta a pasta", "Escolha uma pasta, ou crie uma pelo próprio campo.");
+          return false;
+        }
         var novo = {
           nome: titulo,
           tags: estado.tags.slice(),
@@ -6042,9 +7400,12 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
         c.lista.unshift(novo);
         pintarPastas();
         avisar("success", "Arquivo criado", titulo + ", na pasta " + c.nome + ".");
-        gravar({ acao: "arquivo.criar", pastaId: c.id, nome: titulo, desc: "",
-                 tags: novo.tags, corpo: novo.corpo })
-          .then(function (r) { if (r.id) novo.id = r.id; });
+        /* Espera a pasta ter id: recém-criada pelo campo acima, ela ainda pode
+           estar esperando a resposta do banco. */
+        novo.pronto = Promise.resolve(c.pronto).then(function () {
+          return gravar({ acao: "arquivo.criar", pastaId: c.id, nome: titulo, desc: "",
+                          tags: novo.tags, corpo: novo.corpo });
+        }).then(function (r) { if (r && r.id) novo.id = r.id; return novo; });
         /* Criar um arquivo é começar a escrever nele: quem acabou de dar um
            título não quer voltar para uma lista e procurar o que criou. */
         abrirArquivo(c, novo);
@@ -6062,19 +7423,41 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
         corpo.appendChild(grupo("Cards novos por dia", campoLinha("20", "20", function (v) { estado.porDia = v; })));
       },
       gravar: function (titulo) {
-        var novoDeck = {
-          nome: titulo, conta: 0, hoje: 0, retencao: 0, ultimo: "Ainda não estudado",
-          desc: estado.desc.trim() || "Sem descrição por enquanto."
-        };
-        decks.push(novoDeck);
-        gravar({ acao: "deck.criar", nome: titulo, desc: novoDeck.desc,
-                 novosPorDia: parseInt(estado.porDia, 10) || 20 })
-          .then(function (r) { if (r.id) novoDeck.id = r.id; });
-        pintarDecks();
-        pintarGradeDecks();
-        avisar("success", "Deck criado", titulo + ", com " + estado.porDia + " cards novos por dia.");
+        criarDeck(titulo, estado.desc, estado.porDia);
       }
     });
+  }
+
+  /* Criar deck vindo de três lugares — esta gaveta, o seletor do trilho e a
+     sugestão do arquivo — é a mesma coisa feita uma vez só, como em
+     `criarPasta`. Repetir os passos em cada porta faria a segunda esquecer um:
+     gravar no banco, repintar as duas telas de deck, avisar.
+
+     Devolve o que já existe quando o nome bate, e por isso pode ser chamada
+     sem medo por quem não sabe se o deck já está lá. */
+  function acharDeck(nome) {
+    for (var i = 0; i < decks.length; i++) if (decks[i].nome === nome) return decks[i];
+    return null;
+  }
+  function criarDeck(nome, desc, porDia) {
+    var jaTem = acharDeck(nome);
+    if (jaTem) return jaTem;
+    var quantos = parseInt(porDia, 10) || 20;
+    var novo = {
+      nome: nome, conta: 0, hoje: 0, retencao: 0, ultimo: "Ainda não estudado",
+      desc: (desc || "").trim() || "Sem descrição por enquanto.",
+      novosPorDia: quantos
+    };
+    decks.push(novo);
+    /* O id só existe depois que o banco responde. Quem for gravar algo que
+       aponta para este deck — um card, por exemplo — espera por `pronto`, senão
+       o pedido sai com `deckId` vazio e a linha é recusada sem ninguém ver. */
+    novo.pronto = gravar({ acao: "deck.criar", nome: nome, desc: novo.desc, novosPorDia: quantos })
+      .then(function (r) { if (r.id) novo.id = r.id; return novo; });
+    pintarDecks();
+    pintarGradeDecks();
+    avisar("success", "Deck criado", nome + ", com " + quantos + " cards novos por dia.");
+    return novo;
   }
 
   /* O que está na tela entra no formulário: criar de dentro de um deck já traz
@@ -6086,7 +7469,10 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
      já não está aberto. O mesmo vale para a pasta. */
   function deckDoContexto() {
     if (paginaAtual === "decks" && vistaAtual === "deck-cards" && deckAberto) return deckAberto.nome;
-    if (deckAtual) return deckAtual;
+    /* Só um deck que existe de verdade: o do trilho pode ser a sugestão do
+       arquivo, um nome que ainda não virou deck. Oferecê-lo aqui poria no campo
+       uma opção que não está na lista. */
+    if (deckAtual && acharDeck(deckAtual)) return deckAtual;
     return decks.length ? decks[0].nome : "";
   }
 
@@ -6106,17 +7492,26 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
         corpo.appendChild(grupo("Deck", campoSelect(estado.deck, opcoesDeDeck(), function (v) { estado.deck = v; })));
       },
       gravar: function (titulo) {
+        /* Card sem deck não tem onde morar: a coluna aponta para um deck de
+           verdade, e o banco recusa a linha. Sem esta checagem a gaveta fechava
+           dizendo "criado" e nada era gravado. */
+        var deck = acharDeck(estado.deck);
+        if (!deck) {
+          avisar("error", "Falta o deck", "Escolha para onde o flashcard vai.");
+          return false;
+        }
         var cartao = {
-          frente: titulo, verso: estado.verso.trim(), deck: estado.deck,
+          frente: titulo, verso: estado.verso.trim(), deck: deck.nome,
           origem: "Escrito à mão", estado: "novo", quando: "Não estudado",
           acertos: "sem histórico", tentativas: 0
         };
         ACERVO_CARDS.unshift(cartao);
-        gravar({ acao: "card.criar", deckId: idDoDeck(estado.deck), frente: cartao.frente,
-                 verso: cartao.verso, origem: cartao.origem })
-          .then(function (r) { if (r.ids && r.ids[0]) cartao.id = r.ids[0]; });
+        Promise.resolve(deck.pronto).then(function () {
+          return gravar({ acao: "card.criar", deckId: deck.id, frente: cartao.frente,
+                          verso: cartao.verso, origem: cartao.origem });
+        }).then(function (r) { if (r && r.ids && r.ids[0]) cartao.id = r.ids[0]; });
         pintarTabela();
-        avisar("success", "Flashcard criado", "Entrou em " + estado.deck + ", como card novo.");
+        avisar("success", "Flashcard criado", "Entrou em " + deck.nome + ", como card novo.");
       }
     });
   }
@@ -6465,19 +7860,57 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     pil.style.width = ativa.offsetWidth + "px";
   }
 
+  /* Qual aba está de pé fica guardado aqui, e não lido do `hidden`: no meio de
+     uma troca os dois painéis estão visíveis, e perguntar à tela naquele
+     instante devolve a resposta errada. */
+  var ABA_SAIDA = 160; /* espelhado em `.painel.saindo`, no estilo */
+  var abaAtual = ORDEM_ABAS[0], relogioAba = null;
+
   function escolherAba(qual) {
     if (!ABAS[qual]) qual = ORDEM_ABAS[0];
-    var alvo = null;
+    var anterior = abaAtual;
+    var trocou = qual !== anterior;
+    abaAtual = qual;
+
     ORDEM_ABAS.forEach(function (k) {
-      var minha = k === qual;
-      $(ABAS[k].aba).setAttribute("aria-selected", String(minha));
-      $(ABAS[k].painel).hidden = !minha;
-      if (minha) alvo = $(ABAS[k].painel);
+      $(ABAS[k].aba).setAttribute("aria-selected", String(k === qual));
     });
-    medirPilulaAbas();
-    alvo.classList.remove("troca");
+
+    /* Uma travessia ainda em curso termina agora. Duas sobrepostas deixariam o
+       painel do meio parado em meia opacidade, esperando um relógio que já não
+       vai chegar. */
+    clearTimeout(relogioAba);
+    ORDEM_ABAS.forEach(function (k) {
+      var p = $(ABAS[k].painel);
+      p.classList.remove("entrando", "saindo");
+      /* O que sai continua na tela: quem some aqui é só quem não tem parte
+         nesta troca. */
+      p.hidden = k !== qual && k !== anterior;
+    });
+
+    /* Sem travessia não há lado: reescolher a aba que já estava de pé é o que
+       acontece ao criar um flashcard, e ali o painel só se reapresenta. */
+    var lado = !trocou ? "0px"
+      : (ORDEM_ABAS.indexOf(qual) > ORDEM_ABAS.indexOf(anterior) ? "14px" : "-14px");
+
+    var alvo = $(ABAS[qual].painel);
+    alvo.style.setProperty("--lado", lado);
+
+    if (trocou) {
+      var velho = $(ABAS[anterior].painel);
+      velho.style.setProperty("--lado", lado);
+      velho.classList.add("saindo");
+      relogioAba = setTimeout(function () {
+        velho.classList.remove("saindo");
+        velho.hidden = true;
+      }, ABA_SAIDA);
+    }
+
+    alvo.hidden = false;
     void alvo.offsetWidth;
-    alvo.classList.add("troca");
+    alvo.classList.add("entrando");
+
+    medirPilulaAbas();
     pintarBalaoCiclo();
   }
   ORDEM_ABAS.forEach(function (k) {
@@ -6925,6 +8358,10 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     });
     if (nome === "decks") pintarGradeDecks();
     if (nome === "relatorios") { pintarDecks(); pintarGrafico(); }
+    /* A fila se refaz a cada entrada, e não uma vez no carregamento: card
+       criado, excluído ou revisado depois disso mudava o acervo e não mudava a
+       fila, que continuava oferecendo o que já não existia. */
+    if (nome === "revisao" && !revisaoEmCurso()) montarFila();
     if (mqCelular.matches) { casca.dataset.menu = "fechado"; tirarFundo(); }
     marcarInferior(nome);
     pintarBalaoCiclo();
@@ -7025,12 +8462,14 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     if (deckAberto) {
       var doDeck = ACERVO_CARDS.filter(function (c) { return c.deck === deckAberto.nome; });
       var conta = function (e) { return doDeck.filter(function (c) { return c.estado === e; }).length; };
-      var kpis = $("kpisDoDeck");
-      kpis.innerHTML = "";
-      kpis.appendChild(cartaoDeNumero(String(deckAberto.conta), "Cards no deck"));
-      kpis.appendChild(cartaoDeNumero(String(conta("hoje")), "Na fila de hoje", "amber"));
-      kpis.appendChild(cartaoDeNumero(String(conta("atrasado")), "Atrasados", "red"));
-      kpis.appendChild(cartaoDeNumero(deckAberto.retencao + "%", "Acerto em 30 dias", "green"));
+      var novos = conta("novo");
+      pintarFileiraKpi("kpisDoDeck", [
+        { rotulo: "Cards no deck", valor: String(deckAberto.conta),
+          nota: novos ? novos + (novos === 1 ? " ainda não estudado" : " ainda não estudados") : "todos já estudados" },
+        { rotulo: "Na fila de hoje", valor: String(conta("hoje")), nota: "vencem hoje" },
+        { rotulo: "Atrasados", valor: String(conta("atrasado")), nota: "passaram da data" },
+        { rotulo: "Acerto em 30 dias", valor: deckAberto.retencao + "%", nota: "neste deck" }
+      ]);
     }
   }
   $("btnNovoCard").addEventListener("click", gavetaNovoCard);
@@ -7055,14 +8494,59 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     $("barraDecks").replaceWith(barraDecks.el);
   }
 
-  function cartaoDeNumero(valor, rotulo, cor) {
+  /* ═══ Cartão de indicador ════════════════════════════════════════════
+     Um só para o sistema inteiro, como no portal: três telas com o mesmo
+     cartão desenhado três vezes divergem na primeira mudança de estilo — e era
+     o que estava acontecendo aqui, com uns escritos no HTML e outros montados
+     por função.
+
+     `nota` é a linha de baixo, que diz de que recorte o número saiu. É opcional
+     porque nem todo indicador tem um recorte a explicar.
+
+     Cor não é parâmetro, e é de propósito: a faixa e o número são sempre o rosa
+     da casa. Verde, âmbar e vermelho são cores de estado, e num painel de
+     indicadores elas prometiam uma leitura que não existe — "na fila de hoje"
+     em âmbar parecia alerta, e "acerto em 30 dias" em verde parecia aprovação,
+     fosse o número qual fosse. Sem o parâmetro, nenhuma tela volta a inventar
+     a sua própria paleta. */
+  function cartaoKpi(o) {
     var el = document.createElement("div");
-    el.className = "admin-stat-card-v2";
-    if (cor) el.style.setProperty("--accent-color", "var(--" + cor + ")");
-    el.innerHTML = '<span class="admin-stat-value"></span><span class="admin-stat-label"></span>';
-    el.firstChild.textContent = valor;
-    el.lastChild.textContent = rotulo;
+    el.className = "admin-stat-card-v2" + (o.ativo ? " active-filter" : "");
+    if (o.atraso) el.style.animationDelay = o.atraso + "s";
+    el.innerHTML = '<p class="stat-v2-label"></p><p class="stat-v2-value"></p>';
+    el.children[0].textContent = o.rotulo;
+    el.children[1].textContent = o.valor;
+    if (o.nota) {
+      var nota = document.createElement("p");
+      nota.className = "stat-v2-desc";
+      nota.textContent = o.nota;
+      el.appendChild(nota);
+    }
+    /* Cartão que não filtra não promete clique: a mão só aparece onde há ação. */
+    if (o.aoClicar) {
+      el.style.cursor = "pointer";
+      el.setAttribute("role", "button");
+      el.setAttribute("tabindex", "0");
+      el.setAttribute("aria-pressed", String(!!o.ativo));
+      el.addEventListener("click", o.aoClicar);
+      el.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); o.aoClicar(); }
+      });
+    }
     return el;
+  }
+
+  /* Troca o conteúdo de uma fileira pela lista de cartões. O atraso cresce de um
+     em um para a entrada vir em cascata em vez de tudo de uma vez — é o mesmo
+     escalonamento do portal. */
+  function pintarFileiraKpi(id, cartoes) {
+    var caixa = $(id);
+    if (!caixa) return;
+    caixa.innerHTML = "";
+    cartoes.forEach(function (c, i) {
+      c.atraso = i * 0.05;
+      caixa.appendChild(cartaoKpi(c));
+    });
   }
 
   function pintarGradeDecks() {
@@ -7081,14 +8565,17 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 
     var total = 0, fila = 0, soma = 0;
     decks.forEach(function (d) { total += d.conta; fila += d.hoje; soma += d.retencao; });
-    var kpis = $("kpisDecks");
-    kpis.innerHTML = "";
-    kpis.appendChild(cartaoDeNumero(String(total), "Cards no acervo"));
-    kpis.appendChild(cartaoDeNumero(String(decks.length), "Decks"));
-    kpis.appendChild(cartaoDeNumero(String(fila), "Na fila de hoje", "amber"));
-    /* Excluir o último deck deixava a média dividindo por zero, e o cartão
-       anunciava "NaN%". Sem deck não há acerto a mostrar. */
-    kpis.appendChild(cartaoDeNumero(decks.length ? Math.round(soma / decks.length) + "%" : "—", "Acerto em 30 dias", "green"));
+    pintarFileiraKpi("kpisDecks", [
+      { rotulo: "Cards no acervo", valor: String(total),
+        nota: decks.length === 1 ? "em 1 deck" : "em " + decks.length + " decks" },
+      { rotulo: "Decks", valor: String(decks.length), nota: "assuntos separados" },
+      { rotulo: "Na fila de hoje", valor: String(fila), nota: "somando todos os decks" },
+      /* Excluir o último deck deixava a média dividindo por zero, e o cartão
+         anunciava "NaN%". Sem deck não há acerto a mostrar. */
+      { rotulo: "Acerto em 30 dias",
+        valor: decks.length ? Math.round(soma / decks.length) + "%" : "—",
+        nota: decks.length ? "média dos decks" : "sem histórico" }
+    ]);
     $("contaDecks").textContent = decks.length;
     $("contaDecks").hidden = false;
     $("seloRevisar").textContent = fila;
@@ -7105,63 +8592,334 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     irVista("deck-cards");
   }
 
-  /* ═══ Tela: Revisão de hoje ══════════════════════════════════════════ */
-  var FILA_BASE = [];
-  var fila = [], posicao = 0, acertosFila = 0;
+  /* ═══ Tela: Revisão de hoje ══════════════════════════════════════════
+     A sessão inteira mora aqui: a fila, o agendamento e o palco.
 
-  function montarFila() {
-    fila = FILA_BASE.slice();
-    posicao = 0;
-    acertosFila = 0;
-    $("revisaoFim").hidden = true;
-    $("revisaoPalco").hidden = false;
-    mostrarCard();
+     A fila é uma lista de verdade, remontada toda vez que se entra na tela —
+     antes ela era montada uma única vez no carregamento, e um card revisado ou
+     criado depois disso não mudava nada nela. Ela vive em memória e não
+     sobrevive a um refresh de propósito: o que persiste é a data da próxima
+     revisão de cada card, no banco, e é dela que a fila do dia seguinte nasce.
+
+     `escopo` é o deck que se está revisando, ou vazio para o acervo todo — é o
+     que separa "Revisar de hoje" na tela de decks de "Revisar este deck" dentro
+     de um. */
+  var fila = [], atual = null, escopo = "";
+  var totalFila = 0, resolvidos = 0, acertosFila = 0, voltasFila = 0, comecouEm = 0;
+  var revelado = false;
+  var semMovimento = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  /* O mesmo SM-2 do servidor, de novo aqui.
+     Duplicar cálculo é ruim, e mesmo assim é o certo neste caso: o servidor
+     precisa dele para gravar a verdade, e a tela precisa dele antes de gravar,
+     para escrever em cada botão daqui a quanto o card volta. Pedir isso ao
+     servidor a cada card seria uma ida de rede entre ler a pergunta e responder
+     — justamente onde a revisão tem de ser instantânea. As duas cópias têm de
+     andar juntas: mexeu numa, mexe na outra (api/dados.ts, `proximoIntervalo`). */
+  function proximoIntervalo(grau, intervalo, facilidade) {
+    var fac = (facilidade || 2.5) + (grau === 3 ? 0.15 : grau === 2 ? 0 : grau === 1 ? -0.15 : -0.2);
+    fac = Math.min(2.8, Math.max(1.3, fac));
+    if (grau === 0) return { intervalo: 0, facilidade: fac };
+    if (!intervalo) return { intervalo: grau === 1 ? 1 : grau === 2 ? 3 : 8, facilidade: fac };
+    return { intervalo: Math.max(1, Math.round(intervalo * fac)), facilidade: fac };
   }
-  function mostrarCard() {
-    var c = fila[posicao];
-    if (!c) { terminarFila(); return; }
-    $("revOrigem").textContent = c.origem;
+  /* "em 23 dias" não diz nada a quem lê; "em 3 semanas" diz. A unidade sobe
+     conforme o intervalo cresce, que é como se fala de prazo. */
+  function rotuloDeIntervalo(dias) {
+    if (!dias) return "ainda hoje";
+    if (dias === 1) return "amanhã";
+    if (dias < 7) return "em " + dias + " dias";
+    if (dias < 30) { var s = Math.round(dias / 7); return "em " + s + (s === 1 ? " semana" : " semanas"); }
+    if (dias < 365) { var m = Math.round(dias / 30); return "em " + m + (m === 1 ? " mês" : " meses"); }
+    var a = Math.round(dias / 365);
+    return "em " + a + (a === 1 ? " ano" : " anos");
+  }
+  function emDias(dias) {
+    var d = new Date();
+    d.setDate(d.getDate() + dias);
+    return d.toISOString().slice(0, 10);
+  }
+
+  /* A fila do dia, nesta ordem: o atrasado primeiro, depois o que vence hoje, e
+     por último o que nunca foi estudado. Sai do acervo na hora, e não de uma
+     lista guardada — guardada, ela discordaria do acervo no primeiro card
+     criado ou excluído.
+
+     Os nunca-estudados entravam aqui? Não entravam, e era o buraco no meio da
+     tela: a API marca como `novo` todo card com zero repetições, a fila pegava
+     só `atrasado` e `hoje`, e o resultado é que um flashcard recém-criado nunca
+     chegava a ser revisado. Ficava "novo" para sempre.
+
+     Eles entram com teto por deck, que é o `cards novos por dia` que a gaveta
+     de deck sempre perguntou e que até aqui não fazia nada: sem o teto, criar
+     duzentos cards de uma vez põe duzentos na fila do mesmo dia, e a repetição
+     espaçada vira uma maratona que ninguém termina. */
+  function tetoDeNovos(nome) {
+    var d = acharDeck(nome);
+    return d && d.novosPorDia ? d.novosPorDia : 20;
+  }
+  function filaDoDia(deck) {
+    var ordem = { atrasado: 0, hoje: 1, novo: 2 };
+    var sobra = {};
+    return ACERVO_CARDS.filter(function (c) {
+      if (deck && c.deck !== deck) return false;
+      if (c.estado === "atrasado" || c.estado === "hoje") return true;
+      if (c.estado !== "novo") return false;
+      if (sobra[c.deck] === undefined) sobra[c.deck] = tetoDeNovos(c.deck);
+      if (sobra[c.deck] <= 0) return false;
+      sobra[c.deck]--;
+      return true;
+    /* `sort` é estável, então dentro de cada estado a ordem do acervo se
+       mantém: o card mais antigo do deck vem antes do recém-criado. */
+    }).sort(function (a, b) { return ordem[a.estado] - ordem[b.estado]; });
+  }
+
+  /* Sair da revisão pelo menu e voltar não pode recomeçar a fila do zero: o que
+     já foi respondido estaria feito de novo. Enquanto sobrar card por responder,
+     voltar retoma de onde parou. */
+  function revisaoEmCurso() {
+    return !$("revisaoPalco").hidden && !!atual;
+  }
+
+  function montarFila(deckEscolhido) {
+    if (deckEscolhido !== undefined) escopo = deckEscolhido || "";
+    fila = filaDoDia(escopo);
+    totalFila = fila.length;
+    resolvidos = 0; acertosFila = 0; voltasFila = 0;
+    comecouEm = Date.now();
+    atual = null;
+
+    $("revEscopo").textContent = escopo
+      ? "A fila de hoje do deck " + escopo + "."
+      : "A fila do dia, por repetição espaçada.";
+
+    if (!totalFila) { mostrarVazio(); return; }
+    $("revisaoFim").hidden = true;
+    $("revisaoVazio").hidden = true;
+    $("revisaoPalco").hidden = false;
+    $("btnPularCard").hidden = false;
+    proximoCard(null);
+  }
+
+  function mostrarVazio() {
+    $("revisaoPalco").hidden = true;
+    $("revisaoFim").hidden = true;
+    $("revisaoVazio").hidden = false;
+    $("btnPularCard").hidden = true;
+    var universo = escopo
+      ? ACERVO_CARDS.filter(function (c) { return c.deck === escopo; })
+      : ACERVO_CARDS;
+    $("revVazioTitulo").textContent = universo.length ? "Nada vencido por aqui" : "Nenhum flashcard ainda";
+    $("revVazioNota").textContent = universo.length
+      ? proximaDataDe(universo)
+      : "Crie flashcards num deck ou a partir de um arquivo, e eles aparecem aqui no dia de revisar.";
+  }
+  /* Quando o próximo card vence. Dizer "volte amanhã" sem saber a data seria
+     chute; sem nenhuma data marcada, a frase muda em vez de inventar uma. */
+  function proximaDataDe(cards) {
+    var datas = cards.map(function (c) { return c.proxima; }).filter(Boolean).sort();
+    if (!datas.length) return "Todos os cards daqui já estão em dia.";
+    var dias = Math.round((new Date(datas[0]) - new Date(new Date().toISOString().slice(0, 10))) / 86400000);
+    return "O próximo volta " + rotuloDeIntervalo(Math.max(0, dias)) + ".";
+  }
+
+  /* A troca de card: o que está na tela sai para o lado da resposta, e o
+     próximo entra por baixo. `saida` vazio é a primeira entrada, que não tem de
+     onde sair. */
+  function proximoCard(saida) {
+    var card = $("revCard");
+    function entrar() {
+      atual = fila.shift() || null;
+      if (!atual) { terminarFila(); return; }
+      pintarCard(atual);
+      card.className = "revisao-card entra";
+    }
+    /* Sem animação não há o que esperar: quem desligou movimento troca de card
+       na hora, em vez de encarar uma pausa de um quarto de segundo por card com
+       a tela parada. */
+    if (!saida || semMovimento.matches) { entrar(); return; }
+    card.className = "revisao-card " + saida;
+    /* Espera a animação de saída acabar antes de trocar o conteúdo, senão o
+       card sairia da tela já mostrando a pergunta seguinte. O `animationend`
+       tem uma rede de segurança: `prefers-reduced-motion` desliga a animação, e
+       aí o evento nunca chega. */
+    var pronto = false;
+    function seguir() { if (pronto) return; pronto = true; entrar(); }
+    card.addEventListener("animationend", seguir, { once: true });
+    setTimeout(seguir, 260);
+  }
+
+  function pintarCard(c) {
+    $("revOrigem").textContent = c.origem || c.deck || "Flashcard";
     $("revFrente").textContent = c.frente;
-    $("revVerso").textContent = c.verso;
+    $("revVerso").textContent = c.verso || "Este card não tem verso escrito.";
+    $("revTrecho").textContent = c.trecho || "";
+    $("revTrecho").hidden = !c.trecho;
+
+    var selo = $("revSelo");
+    selo.className = "revisao-selo " + (c.estado || "");
+    selo.textContent = c.estado === "atrasado" ? "Atrasado"
+      : c.estado === "novo" ? "Primeira vez" : "De hoje";
+    selo.hidden = false;
+
+    esconderResposta();
+    pintarProgresso();
+  }
+
+  function esconderResposta() {
+    revelado = false;
     $("revVersoCaixa").classList.remove("aberto");
     $("revGraus").hidden = true;
     $("btnMostrar").hidden = false;
-    $("revProgresso").textContent = posicao + " de " + fila.length;
-    $("revBarra").style.width = (posicao / fila.length * 100) + "%";
+    $("revEtapa").textContent = "Progresso da fila";
   }
-  function terminarFila() {
-    $("revisaoPalco").hidden = true;
-    $("revisaoFim").hidden = false;
-    $("revResumo").textContent = fila.length + " cards revisados, " + acertosFila + " de primeira.";
-  }
-  $("btnMostrar").addEventListener("click", function () {
+
+  /* Revelar a resposta escreve o intervalo real de cada grau: é a informação
+     que faz a escolha ser uma escolha, e não um chute entre quatro palavras. */
+  function revelarResposta() {
+    if (revelado || !atual) return;
+    revelado = true;
     $("revVersoCaixa").classList.add("aberto");
     $("btnMostrar").hidden = true;
     $("revGraus").hidden = false;
-  });
-  Array.prototype.forEach.call(document.querySelectorAll("[data-grau]"), function (b) {
-    b.addEventListener("click", function () {
+    $("revEtapa").textContent = "Quanto custou lembrar?";
+    Array.prototype.forEach.call($("revGraus").querySelectorAll("[data-grau]"), function (b) {
       var grau = parseInt(b.dataset.grau, 10);
-      var card = fila[posicao];
-      if (card && card.id) gravar({ acao: "card.revisar", id: card.id, grau: grau });
-      if (grau === 0) {
-        /* Errou: o card volta para o fim da fila, que é o que a repetição
-           espaçada faz com o que ainda não entrou. */
-        fila.push(fila[posicao]);
-        avisar("info", "Card devolvido à fila", "Ele reaparece antes do fim desta sessão.");
-      } else if (grau >= 2) {
-        acertosFila++;
-      }
-      posicao++;
-      mostrarCard();
+      var quando = b.querySelector("[data-quando]");
+      if (!quando) return;
+      quando.textContent = grau === 0 ? "de novo"
+        : rotuloDeIntervalo(proximoIntervalo(grau, atual.intervalo, atual.facilidade).intervalo);
     });
+  }
+
+  function pintarProgresso() {
+    /* O denominador é a fila com que a sessão começou, e o numerador só conta
+       card resolvido. Um card devolvido pelo "Errei" não infla o total nem
+       desconta o que já foi feito — antes ele fazia a barra andar para trás, o
+       que é a única coisa que uma barra de progresso não pode fazer. */
+    $("revProgresso").textContent = resolvidos + " de " + totalFila;
+    $("revBarra").style.width = (totalFila ? resolvidos / totalFila * 100 : 0) + "%";
+    var a = $("revPlacarAcertos"), v = $("revPlacarVoltas");
+    a.querySelector("b").textContent = acertosFila;
+    a.hidden = !acertosFila;
+    v.querySelector("b").textContent = voltasFila;
+    v.hidden = !voltasFila;
+  }
+
+  /* Aplica a resposta ao card em memória, para que o resto do app concorde com
+     o que acabou de acontecer sem esperar um recarregamento: a tabela de cards,
+     os contadores do deck e os indicadores saem todos deste mesmo objeto. */
+  function anotarResposta(c, grau) {
+    var passo = proximoIntervalo(grau, c.intervalo, c.facilidade);
+    c.intervalo = passo.intervalo;
+    c.facilidade = passo.facilidade;
+    c.repeticoes = (c.repeticoes || 0) + 1;
+    c.tentativas = (c.tentativas || 0) + 1;
+    if (grau >= 2) c.certos = (c.certos || 0) + 1;
+    c.acertos = c.certos + " de " + c.tentativas;
+    c.proxima = emDias(passo.intervalo);
+    c.estado = passo.intervalo ? "emdia" : "hoje";
+    c.quando = quandoDe(c);
+    if (c.id) gravar({ acao: "card.revisar", id: c.id, grau: grau });
+  }
+
+  function responder(grau) {
+    if (!revelado || !atual) return;
+    var c = atual;
+    anotarResposta(c, grau);
+    if (grau === 0) {
+      /* Errou: o card volta para o fim da fila. É o que a repetição espaçada
+         faz com o que ainda não entrou, e por isso ele não conta como
+         resolvido — some da barra até ser respondido de verdade. */
+      fila.push(c);
+      voltasFila++;
+    } else {
+      resolvidos++;
+      if (grau >= 2) acertosFila++;
+    }
+    /* Os números do resto do app andam junto com a resposta, e não no fim da
+       sessão: sair da revisão no meio dela não pode deixar a tela de decks
+       contando cards que já foram revisados. */
+    recontarDecks();
+    pintarGradeDecks();
+    pintarTabela();
+    pintarKpis();
+    pintarProgresso();
+    proximoCard(grau === 0 ? "sai-erro" : "sai-acerto");
+  }
+
+  function terminarFila() {
+    $("revisaoPalco").hidden = true;
+    $("revisaoVazio").hidden = true;
+    $("revisaoFim").hidden = false;
+    $("btnPularCard").hidden = true;
+
+    var minutos = Math.max(1, Math.round((Date.now() - comecouEm) / 60000));
+    var taxa = resolvidos ? Math.round(acertosFila / resolvidos * 100) : 0;
+    $("revResumo").textContent = resolvidos
+      ? "Você fechou a fila de hoje" + (escopo ? " de " + escopo : "") + "."
+      : "A fila acabou sem nenhum card respondido.";
+    pintarFileiraKpi("revFimNumeros", [
+      { rotulo: "Revisados", valor: String(resolvidos),
+        nota: totalFila === resolvidos ? "a fila inteira" : "de " + totalFila + " na fila" },
+      { rotulo: "De primeira", valor: taxa + "%",
+        nota: acertosFila + (acertosFila === 1 ? " card" : " cards") },
+      { rotulo: "Tempo", valor: minutos + " min",
+        nota: resolvidos ? Math.round((Date.now() - comecouEm) / 1000 / Math.max(1, resolvidos)) + "s por card" : "—" }
+    ]);
+  }
+
+  $("btnMostrar").addEventListener("click", revelarResposta);
+  Array.prototype.forEach.call(document.querySelectorAll("[data-grau]"), function (b) {
+    b.addEventListener("click", function () { responder(parseInt(b.dataset.grau, 10)); });
   });
-  $("btnPularCard").addEventListener("click", function () {
-    if ($("revisaoFim").hidden === false) return;
-    posicao++;
-    mostrarCard();
+  $("btnPularCard").addEventListener("click", pularCard);
+  function pularCard() {
+    if (!atual || $("revisaoPalco").hidden) return;
+    /* Pular devolve o card à fila em vez de descartá-lo: quem pula quer adiar,
+       não abrir mão. Ele não conta como resolvido nem como volta — não houve
+       resposta nenhuma. */
+    fila.push(atual);
+    proximoCard("sai-pulo");
+  }
+  $("btnRefazer").addEventListener("click", function () { montarFila(); });
+  $("btnFimDecks").addEventListener("click", function () { irPaginaAtual("decks"); });
+  $("btnVazioDecks").addEventListener("click", function () { irPaginaAtual("decks"); });
+
+  /* ── O teclado ──
+     Revisar é um gesto repetido dezenas de vezes seguidas, e tirar a mão do
+     teclado a cada card é o que torna a sessão cansativa. Espaço revela, 1 a 4
+     respondem, S pula. Os atalhos ficam escritos nos próprios botões. */
+  document.addEventListener("keydown", function (e) {
+    if (paginaAtual !== "revisao" || $("revisaoPalco").hidden) return;
+    /* Nada de atalho com um formulário na frente, nem com o cursor dentro de um
+       campo: ali as teclas são texto. */
+    if (!gavetaOverlay.hidden || !dialogoOverlay.hidden) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    var alvo = e.target;
+    if (alvo && alvo.closest && alvo.closest("input, textarea, [contenteditable='true']")) return;
+
+    if (e.key === " " || e.key === "Enter") {
+      /* Com a resposta à mostra o espaço não faz nada: ele revelaria de novo, e
+         tomar uma decisão sem querer é pior do que não ter atalho. */
+      if (revelado) return;
+      e.preventDefault();
+      revelarResposta();
+      return;
+    }
+    if (e.key === "s" || e.key === "S") { e.preventDefault(); pularCard(); return; }
+    var grau = ["1", "2", "3", "4"].indexOf(e.key);
+    if (grau < 0 || !revelado) return;
+    e.preventDefault();
+    var botao = $("revGraus").querySelector('[data-grau="' + grau + '"]');
+    /* Acende o botão antes de responder: a tecla funcionava e nada na tela
+       dizia qual foi. */
+    if (botao) {
+      botao.classList.add("tocado");
+      setTimeout(function () { botao.classList.remove("tocado"); }, 140);
+    }
+    responder(grau);
   });
-  $("btnRefazer").addEventListener("click", montarFila);
 
   /* ═══ Tela: Meus decks ═══════════════════════════════════════════════ */
   /* O cartão de deck é um botão: a peça inteira abre o deck. Serve à tela de
@@ -7837,7 +9595,13 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
         '<button type="button" class="pasta-abrir"></button>' +
         '<div class="pasta-topo">' +
           '<span class="pasta-ico">' + ICO_PASTA + '</span>' +
-          '<span class="pasta-titulo"><span class="pasta-nome"></span><span class="pasta-sub" style="display:block"></span></span>' +
+          /* Titulo, descricao e situacao na mesma coluna, ao lado do icone: a
+             descricao fala do nome, e a coluna e o que as mantem juntas. */
+          '<div class="pasta-titulo">' +
+            '<span class="pasta-nome"></span>' +
+            '<p class="pasta-resumo"></p>' +
+            '<span class="pasta-sub" style="display:block"></span>' +
+          '</div>' +
           '<div class="pasta-acoes">' +
             '<button type="button" class="pasta-acao" data-acao="duplicar">' + ICO_DUPLICAR + '</button>' +
             '<button type="button" class="pasta-acao perigo" data-acao="excluir">' + ICO_LIXEIRA + '</button>' +
@@ -7855,6 +9619,11 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
         '</div>';
       el.querySelector(".pasta-nome").textContent = c.nome;
       el.querySelector(".pasta-sub").textContent = c.ultimo;
+      /* Pasta sem descrição não ganha uma linha em branco no cartão: o
+         parágrafo sai do fluxo e o `gap` da coluna se fecha sozinho. */
+      var resumo = el.querySelector(".pasta-resumo");
+      resumo.textContent = c.desc || "";
+      resumo.hidden = !c.desc;
 
       pintarSelosEm(el.querySelector(".etiquetas-cartao"), c.tags);
       /* O nome não está dentro do botão de abrir, então ele precisa se nomear. */
@@ -7933,20 +9702,26 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       return;
     }
 
+    /* Mesmo campo da gaveta de arquivo novo: dá para procurar o destino por
+       nome, em vez de correr uma lista, e dá para criar a pasta de destino aqui
+       mesmo — mover para uma pasta que ainda não existe é um destino tão
+       legítimo quanto os outros. `c` fica de fora: a pasta que está sendo
+       excluída não recebe o próprio conteúdo. */
     var escolhido = destinos[0].nome;
-    var campo = grupo("Mover os arquivos para", campoSelect(escolhido,
-      destinos.map(function (p) {
-        var q = (p.lista || []).length;
-        return { nome: p.nome, nota: q + (q === 1 ? " arquivo" : " arquivos") };
-      }),
-      function (v) { escolhido = v; }));
+    var campo = grupo("Mover os arquivos para",
+      campoPasta(escolhido, function (v) { escolhido = v; }, c));
 
     perguntar({
       titulo: "Excluir pasta",
       descricao: ['"', { forte: c.nome }, '" tem ' + quantos + ' dentro. O que fazer com eles?'],
       corpo: campo,
       rotuloMeio: "Mover e excluir",
-      onMeio: function () { excluirPasta(c, acharPasta(escolhido)); },
+      onMeio: function () {
+        var destino = acharPasta(escolhido);
+        /* Sem destino não se move nada: excluir assim mesmo apagaria junto o que
+           a pessoa acabou de pedir para salvar. */
+        if (destino && destino !== c) excluirPasta(c, destino);
+      },
       rotuloOk: "Excluir tudo",
       onConfirmar: function () { excluirPasta(c); }
     });
@@ -8089,61 +9864,82 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   function pintarCabecalhoDaPasta(c) {
     $("trilhaPasta").textContent = c.nome;
     $("pastaTitulo").textContent = c.nome;
+    /* A descrição não some mais quando está vazia: ela é o próprio campo de
+       escrever, e escondê-la tirava da tela o único lugar onde se clica para
+       dar uma descrição à pasta. Vazia, o CSS põe o convite no lugar. */
     $("pastaDesc").textContent = c.desc || "";
-    $("pastaDesc").hidden = !c.desc;
     pintarSelosEm($("pastaEtiquetas"), c.tags);
   }
 
-  /* Renomear a pasta no lugar onde o nome é lido. Enter grava e sai do campo;
-     Escape desfaz; sair do campo grava também, porque clicar fora depois de
-     escrever é gesto de quem já terminou. */
-  (function () {
-    var campo = $("pastaTitulo"), antes = "";
+  /* Editar no lugar onde se lê. Enter grava e sai do campo; Escape desfaz; sair
+     do campo grava também, porque clicar fora depois de escrever é gesto de quem
+     já terminou.
 
-    function gravarNome() {
-      if (!pastaAberta) return;
-      /* Quebra de linha e espaço duplo não são nome: um `contenteditable`
-         aceita os dois, e o que volta do banco tem de ser o que se lê. */
-      var nome = campo.textContent.replace(/\s+/g, " ").trim();
-
-      if (!nome) { campo.textContent = antes; return; }
-      var outra = acharPasta(nome);
-      if (outra && outra !== pastaAberta) {
-        avisar("error", "Já existe uma pasta com esse nome", "Duas iguais na lista não se distinguem.");
-        campo.textContent = antes;
-        return;
-      }
-      /* Normaliza a exibição mesmo sem mudança: quem só apagou um espaço a mais
-         não deve ver o espaço voltar. */
-      campo.textContent = nome;
-      if (nome === pastaAberta.nome) return;
-
-      pastaAberta.nome = nome;
-      antes = nome;
-      /* O nome aparece em três lugares além daqui: os dois degraus de volta e a
-         lista atrás desta tela. */
-      $("trilhaPasta").textContent = nome;
-      $("trilhaVoltaPasta").textContent = nome;
-      pintarPastas();
-      if (pastaAberta.id) {
-        gravar({ acao: "pasta.renomear", id: pastaAberta.id, nome: nome,
-                 desc: pastaAberta.desc || "", tags: pastaAberta.tags || [] });
-      }
-    }
-
+     O nome e a descrição da pasta se editam do mesmo jeito, então a mecânica
+     mora aqui uma vez só. O que muda entre os dois é o que fazer com o texto no
+     fim, e isso vem em `aoGravar`: ela recebe o texto limpo e o que havia antes,
+     e devolve o que deve ficar na tela — o novo, ou o anterior quando o que foi
+     escrito não serve. */
+  function editarNoLugar(campo, aoGravar) {
+    var antes = "";
     campo.addEventListener("focus", function () { antes = campo.textContent.trim(); });
     campo.addEventListener("keydown", function (e) {
       if (e.key === "Enter") { e.preventDefault(); campo.blur(); return; }
       if (e.key === "Escape") { e.preventDefault(); campo.textContent = antes; campo.blur(); }
     });
-    campo.addEventListener("blur", gravarNome);
+    campo.addEventListener("blur", function () {
+      /* Quebra de linha e espaço duplo não são texto de cabeçalho: um
+         `contenteditable` aceita os dois, e o que vai para o banco tem de ser o
+         que se lê. Normaliza mesmo sem mudança — quem só apagou um espaço a
+         mais não deve ver o espaço voltar. */
+      campo.textContent = aoGravar(campo.textContent.replace(/\s+/g, " ").trim(), antes);
+    });
     /* Colar traz marcação junto; aqui só o texto interessa. */
     campo.addEventListener("paste", function (e) {
       e.preventDefault();
       var texto = (e.clipboardData || window.clipboardData).getData("text");
       document.execCommand("insertText", false, texto.replace(/\s+/g, " "));
     });
-  })();
+  }
+
+  /* Nome, descrição e etiquetas viajam juntos: `pasta.renomear` grava os três
+     numa tacada, e mandar só o que mudou apagaria os outros dois. */
+  function salvarPasta(c) {
+    if (!c || !c.id) return;
+    gravar({ acao: "pasta.renomear", id: c.id, nome: c.nome,
+             desc: c.desc || "", tags: c.tags || [] });
+  }
+
+  editarNoLugar($("pastaTitulo"), function (nome, antes) {
+    if (!pastaAberta || !nome) return antes;
+    var outra = acharPasta(nome);
+    if (outra && outra !== pastaAberta) {
+      avisar("error", "Já existe uma pasta com esse nome", "Duas iguais na lista não se distinguem.");
+      return antes;
+    }
+    if (nome === pastaAberta.nome) return nome;
+    pastaAberta.nome = nome;
+    /* O nome aparece em três lugares além daqui: os dois degraus de volta e a
+       lista atrás desta tela. */
+    $("trilhaPasta").textContent = nome;
+    $("trilhaVoltaPasta").textContent = nome;
+    pintarPastas();
+    salvarPasta(pastaAberta);
+    return nome;
+  });
+
+  /* Descrição vazia é uma descrição legítima — apagar a que existia é uma
+     edição como outra qualquer, e não um engano a desfazer. */
+  editarNoLugar($("pastaDesc"), function (desc, antes) {
+    if (!pastaAberta) return antes;
+    if (desc === (pastaAberta.desc || "")) return desc;
+    pastaAberta.desc = desc;
+    /* A prévia no cartão sai deste mesmo campo: sem repintar, a lista atrás
+       desta tela ficaria com a descrição antiga até o próximo carregamento. */
+    pintarPastas();
+    salvarPasta(pastaAberta);
+    return desc;
+  });
 
   function abrirPasta(c) {
     pastaAberta = c;
@@ -8203,6 +9999,16 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     $("comporComentario").hidden = true;
     $("comentarioTexto").value = "";
     pintarComentarios();
+    /* O destino dos rascunhos é o deck deste arquivo, já preenchido: quem abre
+       um texto para estudar quer que o que sair dali fique junto. O deck em si
+       só nasce na hora de salvar — trocar de arquivo não pode ir criando decks
+       vazios pelo caminho. Escolher outro continua a um clique no campo.
+
+       Com rascunhos na mesa o destino não muda debaixo deles: nasceram no
+       arquivo anterior, e mandá-los para o deck deste seria carimbá-los com a
+       origem errada. */
+    if (!rascunhos.length) deckAtual = nomeDoDeckDoArquivo();
+    desenhar();
     /* Criar pelo lançador pode vir de qualquer tela, então a de Pastas tem de
        entrar antes da vista do arquivo. */
     irPaginaAtual("pastas");
@@ -8281,11 +10087,19 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   /* ═══ Ações simples do cabeçalho ═════════════════════════════════════ */
   $("btnNovoDoc").addEventListener("click", gavetaNovoArquivo);
   $("btnNovaPasta").addEventListener("click", gavetaNovaPasta);
-  $("btnFilaHoje").addEventListener("click", function () { irPaginaAtual("revisao"); });
+  /* As três portas para a revisão, e o que muda entre elas é só o recorte: o
+     sino e o botão da tela de decks abrem o acervo todo; o de dentro de um deck
+     abre aquele deck. `montarFila` vem depois de `irPaginaAtual` porque a
+     entrada na tela também monta — mandar o escopo depois é o que faz a segunda
+     chamada valer. */
   $("btnNovoDeck").addEventListener("click", gavetaNovoDeck);
   $("btnNovoDeckTela").addEventListener("click", gavetaNovoDeck);
-  $("btnRevisarDeck").addEventListener("click", function () { irPaginaAtual("revisao"); montarFila(); });
-  $("btnRevisar").addEventListener("click", function () { irPaginaAtual("revisao"); });
+  $("btnFilaHoje").addEventListener("click", function () { irPaginaAtual("revisao"); montarFila(""); });
+  $("btnRevisar").addEventListener("click", function () { irPaginaAtual("revisao"); montarFila(""); });
+  $("btnRevisarDeck").addEventListener("click", function () {
+    irPaginaAtual("revisao");
+    montarFila(deckAberto ? deckAberto.nome : "");
+  });
 
   /* ═══ Estado inicial ═════════════════════════════════════════════════
      A ordem aqui importa mais do que parece. Tudo que a tela mostra vem do
