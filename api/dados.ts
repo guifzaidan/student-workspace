@@ -24,6 +24,21 @@ const SEPARADOR = '\u001f';
 const lista = (v: unknown) => texto(v).split(SEPARADOR).filter(Boolean);
 const juntar = (v: unknown) => (Array.isArray(v) ? v.filter(Boolean).join(SEPARADOR) : '');
 
+/* As notas de um arquivo vão como JSON numa coluna dele. Não ganham tabela
+   própria porque nunca são lidas sozinhas: elas só existem com o arquivo aberto
+   e chegam junto com ele. Coluna vazia ou JSON quebrado vira lista vazia — uma
+   nota ilegível não pode derrubar a leitura do acervo inteiro. */
+function notas(v: unknown): unknown[] {
+  const cru = texto(v);
+  if (!cru) return [];
+  try {
+    const lido = JSON.parse(cru);
+    return Array.isArray(lido) ? lido : [];
+  } catch {
+    return [];
+  }
+}
+
 /** O dia de hoje em ISO, sem hora: é assim que a fila do dia é comparada. */
 function hoje(): string {
   return new Date().toISOString().slice(0, 10);
@@ -61,6 +76,7 @@ async function lerTudo() {
       desc: texto(linha.descricao),
       tags: lista(linha.etiquetas),
       corpo: texto(linha.corpo),
+      notas: notas(linha.notas),
     });
     porPasta.set(texto(linha.pasta_id), arr);
   }
@@ -174,8 +190,15 @@ async function gravar(corpo: Record<string, unknown>) {
     }
     case 'arquivo.salvar':
       await cx.execute(
-        'UPDATE sinapse_arquivos SET nome = ?, descricao = ?, corpo = ?, atualizado_em = ? WHERE id = ?',
-        [texto(corpo.nome), texto(corpo.desc), texto(corpo.corpo), t, texto(corpo.id)],
+        'UPDATE sinapse_arquivos SET nome = ?, descricao = ?, corpo = ?, notas = ?, atualizado_em = ? WHERE id = ?',
+        [
+          texto(corpo.nome), texto(corpo.desc), texto(corpo.corpo),
+          /* As notas viajam já serializadas: elas se prendem a marcas dentro do
+             corpo, então gravar as duas coisas na mesma escrita é o que impede
+             uma nota apontar para uma marca que a outra escrita ainda não tem. */
+          JSON.stringify(Array.isArray(corpo.notas) ? corpo.notas : []),
+          t, texto(corpo.id),
+        ],
       );
       return { ok: true };
     case 'arquivo.excluir':

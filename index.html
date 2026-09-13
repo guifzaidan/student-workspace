@@ -292,15 +292,18 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
 }
 
 /* ─── Casca ──────────────────────────────────────────────────────────── */
+/* `minmax(0, 1fr)` e não `1fr`: uma faixa de grade tem largura mínima
+   automática, então um texto que não quebra — a trilha com o nome inteiro de um
+   arquivo — empurrava a coluna e, com ela, a tela toda para fora da janela. */
 .admin-casca {
   display: grid;
-  grid-template-columns: 220px 1fr;
+  grid-template-columns: 220px minmax(0, 1fr);
   grid-template-rows: 60px 1fr;
   height: 100dvh;
   overflow: clip;
   transition: grid-template-columns 0.28s cubic-bezier(0.4,0,0.2,1);
 }
-.admin-casca[data-menu="fechado"] { grid-template-columns: 0px 1fr; }
+.admin-casca[data-menu="fechado"] { grid-template-columns: 0px minmax(0, 1fr); }
 
 /* ─── Topo ───────────────────────────────────────────────────────────── */
 .app-topo {
@@ -627,14 +630,34 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
   background: var(--bg);
   min-height: 0;
 }
+/* Duas linhas: a de cima é só do caminho de volta, a de baixo é a leitura. O
+   trilho de ferramentas atravessa as duas, para subir até o topo da área e
+   encostar no header — como faz o menu da esquerda. */
+/* As duas colunas de fora são variáveis, e não valores escritos na faixa: elas
+   fecham de forma independente, e com a faixa literal cada combinação precisaria
+   da sua própria regra. */
 .estudo-area {
+  --col-indice: 236px;
+  --col-trilho: 348px;
   flex: 1;
   min-height: 0;
+  min-width: 0;
   display: grid;
-  grid-template-columns: 236px minmax(0, 1fr) 348px;
+  grid-template-columns: var(--col-indice) minmax(0, 1fr) var(--col-trilho);
+  grid-template-rows: auto minmax(0, 1fr);
   transition: grid-template-columns var(--transition-spring);
 }
-.estudo-area[data-trilho="fechado"] { grid-template-columns: 236px minmax(0, 1fr) 0px; }
+.estudo-area[data-trilho="fechado"] { --col-trilho: 0px; }
+.estudo-area[data-indice="fechado"] { --col-indice: 0px; }
+/* Faixa de largura zero ainda renderiza o respiro lateral de quem está dentro,
+   e o índice vazaria 30px para cima do texto. */
+.estudo-area[data-indice="fechado"] > .arquivo-indice { padding-left: 0; padding-right: 0; }
+/* O caminho ocupa as duas primeiras colunas: começa na borda esquerda e para
+   antes do trilho, em vez de correr por baixo dele. */
+.estudo-area > .trilha-tela { grid-column: 1 / 3; grid-row: 1; }
+.estudo-area > .arquivo-indice { grid-column: 1; grid-row: 2; }
+.estudo-area > .admin-content-wrap { grid-column: 2; grid-row: 2; }
+.estudo-area > .estudo-trilho { grid-column: 3; grid-row: 1 / -1; }
 
 /* ─── Índice do arquivo ────────────────────────────────────────────── */
 /* O índice saiu do menu lateral: ele pertence ao texto aberto, não à
@@ -713,8 +736,22 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
 
 /* A exceção é o arquivo aberto, que o portal não tem: a coluna de leitura
    acompanha a largura da folha para a trilha e o cabeçalho ficarem alinhados
-   com o card em vez de correrem soltos por cima dele. */
-.coluna-leitura { width: 100%; max-width: 940px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+   com o card em vez de correrem soltos por cima dele.
+
+   A largura acompanha o espaço que existe, em vez de um número fixo: recolher
+   o menu e o painel é um pedido por mais área de escrita, e devolver a mesma
+   medida de antes ignora o gesto. O teto existe porque linha comprida demais
+   cansa de ler; o piso, para a coluna não espremer em tela estreita. */
+.coluna-leitura {
+  width: 100%;
+  max-width: clamp(600px, 92%, 1320px);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  transition: max-width var(--transition-spring);
+}
 
 .admin-page-header {
   /* Quase nada: o vão até o bloco seguinte já vem do `gap` da página. */
@@ -731,6 +768,23 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
   line-height: 1.2;
   margin: 0 0 6px;
 }
+/* O nome se edita onde ele é lido. Em repouso é título; a moldura só aparece
+   sob o ponteiro e no foco, com o mesmo desenho do campo de título da gaveta —
+   é a mesma ideia, e não devia ter duas caras. O `inline-block` faz a área
+   clicável parar no fim do texto, em vez de atravessar a linha inteira. */
+.titulo-editavel {
+  display: inline-block;
+  max-width: 100%;
+  padding: 2px 6px;
+  margin-left: -6px;
+  border: 1.5px solid transparent;
+  border-radius: var(--radius-sm);
+  outline: none;
+  cursor: text;
+  transition: border-color var(--transition-spring), box-shadow var(--transition-spring), background var(--transition-spring);
+}
+.titulo-editavel:hover { background: var(--bg); }
+.titulo-editavel:focus { background: var(--white); border-color: var(--gray2); box-shadow: 0 0 0 3px var(--gray4); }
 /* Abaixo do título, a frase que diz do que a tela trata. Os valores são os
    do .admin-page-desc do portal: 13px, --gray2, peso 400. */
 .admin-page-desc {
@@ -808,13 +862,16 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
   position: relative;
   z-index: 1;
 }
+/* A folha segue a coluna, em vez de ter um teto próprio: dois tetos brigando
+   deixavam o cabeçalho mais largo que o card embaixo dele. */
 .folha {
-  max-width: 940px;
   width: 100%;
   margin: 0 auto;
   padding: 44px 56px 60px;
 }
-.arquivo-corpo { font-size: 15px; line-height: 1.7; max-width: 76ch; }
+/* A medida do texto também cresce, senão alargar a folha só acrescentaria
+   espaço vazio à direita das linhas. O `min` é quem segura em tela estreita. */
+.arquivo-corpo { font-size: 15px; line-height: 1.7; max-width: min(100%, 92ch); }
 .arquivo-corpo h1 { font-size: 27px; line-height: 1.2; font-weight: 800; letter-spacing: -.02em; margin: 0 0 14px; text-wrap: balance; scroll-margin-top: 20px; }
 .arquivo-corpo h2 { font-size: 19.5px; line-height: 1.3; font-weight: 800; letter-spacing: -.015em; margin: 38px 0 10px; text-wrap: balance; scroll-margin-top: 20px; }
 .arquivo-corpo h3 { font-size: 15px; line-height: 1.4; font-weight: 700; margin: 26px 0 8px; color: var(--gray); scroll-margin-top: 20px; }
@@ -950,19 +1007,24 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
 .arquivo-corpo em { font-style: italic; }
 .abertura { font-size: 17px; color: var(--gray); line-height: 1.65; }
 .medida { font-weight: 700; font-variant-numeric: tabular-nums; }
+/* O destaque usa o acento da casa, e não uma cor só dele: o fio da esquerda é o
+   acento cheio, e o fundo é o mesmo tom lavado. Antes o âmbar entrava aqui como
+   uma quarta cor, sem nada no sistema que a sustentasse. */
 .aviso-caixa {
   display: flex;
   gap: 12px;
   padding: 14px 16px;
   border-radius: var(--radius-md);
-  background: var(--gray4);
-  border-left: 3px solid var(--amber);
+  background: var(--yd);
+  border-left: 3px solid var(--yellow);
   margin: 24px 0;
   font-size: 14.5px;
   line-height: 1.55;
 }
-.aviso-caixa svg { color: var(--amber); margin-top: 3px; }
-.aviso-caixa b { color: var(--amber); }
+/* O ícone é o acento cheio; o texto segue sendo texto. Pintar a frase inteira
+   de rosa faria o bloco chamar mais atenção do que o conteúdo dele. */
+.aviso-caixa svg { color: var(--yellow-forte); margin-top: 3px; }
+.aviso-caixa b { color: var(--black); }
 .virou-card { background: linear-gradient(transparent 62%, var(--yd) 62%); border-radius: 2px; }
 .marcado { background: var(--yd); border-radius: 3px; box-shadow: 0 0 0 1px var(--yb); }
 
@@ -1013,7 +1075,10 @@ mark.grifo {
   white-space: nowrap;
 }
 .comentario-texto { font-size: 12.5px; line-height: 1.5; color: var(--black); white-space: pre-wrap; }
-.comentario-tirar {
+/* As mesmas ações dos cartões de pasta e deck, na medida do trilho: aparecem
+   sob o ponteiro e somem em repouso, onde o que se lê é a nota. */
+.comentario-acoes { display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0; }
+.comentario-acao {
   flex-shrink: 0;
   width: 22px; height: 22px;
   display: inline-flex; align-items: center; justify-content: center;
@@ -1022,8 +1087,11 @@ mark.grifo {
   opacity: 0;
   transition: background var(--transition), color var(--transition), opacity var(--transition);
 }
-.comentario:hover .comentario-tirar, .comentario-tirar:focus-visible { opacity: 1; }
-.comentario-tirar:hover { background: var(--red-soft); color: var(--red); }
+.comentario:hover .comentario-acao, .comentario-acao:focus-visible { opacity: 1; }
+.comentario-acao:hover { background: var(--gray4); color: var(--black); }
+.comentario-acao.perigo:hover { background: var(--red-soft); color: var(--red); }
+.comentario-acao:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--gray2); }
+@media (hover: none) { .comentario-acao { opacity: 1; } }
 .comentarios-lista { display: flex; flex-direction: column; gap: 8px; }
 .comentario-compor { display: flex; flex-direction: column; gap: 8px; }
 .comentario-compor textarea { min-height: 70px; font-size: 13px; }
@@ -1051,7 +1119,7 @@ mark.grifo {
 /* A chapa da aba escolhida é uma peça só, que desliza de uma para a outra em
    vez de acender e apagar em lugares diferentes — assim a troca tem caminho, e
    não um salto. Como toda aba é `flex: 1`, todas têm a mesma largura, e a
-   pílula só precisa saber em qual índice parar: o `--aba-i` vem do script. */
+   pílula é medida na aba escolhida, pelo script. */
 .abas {
   position: relative;
   display: flex;
@@ -1061,17 +1129,24 @@ mark.grifo {
   border-radius: var(--radius-pill);
   flex: 1;
 }
+/* A pílula mede a aba escolhida, e não uma fração do trilho. `flex: 1` reparte
+   o espaço que sobra, mas item nenhum encolhe abaixo do próprio conteúdo: com
+   um selo de contagem, "Flashcards 3" fica mais largo que "Notas", e a fração
+   exata deixava a chapa mais estreita que a aba — o número caía fora dela.
+   Quem mede é o script; aqui ficam só a aparência e a curva. */
 .abas-pilula {
   position: absolute;
-  top: 3px; bottom: 3px; left: 3px;
-  width: calc((100% - 6px - (var(--abas-n, 2) - 1) * 3px) / var(--abas-n, 2));
+  top: 3px; bottom: 3px;
+  left: 0; width: 0;
   border-radius: var(--radius-pill);
   background: var(--white);
   box-shadow: inset 0 1px 0 var(--cristal-luz), inset 0 -1px 0 var(--cristal-base), var(--cristal-sombra);
   pointer-events: none;
-  transform: translateX(calc(var(--aba-i, 0) * (100% + 3px)));
-  transition: transform .24s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: left .24s cubic-bezier(0.4, 0, 0.2, 1), width .24s cubic-bezier(0.4, 0, 0.2, 1);
 }
+/* Antes da primeira medição ela não tem lugar: escondê-la evita o quadro em que
+   aparece encolhida no canto esquerdo. */
+.abas-pilula:not([style*="width"]) { opacity: 0; }
 .aba {
   position: relative;
   z-index: 1;
@@ -1092,27 +1167,10 @@ mark.grifo {
 
 @media (prefers-reduced-motion: reduce) { .abas-pilula { transition: none; } }
 .aba-conta { font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: var(--radius-pill); background: var(--yd); color: var(--black); }
-.mini-timer {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 0 11px;
-  height: 32px;
-  border-radius: 9px;
-  border: 1px solid var(--gray3);
-  background: var(--bg);
-  color: var(--black);
-  font-size: 12.5px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  flex-shrink: 0;
-  transition: border-color .15s, background .15s;
-}
-.mini-timer:hover { border-color: var(--gray2); background: var(--white); }
+/* O ponto que pisca continua existindo no balão de atividade, que é onde um
+   ciclo em curso se anuncia agora. */
 .pulso { width: 7px; height: 7px; border-radius: 50%; background: var(--gray2); }
-.mini-timer.rodando .pulso { background: var(--yellow); animation: pisca 1.7s ease-in-out infinite; }
 @keyframes pisca { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
-@media (prefers-reduced-motion: reduce) { .mini-timer.rodando .pulso { animation: none; } }
 
 .painel { flex: 1; overflow-y: auto; min-height: 0; padding: 18px 14px 20px; display: flex; flex-direction: column; gap: 14px; }
 .painel[hidden] { display: none; }
@@ -1734,6 +1792,14 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
 }
 .painel-titulo-campo:hover { background: var(--bg); }
 .painel-titulo-campo:focus { background: var(--white); border-color: var(--gray2); box-shadow: 0 0 0 3px var(--gray4); }
+/* Travado, ele não se oferece para ser editado: sem chapa no hover, sem cursor
+   de texto. É rótulo do que está aberto, e não um campo que não funciona. */
+.painel-titulo-campo:read-only { cursor: default; }
+.painel-titulo-campo:read-only:hover, .painel-titulo-campo:read-only:focus {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
 .admin-modal-body { flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden; padding: 20px 24px 24px; display: flex; flex-direction: column; gap: 16px; }
 .painel-rodape {
   flex-shrink: 0;
@@ -1977,6 +2043,63 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
 .fab[data-aberto="true"] .fab-ico-abrir { opacity: 0; transform: rotate(90deg) scale(.6); }
 .fab[data-aberto="true"] .fab-ico-fechar { opacity: 1; transform: none; }
 
+/* ─── O giro ─────────────────────────────────────────────────────────────
+   A peça de espera da casa. O aro é `--gray3` e o topo é `--spinner`, que é
+   token próprio e não o acento: o carregamento mudar de cor não deve arrastar
+   badge, gráfico e relatório junto. */
+.dux-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--gray3);
+  border-top-color: var(--spinner);
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+  margin: 0 auto;
+  flex-shrink: 0;
+}
+.dux-spinner.sm { width: 16px; height: 16px; border-width: 2px; }
+/* Dentro de botão colorido o giro veste o que estiver em volta: o cinza com
+   topo rosa sumiria no fundo. */
+.dux-spinner.na-cor {
+  border-color: color-mix(in srgb, currentColor 35%, transparent);
+  border-top-color: currentColor;
+}
+.dux-spinner-row { display: flex; align-items: center; justify-content: center; padding: 28px 16px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .dux-spinner { animation-duration: 2.4s; } }
+
+/* A faixa de fora do ar. Fica, porque o estado dura: enquanto o banco não
+   responde, tudo que for escrito se perde ao recarregar. */
+.faixa-falha {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  padding: 10px 24px;
+  background: var(--red-soft);
+  border-bottom: 1px solid color-mix(in srgb, var(--red) 26%, transparent);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--black);
+}
+.faixa-falha[hidden] { display: none; }
+.faixa-falha svg { color: var(--red); flex-shrink: 0; }
+.faixa-falha .motivo { font-weight: 500; color: var(--gray); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.faixa-falha .btn { margin-left: auto; flex-shrink: 0; }
+
+/* O giro do canto do topo, que aparece enquanto alguma coisa é gravada. */
+.gravando-aviso {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--gray2);
+  white-space: nowrap;
+}
+.gravando-aviso[hidden] { display: none; }
+
 /* ─── Toast ──────────────────────────────────────────────────────────── */
 .toast-cais {
   position: fixed;
@@ -2068,7 +2191,7 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
   cursor: pointer;
 }
 .atividade-girinho { display: inline-flex; flex-shrink: 0; color: var(--yellow); }
-/* Correndo, o sinal é o mesmo ponto que pisca no mini-timer do trilho: quem já
+/* Correndo, o sinal é um ponto que pisca — o mesmo vocabulário de antes: quem já
    aprendeu o que ele quer dizer ali não precisa aprender de novo aqui. */
 .atividade-balao.rodando .atividade-girinho .pulso { animation: pisca 1.7s ease-in-out infinite; }
 /* Parado e concluído trocam de cara: o ponto vira símbolo, a barra some no fim,
@@ -2144,9 +2267,10 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
 /* O caminho que mora acima de um grid de colunas, e não dentro de uma delas:
    repete o respiro do `.admin-content-wrap` para cair na mesma posição das
    outras telas, e as colunas abaixo descontam o topo que ele já gastou. */
-.trilha-tela { flex-shrink: 0; padding: 20px 24px 0; }
-.trilha-tela + .estudo-area .admin-content-wrap { padding-top: 14px; }
-.trilha-tela + .estudo-area .arquivo-indice { padding-top: 16px; }
+.trilha-tela { min-width: 0; padding: 20px 24px 0; }
+/* As colunas de baixo descontam o topo que o caminho já gastou. */
+.estudo-area:has(> .trilha-tela) > .admin-content-wrap { padding-top: 14px; }
+.estudo-area:has(> .trilha-tela) > .arquivo-indice { padding-top: 16px; }
 .trilha-degrau {
   display: inline-flex;
   align-items: center;
@@ -2167,15 +2291,18 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
    dentro dele seria cortado seco. */
 .trilha-degrau { flex-shrink: 0; max-width: 32ch; overflow: hidden; }
 .trilha-aqui {
-  flex: 1;
   min-width: 0;
+  /* Teto próprio, e não a largura que sobrar: um nome de duzentos caracteres
+     corta cedo, num ponto previsível, em vez de varrer a linha inteira só
+     porque cabia. O que interessa ali é reconhecer onde se está. */
+  max-width: 42ch;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 /* ─── Vistas dentro de uma tela ──────────────────────────────────────── */
-.vista { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.vista { flex: 1; min-height: 0; min-width: 0; display: flex; flex-direction: column; }
 .vista[hidden] { display: none; }
 
 /* ─── Cartão de pasta ──────────────────────────────────────────────── */
@@ -2246,9 +2373,14 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
 }
 .pasta-nome { font-size: 15px; font-weight: 800; letter-spacing: -.01em; }
 .pasta-sub { font-size: 11.5px; font-weight: 500; color: var(--gray2); margin-top: 2px; }
-.pasta-numeros { display: flex; gap: 18px; }
-.pasta-num b { display: block; font-size: 14px; font-weight: 800; line-height: 1.2; font-variant-numeric: tabular-nums; }
-.pasta-num span { font-size: 9.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--gray2); }
+.pasta-numeros { display: flex; gap: 16px; }
+.pasta-num { display: inline-flex; align-items: center; gap: 6px; color: var(--gray2); }
+/* Os dois ícones vêm de origens com medidas diferentes; aqui eles se igualam,
+   senão um contador pareceria maior que o outro. */
+.pasta-num svg { width: 15px; height: 15px; }
+/* Número na mesma cor do ícone: os dois são a mesma informação, e o contraste
+   entre eles só disputava atenção com o nome da pasta, que é o que se lê. */
+.pasta-num b { font-size: 14px; font-weight: 800; line-height: 1.2; font-variant-numeric: tabular-nums; }
 
 /* ─── Linha de arquivo dentro de uma pasta ────────────────────────── */
 .arquivo-linha {
@@ -2335,7 +2467,7 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
 .pagina-cristal .admin-toolbar-btn:hover:not(:disabled) { color: var(--black); }
 
 /* ═══ Telas ══════════════════════════════════════════════════════════ */
-.pagina { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.pagina { flex: 1; min-height: 0; min-width: 0; display: flex; flex-direction: column; }
 .pagina[hidden] { display: none; }
 
 /* ─── Cartão de número ───────────────────────────────────────────────── */
@@ -2565,6 +2697,23 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
 .td-frente { font-weight: 600; max-width: 420px; }
 .td-sub { font-size: 11.5px; font-weight: 500; color: var(--gray2); margin-top: 2px; }
 .col-num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+/* A coluna de ações não tem cabeçalho visível nem largura própria: ela é só o
+   canto onde o gesto mora, e aparece sob o ponteiro como nos cartões. */
+.col-acoes { width: 1%; text-align: right; white-space: nowrap; }
+.linha-acao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px; height: 26px;
+  border-radius: var(--radius-sm);
+  color: var(--gray2);
+  opacity: 0;
+  transition: background var(--transition), color var(--transition), opacity var(--transition);
+}
+tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
+.linha-acao.perigo:hover { background: var(--red-soft); color: var(--red); }
+.linha-acao:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--gray2); }
+@media (hover: none) { .linha-acao { opacity: 1; } }
 .admin-empty { text-align: center; padding: 54px 24px; color: var(--gray2); font-size: 14px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
 .admin-empty b { color: var(--gray); }
 
@@ -2674,6 +2823,7 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
 /* ─── Decks ──────────────────────────────────────────────────────────── */
 .decks-grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
 .deck-card {
+  position: relative;
   background: var(--white);
   border: 1.5px solid var(--gray3);
   border-radius: var(--radius-lg);
@@ -2682,9 +2832,43 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
   display: flex;
   flex-direction: column;
   gap: 12px;
+  text-align: left;
   transition: border-color var(--transition-spring), box-shadow var(--transition-spring), background var(--transition-spring), transform var(--transition-spring);
 }
+/* Mesma anatomia do cartão de pasta: abrir é uma camada invisível sobre o
+   cartão inteiro, e as ações ficam acima dela pelo `z-index`. É o que permite
+   ter botões dentro do que antes era um botão só. */
+.deck-abrir { position: absolute; inset: 0; border-radius: inherit; }
+.deck-abrir:focus-visible { outline: none; }
+.deck-card:focus-within { border-color: var(--gray2); }
 .deck-topo { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.deck-acoes {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin: -4px -6px 0 0;
+  flex-shrink: 0;
+}
+.deck-acao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px; height: 26px;
+  border-radius: var(--radius-sm);
+  color: var(--gray2);
+  opacity: 0;
+  flex-shrink: 0;
+  transition: background var(--transition), color var(--transition), opacity var(--transition);
+}
+.deck-card:hover .deck-acao,
+.deck-acao:focus-visible { opacity: 1; }
+.deck-acao:hover { background: var(--gray4); color: var(--black); }
+.deck-acao.perigo:hover { background: var(--red-soft); color: var(--red); }
+.deck-acao:focus-visible { outline: none; box-shadow: 0 0 0 2px var(--gray2); }
+@media (hover: none) { .deck-acao { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .deck-acao { transition: none; } }
 .deck-nome { font-size: 15px; font-weight: 800; letter-spacing: -.01em; }
 .deck-sub { font-size: 11.5px; font-weight: 500; color: var(--gray2); margin-top: 2px; }
 .deck-numeros { display: flex; gap: 18px; }
@@ -2748,7 +2932,7 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
 
 /* ─── Responsivo ─────────────────────────────────────────────────────── */
 @media (max-width: 1180px) {
-  .estudo-area, .estudo-area[data-trilho="fechado"] { grid-template-columns: 236px minmax(0, 1fr); }
+  .estudo-area, .estudo-area[data-trilho="fechado"] { grid-template-columns: var(--col-indice) minmax(0, 1fr); }
   .estudo-trilho {
     position: fixed;
     top: 60px; right: 0; bottom: 0;
@@ -2766,6 +2950,10 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
 @media (max-width: 1040px) {
   .estudo-area, .estudo-area[data-trilho="fechado"] { grid-template-columns: minmax(0, 1fr); }
   .arquivo-indice { display: none; }
+  /* Com uma coluna só, um `grid-column: 1 / 3` inventaria uma segunda faixa
+     implícita e jogaria o texto para fora da tela. */
+  .estudo-area > .trilha-tela,
+  .estudo-area > .admin-content-wrap { grid-column: 1; }
 }
 @media (max-width: 900px) {
   .topbar-conta { padding: 0; max-width: none; }
@@ -2889,6 +3077,18 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
   .kpi-fila { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 560px) {
+  /* Centrado em absoluto, o modo foco passa por cima da marca — a centralização
+     ignora quem já está na linha. Nesta largura ele volta a ser um item dela, e
+     os três dividem o espaço em vez de disputá-lo.
+
+     O rótulo sai junto: a chave sozinha já diz o que faz, e o `title` e o
+     `aria-label` continuam carregando o nome para quem precisar dele. */
+  .topo-meio { position: static; transform: none; flex-shrink: 0; }
+  .seg-rotulo { display: none; }
+  /* Quem cede é a marca, que já corta com reticências; a chave e a conta têm
+     tamanho fixo e não encolhem. */
+  .topo-dir { flex-shrink: 0; }
+
   .kpi-fila { grid-template-columns: 1fr; }
   .graus { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .revisao-card { padding: 24px 20px; }
@@ -2970,6 +3170,11 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
         <span class="sino-ponto" aria-hidden="true"></span>
       </button>
 
+      <span class="gravando-aviso" id="gravandoAviso" role="status" hidden>
+        <span class="dux-spinner sm" aria-hidden="true"></span>
+        Gravando
+      </span>
+
       <div style="position:relative">
         <button type="button" class="topbar-conta" id="btnConta" aria-haspopup="menu" aria-expanded="false" aria-label="Conta de Milena Zaidan">
           <span class="topbar-conta-texto">
@@ -3011,7 +3216,7 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
         <button type="button" class="nav-leaf ativo" data-ir="pastas" aria-current="page">
           <span class="nav-leaf-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg></span>
           <span class="nav-leaf-texto">Pastas</span>
-          <span class="nav-leaf-conta" id="contaPastas">3</span>
+          <span class="nav-leaf-conta" id="contaPastas" hidden></span>
         </button>
 
         <p class="app-menu-secao"><span>Ferramentas</span></p>
@@ -3019,7 +3224,7 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
         <button type="button" class="nav-leaf" data-ir="decks">
           <span class="nav-leaf-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="14" height="13" rx="2.5"/><path d="M8 3h10a3 3 0 0 1 3 3v10"/></svg></span>
           <span class="nav-leaf-texto">Decks</span>
-          <span class="nav-leaf-conta" id="contaDecks">3</span>
+          <span class="nav-leaf-conta" id="contaDecks" hidden></span>
         </button>
 
         <button type="button" class="nav-leaf" data-ir="pomodoro">
@@ -3046,6 +3251,13 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
 
   <!-- ═══ Conteúdo ═══ -->
   <main class="app-principal">
+    <div class="faixa-falha" id="faixaFalha" role="status" hidden>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+      <span>Sem conexão com o banco.</span>
+      <span class="motivo" id="faixaFalhaMotivo"></span>
+      <button type="button" class="btn btn-secondary btn-sm" id="btnTentarDeNovo">Tentar de novo</button>
+    </div>
+
 
     <!-- ═══ Tela: Dashboard ═══ -->
     <section class="pagina pagina-cristal" data-pagina="relatorios" hidden>
@@ -3054,11 +3266,6 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
          <div style="min-width:0">
            <h1 class="admin-page-title">Dashboard</h1>
            <p class="admin-page-desc">O andamento do estudo, em números.</p>
-         </div>
-         <div class="cabecalho-acoes">
-           <button type="button" class="admin-toolbar-btn" title="Exportar relatório" aria-label="Exportar relatório">
-             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 20h16"/></svg>
-           </button>
          </div>
        </div>
 
@@ -3171,8 +3378,11 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
          </nav>
          <div class="admin-page-header">
            <div style="min-width:0">
-             <h1 class="admin-page-title" id="pastaTitulo"></h1>
+             <h1 class="admin-page-title titulo-editavel" id="pastaTitulo"
+               contenteditable="true" role="textbox" spellcheck="false"
+               aria-label="Nome da pasta" title="Clique para renomear"></h1>
              <p class="admin-page-desc" id="pastaDesc"></p>
+             <div class="arquivo-etiquetas" id="pastaEtiquetas" hidden></div>
            </div>
            <div class="cabecalho-acoes">
              <button type="button" class="btn btn-primary btn-cabecalho" id="btnNovoDoc">
@@ -3193,8 +3403,11 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
       <!-- O arquivo aberto -->
       <div class="vista" data-vista="arquivo" hidden>
 
-      <!-- Fora do grid de três colunas: o caminho é da tela, não da coluna do
-           texto, e lá dentro ele nascia empurrado pela largura do índice. -->
+    <div class="estudo-area" id="estudoArea" data-trilho="aberto">
+
+      <!-- Dentro do grid, mas ocupando só as duas primeiras colunas: assim o
+           caminho começa na borda esquerda, como nas outras telas, e o trilho
+           da direita sobe até o topo por baixo dele. -->
       <nav class="trilha trilha-tela" aria-label="Trilha">
         <button type="button" class="trilha-degrau" data-volta="lista">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
@@ -3205,8 +3418,6 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
         <span class="trilha-barra">/</span>
         <span class="trilha-aqui" id="trilhaArquivo">Pneumonia hospitalar na UTI</span>
       </nav>
-
-    <div class="estudo-area" id="estudoArea" data-trilho="aberto">
 
       <aside class="arquivo-indice" aria-label="Índice do arquivo">
         <div class="arquivo-indice-dentro">
@@ -3259,10 +3470,6 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
                 <span class="aba-conta" id="abaContaComentarios" hidden>0</span>
               </button>
             </div>
-            <button type="button" class="mini-timer" id="miniTimer" aria-label="Ir para o Pomodoro">
-              <span class="pulso" aria-hidden="true"></span>
-              <span id="miniTempo">25:00</span>
-            </button>
           </div>
 
 
@@ -3328,7 +3535,7 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
            <div class="cabecalho-acoes">
              <button type="button" class="btn btn-secondary btn-cabecalho" id="btnFilaHoje">
                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"/><path d="M3 4v4h4"/></svg>
-               Revisar <span id="seloRevisar">12</span> de hoje
+               Revisar <span id="seloRevisar"></span> de hoje
              </button>
              <button type="button" class="btn btn-primary btn-cabecalho" id="btnNovoDeckTela">
                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
@@ -3364,9 +3571,6 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
              <p class="admin-page-desc" id="deckDesc"></p>
            </div>
            <div class="cabecalho-acoes">
-             <button type="button" class="admin-toolbar-btn" title="Exportar para CSV" aria-label="Exportar para CSV">
-               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 20h16"/></svg>
-             </button>
              <button type="button" class="btn btn-secondary btn-cabecalho" id="btnRevisarDeck">
                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"/><path d="M3 4v4h4"/></svg>
                Revisar este deck
@@ -3390,6 +3594,7 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
                    <th>Estado</th>
                    <th>Próxima revisão</th>
                    <th style="text-align:right">Acertos</th>
+                   <th><span class="vh">Ações</span></th>
                  </tr>
                </thead>
                <tbody id="corpoTabela"></tbody>
@@ -3850,6 +4055,14 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
   var comBanco = false;
 
   function chamar(corpo) {
+    /* O corpo vai dentro de uma promessa para que um erro síncrono, como um
+       `fetch` ausente ou uma URL inválida, vire rejeição em vez de escapar da
+       cadeia. Escapando, o `.catch` não roda e os giros ficam girando para
+       sempre, que é a pior forma de falhar: parece que ainda está vindo. */
+    return Promise.resolve().then(function () { return pedir(corpo); });
+  }
+
+  function pedir(corpo) {
     var opcoes = corpo
       ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corpo) }
       : undefined;
@@ -3861,13 +4074,81 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
     });
   }
 
-  /* Pinta primeiro, grava depois: quem clicou já viu o gesto acontecer. */
+  /* Pinta primeiro, grava depois: quem clicou já viu o gesto acontecer. O que
+     o giro do topo faz é contar quantas gravações ainda estão no ar, para quem
+     fechar a aba saber que havia algo em trânsito. */
+  var emTransito = 0;
+  function marcarTransito(d) {
+    emTransito = Math.max(0, emTransito + d);
+    var aviso = $("gravandoAviso");
+    if (aviso) aviso.hidden = emTransito === 0;
+  }
+  /* Sem banco, gravar era mentira: a tela mostrava a mudança, nada saía daqui e
+     o retorno era de sucesso. Quem criasse um deck via ele aparecer e sumir no
+     refresh, sem nunca saber por quê. Agora o aviso vem — uma vez por queda,
+     porque repeti-lo a cada tecla afogaria a tela. */
+  var jaAvisouSemBanco = false;
   function gravar(corpo) {
-    if (!comBanco) return Promise.resolve({});
+    if (!comBanco) {
+      if (!jaAvisouSemBanco) {
+        jaAvisouSemBanco = true;
+        avisar("error", "Sem conexão com o banco",
+          "O que você criar ou escrever agora não será gravado. Recarregue a página quando ela voltar.");
+      }
+      return Promise.resolve({});
+    }
+    marcarTransito(1);
     return chamar(corpo).catch(function (e) {
       avisar("error", "Não deu para gravar", e.message);
       return {};
+    }).then(function (r) {
+      marcarTransito(-1);
+      return r;
     });
+  }
+
+  /* O giro no lugar do conteúdo. Uma peça, usada por toda lista que espera. */
+  function giroNoLugarDe(el, altura) {
+    if (!el) return;
+    el.innerHTML = '<div class="dux-spinner-row"' + (altura ? ' style="padding:' + altura + 'px 16px"' : '') +
+      '><span class="dux-spinner sm"></span></div>';
+  }
+  /* O giro dentro do botão só aparece depois de um quarto de segundo. Numa
+     resposta rápida ele piscaria, e um piscar é mais ruído do que informação. */
+  function botaoOcupado(botao, rotulo) {
+    if (!botao) return function () {};
+    var original = botao.innerHTML;
+    var largura = botao.offsetWidth;
+    botao.disabled = true;
+    var relogio = setTimeout(function () {
+      botao.style.minWidth = largura + "px";
+      botao.innerHTML = '<span class="dux-spinner sm na-cor" aria-hidden="true"></span>' +
+        '<span></span>';
+      botao.lastChild.textContent = rotulo || "";
+    }, 250);
+    return function () {
+      clearTimeout(relogio);
+      botao.disabled = false;
+      botao.style.minWidth = "";
+      botao.innerHTML = original;
+    };
+  }
+
+  /* Carga que falhou não esvazia a tela: o conteúdo de partida volta, e a
+     falha fica numa faixa com a saída dentro dela. Esvaziar seria contradizer o
+     próprio aviso, que promete um app utilizável sem gravação. */
+  function mostrarFalha(motivo) {
+    $("faixaFalhaMotivo").textContent = motivo;
+    $("faixaFalha").hidden = false;
+    repintarTudo();
+  }
+
+  function mostrarEspera() {
+    giroNoLugarDe($("gradePastas"), 40);
+    giroNoLugarDe($("gradeDecksPagina"), 40);
+    giroNoLugarDe($("listaArquivos"));
+    var corpo = $("corpoTabela");
+    if (corpo) corpo.innerHTML = '<tr><td colspan="5"><div class="dux-spinner-row"><span class="dux-spinner sm"></span></div></td></tr>';
   }
 
   function quandoDe(card) {
@@ -3907,7 +4188,8 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
         id: pasta.id, nome: pasta.nome, desc: pasta.desc, tags: pasta.tags || [],
         situacao: "hoje", ultimo: "",
         lista: (pasta.lista || []).map(function (a) {
-          return { id: a.id, nome: a.nome, desc: a.desc, tags: a.tags || [], corpo: a.corpo };
+          return { id: a.id, nome: a.nome, desc: a.desc, tags: a.tags || [],
+                   corpo: a.corpo, comentarios: a.notas || [] };
         })
       });
     });
@@ -4003,8 +4285,11 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
   }
 
   function carregar() {
+    mostrarEspera();
     return chamar(null).then(function (d) {
       comBanco = true;
+      jaAvisouSemBanco = false;
+      $("faixaFalha").hidden = true;
       if (!d.pastas || !d.pastas.length) {
         avisar("info", "Preparando o banco", "Levando o conteúdo de partida para o Turso.");
         return semear().then(function () { return chamar(null); });
@@ -4014,12 +4299,24 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
       aplicarDoBanco(d);
       repintarTudo();
     }).catch(function (e) {
-      /* Sem banco o app continua de pé, com o conteúdo de partida. O aviso é o
-         que impede alguém de escrever meia hora achando que está sendo salvo. */
+      /* Sem banco o app continua de pé, com o conteúdo de partida. É só aqui
+         que ele vai para a tela: pintado antes, ele apareceria como se fosse o
+         que está guardado, e sumiria quando o banco respondesse.
+
+         A ordem é essa porque `mostrarFalha` escreve por cima das listas
+         principais — o conteúdo de partida fica nas outras telas, e onde a
+         pessoa está olhando fica o motivo e o "tentar de novo". */
       comBanco = false;
+      repintarTudo();
+      mostrarFalha(e.message);
       avisar("error", "Sem conexão com o banco", e.message + " O que você escrever agora não será gravado.");
     });
   }
+
+  $("btnTentarDeNovo").addEventListener("click", function () {
+    var pronto = botaoOcupado(this, "Tentando");
+    carregar().then(pronto);
+  });
 
   /* ═══ Tema ═══════════════════════════════════════════════════════════ */
   var temaSeg = $("temaSeg");
@@ -4106,15 +4403,19 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
     var ligar = !focoLigado();
     pintarFoco(ligar);
     if (ligar) {
-      focoAntes = { menu: casca.dataset.menu, trilho: area.dataset.trilho };
+      /* O índice entra junto: ele é moldura como o resto, e deixá-lo de pé
+         fazia a área de escrita crescer só para a direita. */
+      focoAntes = { menu: casca.dataset.menu, trilho: area.dataset.trilho, indice: area.dataset.indice };
       casca.dataset.menu = "fechado";
       area.dataset.trilho = "fechado";
+      area.dataset.indice = "fechado";
       tirarFundo();
       return;
     }
     if (!focoAntes) return;
     casca.dataset.menu = focoAntes.menu;
     area.dataset.trilho = focoAntes.trilho;
+    area.dataset.indice = focoAntes.indice || "aberto";
     focoAntes = null;
   });
 
@@ -4411,11 +4712,31 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
     $("trilhaArquivo").textContent = nome;
   }
 
+  /* Uma ida ao banco por pausa, e não por tecla nem por bloco transformado.
+     Vive aqui, e não dentro do `input`, porque mudança feita por código — virar
+     um bloco, marcar um trecho, guardar uma nota — não dispara `input`, e essas
+     escritas ficavam só na memória até alguém digitar mais alguma coisa. */
+  var relogioGravarArquivo = null;
+  function agendarGravarArquivo() {
+    if (!arquivoAberto || !arquivoAberto.id) return;
+    var alvo = arquivoAberto;
+    clearTimeout(relogioGravarArquivo);
+    relogioGravarArquivo = setTimeout(function () {
+      gravar({ acao: "arquivo.salvar", id: alvo.id, nome: alvo.nome,
+               desc: alvo.desc || "", corpo: alvo.corpo,
+               /* As notas vão na mesma escrita do corpo: elas se prendem a
+                  marcas que vivem dentro dele, e gravar em dois tempos abriria
+                  uma janela com uma coisa salva e a outra não. */
+               notas: alvo.comentarios || [] });
+    }, 400);
+  }
+
   function salvarTexto() {
     if (!arquivoAberto) return;
     arquivoAberto.corpo = arquivoCorpo.innerHTML;
     sincronizarTitulo();
     montarIndice();
+    agendarGravarArquivo();
   }
 
   /* ── Sair da lista pelo Backspace ──────────────────────────────────────
@@ -4887,18 +5208,31 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
       cartao.innerHTML =
         '<div class="comentario-topo">' +
           '<p class="comentario-trecho"></p>' +
-          '<button type="button" class="comentario-tirar" aria-label="Apagar nota">' +
-            '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>' +
+          /* Só a lixeira: editar é clicar no cartão, como no rascunho de
+             flashcard. Um lápis ao lado seria um segundo caminho para o mesmo
+             gesto, e o cartão inteiro já é o alvo. */
+          '<button type="button" class="comentario-acao perigo" data-acao="apagar" aria-label="Apagar nota">' +
+            LIXEIRA +
           '</button>' +
         '</div>' +
         '<p class="comentario-texto"></p>';
       cartao.querySelector(".comentario-trecho").textContent = c.trecho;
       cartao.querySelector(".comentario-texto").textContent = c.texto;
-      cartao.querySelector(".comentario-tirar").addEventListener("click", function (e) {
+      cartao.querySelector('[data-acao="apagar"]').addEventListener("click", function (e) {
         e.stopPropagation();
-        apagarComentario(c.id);
+        perguntar({
+          titulo: "Apagar nota",
+          descricao: ['Tem certeza que deseja apagar a nota sobre "', { forte: c.trecho }, '"? Esta ação não pode ser desfeita.'],
+          rotuloOk: "Apagar",
+          onConfirmar: function () { apagarComentario(c.id); }
+        });
       });
-      cartao.addEventListener("click", function () { irAoComentario(c.id); });
+      /* Clicar leva ao trecho e abre a gaveta: ver onde a nota se prende e
+         reescrevê-la são a mesma vontade, e a gaveta não cobre o texto. */
+      cartao.addEventListener("click", function () {
+        irAoComentario(c.id);
+        abrirGavetaNota(c);
+      });
       lista.appendChild(cartao);
     });
   }
@@ -4930,7 +5264,9 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
   function fecharCompositor() {
     $("comporComentario").hidden = true;
     $("comentarioTexto").value = "";
-    /* Nota que não chegou a ser escrita não deixa marca no texto. */
+    /* Nota nova que não chegou a ser escrita não deixa marca no texto. Reescrever
+       uma existente é outro caso: cancelar ali devolve o texto de antes, e a
+       marca fica onde sempre esteve. */
     if (comentarioPendente) {
       var marca = arquivoCorpo.querySelector('[data-nota="' + comentarioPendente.id + '"]');
       if (marca) desembrulhar(marca);
@@ -4938,6 +5274,34 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
       salvarTexto();
     }
     pintarComentarios();
+  }
+
+  /* Reescrever uma nota abre a gaveta da casa, como o rascunho de flashcard: o
+     compositor do trilho é só para a nota que está nascendo, quando o trecho
+     acabou de ser marcado e ainda não existe nada para listar.
+
+     O trecho citado vai no título travado — ele diz do que a nota trata, e só
+     muda mexendo no texto. */
+  function abrirGavetaNota(c) {
+    var estado = { texto: c.texto };
+    abrirPainel({
+      nome: "nota", rotulo: "Nota do arquivo", titulo: c.trecho, tituloFixo: true,
+      acao: "Gravar", rotuloTitulo: "Trecho comentado",
+      montar: function (corpo) {
+        corpo.appendChild(grupo("Nota", campoArea(c.texto,
+          "O que você quer lembrar sobre este trecho?", function (v) { estado.texto = v; })));
+      },
+      gravar: function () {
+        var t = estado.texto.trim();
+        if (!t) return;
+        c.texto = t;
+        pintarComentarios();
+        /* Só a nota mudou, e não o corpo: o `salvarTexto` não passa por aqui, e
+           sem isto a alteração ficava na memória até a próxima tecla no texto. */
+        agendarGravarArquivo();
+        avisar("success", "Nota atualizada", "O trecho marcado continua o mesmo.");
+      }
+    });
   }
 
   $("btnComentar").addEventListener("click", function () {
@@ -4968,6 +5332,8 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
   });
 
   $("comentarioCancelar").addEventListener("click", fecharCompositor);
+  /* O compositor só cria: reescrever passa pela gaveta, e um caminho que faz as
+     duas coisas precisaria decidir qual delas está em curso a cada clique. */
   $("comentarioGravar").addEventListener("click", function () {
     var texto = $("comentarioTexto").value.trim();
     if (!texto || !comentarioPendente) return;
@@ -4978,6 +5344,7 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
     $("comporComentario").hidden = true;
     $("comentarioTexto").value = "";
     pintarComentarios();
+    agendarGravarArquivo();
     avisar("success", "Nota guardada", "Ela fica presa ao trecho no texto.");
   });
 
@@ -5028,33 +5395,113 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
   }
   /* opcoes: [{ nome, nota }]. A lista mora num portal no body, com position
      fixed, porque dentro da gaveta ela sairia recortada. */
-  function abrirLista(gatilho, opcoes, atual, aoEscolher) {
+  /* `criar` é opcional: com ele a lista ganha um campo de busca e, quando nada
+     casa com o que se escreveu, uma linha que cria a opção ali mesmo. É o mesmo
+     gesto do campo de etiquetas — escolher e criar pela mesma porta, em vez de
+     fechar a gaveta, criar do outro lado e voltar. */
+  function abrirLista(gatilho, opcoes, atual, aoEscolher, criar) {
     var r = gatilho.getBoundingClientRect();
+    var busca = "";
     listaAberta = document.createElement("div");
     listaAberta.className = "status-select-dropdown";
     listaAberta.setAttribute("role", "listbox");
     listaAberta.style.width = r.width + "px";
     listaAberta.style.left = r.left + "px";
-    opcoes.forEach(function (d) {
-      var op = document.createElement("button");
-      op.type = "button";
-      op.className = "status-select-option" + (d.nome === atual ? " active" : "");
-      op.setAttribute("role", "option");
-      op.setAttribute("aria-selected", String(d.nome === atual));
-      op.innerHTML = '<span class="opcao-nome"></span><span class="select-opcao-descricao"></span>' + CHECK;
-      op.firstChild.textContent = d.nome;
-      op.children[1].textContent = d.nota || "";
-      op.addEventListener("click", function () {
-        aoEscolher(d.nome);
-        fecharLista();
+
+    function posicionar() {
+      var alt = listaAberta.offsetHeight;
+      listaAberta.style.top = (r.bottom + alt + 8 < window.innerHeight ? r.bottom + 6 : r.top - alt - 6) + "px";
+    }
+
+    function desenhar() {
+      listaAberta.innerHTML = "";
+      if (criar) {
+        var campo = document.createElement("input");
+        campo.className = "form-input filter-dropdown-busca";
+        campo.placeholder = "Buscar ou criar";
+        campo.value = busca;
+        campo.setAttribute("aria-label", "Buscar ou criar " + (criar.rotulo || "opção"));
+        campo.addEventListener("input", function () {
+          busca = campo.value;
+          var comFoco = document.activeElement === campo;
+          desenhar();
+          if (comFoco) {
+            var novo = listaAberta.querySelector(".filter-dropdown-busca");
+            novo.focus();
+            novo.setSelectionRange(novo.value.length, novo.value.length);
+          }
+        });
+        campo.addEventListener("keydown", function (e) {
+          if (e.key !== "Enter") return;
+          e.preventDefault();
+          var q = semAcento(busca.trim());
+          var achou = null;
+          opcoes.forEach(function (d) { if (!achou && semAcento(d.nome) === q) achou = d; });
+          if (achou) { aoEscolher(achou.nome); fecharLista(); }
+          else criarDaLista();
+        });
+        listaAberta.appendChild(campo);
+      }
+
+      var q = semAcento(busca.trim());
+      var visiveis = q ? opcoes.filter(function (d) { return semAcento(d.nome).indexOf(q) >= 0; }) : opcoes;
+
+      visiveis.forEach(function (d) {
+        var op = document.createElement("button");
+        op.type = "button";
+        op.className = "status-select-option" + (d.nome === atual ? " active" : "");
+        op.setAttribute("role", "option");
+        op.setAttribute("aria-selected", String(d.nome === atual));
+        op.innerHTML = '<span class="opcao-nome"></span><span class="select-opcao-descricao"></span>' + CHECK;
+        op.firstChild.textContent = d.nome;
+        op.children[1].textContent = d.nota || "";
+        op.addEventListener("mousedown", function (e) { e.preventDefault(); });
+        op.addEventListener("click", function () {
+          aoEscolher(d.nome);
+          fecharLista();
+        });
+        listaAberta.appendChild(op);
       });
-      listaAberta.appendChild(op);
-    });
+
+      /* Nada casa: a linha vira o caminho de criar, com o "+" na coluna da
+         marca de seleção para alinhar com as opções de cima. */
+      if (criar && !visiveis.length) {
+        var escrito = busca.trim();
+        if (!escrito) {
+          var vazio = document.createElement("p");
+          vazio.className = "filter-dropdown-vazio";
+          vazio.textContent = "Nada por aqui ainda. Escreva para criar.";
+          listaAberta.appendChild(vazio);
+        } else {
+          var nova = document.createElement("button");
+          nova.type = "button";
+          nova.className = "status-select-option criar-etiqueta";
+          nova.innerHTML = '<span class="criar-etiqueta-mais" aria-hidden="true">' + MAIS + '</span>' +
+            '<span class="opcao-nome">Criar <b></b></span>';
+          nova.querySelector("b").textContent = escrito;
+          nova.addEventListener("mousedown", function (e) { e.preventDefault(); });
+          nova.addEventListener("click", criarDaLista);
+          listaAberta.appendChild(nova);
+        }
+      }
+      posicionar();
+    }
+
+    function criarDaLista() {
+      var nome = busca.trim();
+      if (!nome || !criar || !criar.aoCriar) return;
+      criar.aoCriar(nome);
+      aoEscolher(nome);
+      fecharLista();
+    }
+
+    desenhar();
     document.body.appendChild(listaAberta);
-    var alt = listaAberta.offsetHeight;
-    listaAberta.style.top = (r.bottom + alt + 8 < window.innerHeight ? r.bottom + 6 : r.top - alt - 6) + "px";
+    posicionar();
     gatilhoAberto = gatilho;
     gatilho.setAttribute("aria-expanded", "true");
+    var primeiro = listaAberta.querySelector(".filter-dropdown-busca");
+    if (primeiro) primeiro.focus();
     setTimeout(function () {
       document.addEventListener("mousedown", foraDaLista);
       window.addEventListener("scroll", fecharLista, true);
@@ -5063,14 +5510,14 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
   }
   /* Clicar no gatilho aberto fecha: não existe dropdown que abre e no segundo
      clique não faz nada. */
-  function ligarSelect(gatilho, rotulo, pegarOpcoes, pegarAtual, aoEscolher) {
+  function ligarSelect(gatilho, rotulo, pegarOpcoes, pegarAtual, aoEscolher, criar) {
     gatilho.addEventListener("click", function () {
       if (listaAberta && gatilhoAberto === gatilho) { fecharLista(); return; }
       fecharLista();
       abrirLista(gatilho, pegarOpcoes(), pegarAtual(), function (nome) {
         rotulo.textContent = nome;
         aoEscolher(nome);
-      });
+      }, criar);
     });
   }
   function opcoesDeDeck() {
@@ -5558,7 +6005,7 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
     d.textContent = texto;
     return d;
   }
-  function campoSelect(atual, opcoes, aoMudar) {
+  function campoSelect(atual, opcoes, aoMudar, criar) {
     var b = document.createElement("button");
     b.type = "button";
     b.className = "select-gatilho";
@@ -5569,8 +6016,11 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
     var rot = b.firstChild;
     rot.textContent = atual;
     var escolhido = atual;
-    ligarSelect(b, rot, function () { return opcoes; }, function () { return escolhido; },
-      function (nome) { escolhido = nome; aoMudar(nome); });
+    /* As opções vão por função: criar uma nova de dentro da lista muda o
+       conjunto, e um array fixo deixaria a próxima abertura sem ela. */
+    ligarSelect(b, rot, function () { return typeof opcoes === "function" ? opcoes() : opcoes; },
+      function () { return escolhido; },
+      function (nome) { escolhido = nome; aoMudar(nome); }, criar);
     return b;
   }
 
@@ -5586,6 +6036,9 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
     campo.placeholder = cfg.dica || "";
     campo.setAttribute("aria-label", cfg.rotuloTitulo || "Título");
     campo.title = cfg.titulo;
+    /* Há gaveta cujo título não se edita: o da nota é o trecho marcado no texto,
+       que só muda mexendo no texto. Ele fica ali para dizer do que se trata. */
+    campo.readOnly = !!cfg.tituloFixo;
     var corpo = $("gavetaCorpo");
     corpo.innerHTML = "";
     cfg.montar(corpo);
@@ -5595,8 +6048,14 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
     /* O título nasce em foco e marcado: a primeira tecla substitui o texto de
        partida em vez de escrever depois dele. */
     requestAnimationFrame(function () {
-      campo.focus();
-      if (campo.value === TITULO_PADRAO) campo.select();
+      /* Título travado não recebe o foco: quem abriu quer escrever no corpo. */
+      if (cfg.tituloFixo) {
+        var primeiro = corpo.querySelector("textarea, input, [contenteditable]");
+        if (primeiro) primeiro.focus();
+      } else {
+        campo.focus();
+        if (campo.value === TITULO_PADRAO) campo.select();
+      }
       travarGravar();
     });
   }
@@ -5645,31 +6104,45 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
         corpo.appendChild(grupo("Etiquetas", campoEtiquetas(estado.tags,
           "UTI, provas, revisar…", function (v) { estado.tags = v; }, etiquetasDoAcervo)));
       },
-      gravar: function (titulo) {
-        var nova = {
-          nome: titulo, ultimo: "Ainda não estudado", situacao: "novo",
-          desc: "", tags: estado.tags.slice(), lista: []
-        };
-        PASTAS.push(nova);
-        pintarPastas();
-        avisar("success", "Pasta criada", titulo + " já aparece na lista.");
-        /* O id vem do banco e volta para o objeto: é por ele que o arquivo
-           criado em seguida sabe onde morar. */
-        gravar({ acao: "pasta.criar", nome: titulo, desc: "", tags: nova.tags })
-          .then(function (r) { if (r.id) nova.id = r.id; });
-      }
+      gravar: function (titulo) { criarPasta(titulo, estado.tags); }
     });
   }
 
+  /* Criar pasta é a mesma coisa vinda de dois lugares: esta gaveta e o select
+     do arquivo novo. Uma função só para as duas, senão a segunda esqueceria
+     algum passo — gravar no banco, repintar a lista, avisar. */
+  function criarPasta(nome, tags) {
+    var jaTem = acharPasta(nome);
+    if (jaTem) return jaTem;
+    var nova = {
+      nome: nome, ultimo: "Ainda não estudado", situacao: "novo",
+      desc: "", tags: (tags || []).slice(), lista: []
+    };
+    PASTAS.push(nova);
+    pintarPastas();
+    avisar("success", "Pasta criada", nome + " já aparece na lista.");
+    /* O id vem do banco e volta para o objeto: é por ele que o arquivo criado
+       em seguida sabe onde morar. */
+    gravar({ acao: "pasta.criar", nome: nome, desc: "", tags: nova.tags })
+      .then(function (r) { if (r.id) nova.id = r.id; });
+    return nova;
+  }
+
   function gavetaNovoArquivo() {
-    var estado = { pasta: (pastaAberta || PASTAS[0]).nome, tags: [] };
+    var estado = { pasta: pastaDoContexto(), tags: [] };
     abrirPainel({
       nome: "arquivo", rotulo: "Novo arquivo", titulo: TITULO_PADRAO,
       dica: "Manejo da sepse na emergência", rotuloTitulo: "Título do arquivo",
       montar: function (corpo) {
         corpo.appendChild(grupo("Pasta", campoSelect(estado.pasta,
-          PASTAS.map(function (c) { return { nome: c.nome, nota: c.lista.length + " arquivos" }; }),
-          function (v) { estado.pasta = v; })));
+          function () {
+            return PASTAS.map(function (c) {
+              var n = c.lista.length;
+              return { nome: c.nome, nota: n + (n === 1 ? " arquivo" : " arquivos") };
+            });
+          },
+          function (v) { estado.pasta = v; },
+          { rotulo: "pasta", aoCriar: criarPasta })));
         corpo.appendChild(grupo("Etiquetas", campoEtiquetas(estado.tags,
           "UTI, provas, revisar…", function (v) { estado.tags = v; }, etiquetasEmUso)));
       },
@@ -5718,8 +6191,27 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
     });
   }
 
+  /* O que está na tela entra no formulário: criar de dentro de um deck já traz
+     aquele deck, criar de dentro de uma pasta já traz aquela pasta. Quem está
+     ali dentro quase nunca quer outro, e escolher de novo é trabalho repetido.
+
+     A vista importa tanto quanto a página: sair de um deck pela trilha não
+     limpa `deckAberto`, e sem olhar a vista o formulário ofereceria um deck que
+     já não está aberto. O mesmo vale para a pasta. */
+  function deckDoContexto() {
+    if (paginaAtual === "decks" && vistaAtual === "deck-cards" && deckAberto) return deckAberto.nome;
+    if (deckAtual) return deckAtual;
+    return decks.length ? decks[0].nome : "";
+  }
+
+  function pastaDoContexto() {
+    var dentro = paginaAtual === "pastas" && (vistaAtual === "pasta" || vistaAtual === "arquivo");
+    if (dentro && pastaAberta) return pastaAberta.nome;
+    return PASTAS.length ? PASTAS[0].nome : "";
+  }
+
   function gavetaNovoCard() {
-    var estado = { verso: "", deck: deckAtual };
+    var estado = { verso: "", deck: deckDoContexto() };
     abrirPainel({
       nome: "flashcard", rotulo: "Novo flashcard", titulo: TITULO_PADRAO,
       dica: "Qual o alvo de PAM no choque séptico?", rotuloTitulo: "Frente do flashcard",
@@ -5754,14 +6246,15 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
   }
 
   function gavetaNovoCiclo() {
-    /* Lendo um arquivo, o ciclo já nasce com o nome dele: é quase sempre o
-       que se vai estudar, e poupa digitar o óbvio. */
-    var lendo = paginaAtual === "pastas" && vistaAtual === "arquivo";
+    /* Lendo um arquivo, o ciclo já nasce com o nome dele: é quase sempre o que
+       se vai estudar, e poupa digitar o óbvio. O nome vem do arquivo aberto —
+       antes era um texto cravado aqui, de quando só existia um arquivo. */
+    var lendo = paginaAtual === "pastas" && vistaAtual === "arquivo" && arquivoAberto;
     var estado = { duracao: DURACOES[0].nome, silencio: true };
     abrirPainel({
       nome: "ciclo",
       rotulo: "Novo ciclo",
-      titulo: lendo ? "Pneumonia hospitalar na UTI" : TITULO_PADRAO,
+      titulo: lendo ? arquivoAberto.nome : TITULO_PADRAO,
       dica: "O que você vai estudar",
       rotuloTitulo: "O que você vai estudar neste ciclo",
       acao: "Começar",
@@ -5790,7 +6283,9 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
   /* Editar um card existente usa a mesma gaveta, com o trecho de origem à
      vista para conferir a pergunta contra o texto de onde ela saiu. */
   function abrirGaveta(d) {
-    var estado = { verso: d.verso, deck: deckAtual };
+    /* Card já salvo traz o deck dele; rascunho ainda não tem um, e aí vale o
+       contexto da tela, como em qualquer outra criação. */
+    var estado = { verso: d.verso, deck: d.deck || deckDoContexto() };
     abrirPainel({
       nome: "flashcard", rotulo: "Flashcard, " + d.origem, titulo: d.frente,
       acao: "Gravar", rotuloTitulo: "Frente do flashcard",
@@ -5802,15 +6297,36 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
       gravar: function (titulo) {
         d.frente = titulo;
         d.verso = estado.verso.trim();
-        if (rascunhos.indexOf(d) >= 0) desenhar();
+        if (rascunhos.indexOf(d) >= 0) { desenhar(); return; }
+        /* Rascunho só existe na sessão e é gravado em lote no fim; card que já
+           está no acervo vai para o banco agora, com o deck que foi escolhido. */
+        d.deck = estado.deck;
         pintarTabela();
+        pintarGradeDecks();
         avisar("success", "Flashcard atualizado", "A alteração vale para a próxima revisão.");
+        if (d.id) {
+          gravar({ acao: "card.salvar", id: d.id, frente: d.frente, verso: d.verso,
+                   deckId: idDoDeck(d.deck) });
+        }
       }
     });
   }
 
+  function excluirCard(c) {
+    var i = ACERVO_CARDS.indexOf(c);
+    if (i < 0) return;
+    ACERVO_CARDS.splice(i, 1);
+    /* A contagem do deck sai do acervo, então ela se acerta sozinha — mas só se
+       as duas telas que a mostram forem repintadas. */
+    pintarTabela();
+    pintarGradeDecks();
+    pintarDecks();
+    avisar("success", "Flashcard excluído", c.frente);
+    if (c.id) gravar({ acao: "card.excluir", id: c.id });
+  }
+
   /* ═══ Lançador de ferramentas ════════════════════════════════════════ */
-  var fab = $("fab"), fabBotao = $("fabBotao");
+  var fab = $("fab"), fabBotao = $("fabBotao"), navInfCriar = $("navInfCriar");
 
   function abrirFab(aberto) {
     fab.dataset.aberto = String(aberto);
@@ -5831,6 +6347,9 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
     if (fab.contains(e.target) || navInfCriar.contains(e.target)) return;
     abrirFab(false);
   }
+  navInfCriar.addEventListener("click", function () {
+    abrirFab(fab.dataset.aberto !== "true");
+  });
   fabBotao.addEventListener("click", function () {
     abrirFab(fab.dataset.aberto !== "true");
   });
@@ -6020,6 +6539,22 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
     comentarios: { aba: "abaComentarios", painel: "painelComentarios" }
   };
   var ORDEM_ABAS = Object.keys(ABAS);
+
+  /* A chapa da aba escolhida é medida na própria aba. Nada de fração do trilho:
+     as abas não têm a mesma largura — `flex: 1` reparte a sobra, mas nenhuma
+     encolhe abaixo do próprio conteúdo, e um selo de contagem faz "Flashcards"
+     ficar maior que "Notas". */
+  function medirPilulaAbas() {
+    var barra = $("abas");
+    var ativa = barra.querySelector('.aba[aria-selected="true"]');
+    /* Trilho fechado mede zero: não há o que posicionar, e escrever zero aqui
+       faria a pílula encolher e reaparecer do canto quando ele abrisse. */
+    if (!ativa || !ativa.offsetWidth) return;
+    var pil = barra.querySelector(".abas-pilula");
+    pil.style.left = ativa.offsetLeft + "px";
+    pil.style.width = ativa.offsetWidth + "px";
+  }
+
   function escolherAba(qual) {
     if (!ABAS[qual]) qual = ORDEM_ABAS[0];
     var alvo = null;
@@ -6029,9 +6564,7 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
       $(ABAS[k].painel).hidden = !minha;
       if (minha) alvo = $(ABAS[k].painel);
     });
-    /* A pílula só precisa do índice: a largura dela sai do total de abas, que
-       o CSS já conhece pelo `--abas-n`. */
-    $("abas").style.setProperty("--aba-i", ORDEM_ABAS.indexOf(qual));
+    medirPilulaAbas();
     alvo.classList.remove("troca");
     void alvo.offsetWidth;
     alvo.classList.add("troca");
@@ -6040,12 +6573,18 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
   ORDEM_ABAS.forEach(function (k) {
     $(ABAS[k].aba).addEventListener("click", function () { escolherAba(k); });
   });
-  /* O CSS conta as abas por uma variável, e quem sabe quantas são é o script:
-     assim somar ou tirar uma aba não deixa a pílula com a largura errada. */
-  $("abas").style.setProperty("--abas-n", ORDEM_ABAS.length);
+
+  /* Remede quando qualquer aba muda de tamanho — o trilho abrindo, a fonte
+     terminando de carregar, a contagem saindo de 9 para 10. Observa as abas, e
+     não só a barra: o selo pode crescer sem que a barra mude de largura. */
+  if (typeof ResizeObserver === "function") {
+    var olho = new ResizeObserver(medirPilulaAbas);
+    olho.observe($("abas"));
+    ORDEM_ABAS.forEach(function (k) { olho.observe($(ABAS[k].aba)); });
+  }
+  medirPilulaAbas();
   /* O relógio do trilho continua sendo o atalho do ciclo em curso, mas agora
      leva à tela do Pomodoro — no trilho não há mais para onde ir. */
-  $("miniTimer").addEventListener("click", function () { irPaginaAtual("pomodoro"); });
   $("navInfPomodoro").addEventListener("click", function () { irPaginaAtual("pomodoro"); });
   $("navInfCards").addEventListener("click", function () {
     deckAberto = null;
@@ -6068,8 +6607,6 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
     ["tempoGrande", "pgTempo"].forEach(function (id) { var e = $(id); if (e) e.textContent = t; });
     ["tempoRotulo", "pgRotulo"].forEach(function (id) { var e = $(id); if (e) e.textContent = rotulo; });
     ["anelProg", "pgAnel"].forEach(function (id) { var e = $(id); if (e) e.setAttribute("stroke-dashoffset", recuo); });
-    $("miniTempo").textContent = t;
-    $("miniTimer").classList.toggle("rodando", rodando);
     /* O desenho não muda: o que muda é o lado do pino e a chapa acesa. */
     ["btnPlay", "pgPlay"].forEach(function (e2) {
       var e = $(e2); if (!e) return;
@@ -6530,15 +7067,27 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
         '<td><div class="td-frente"></div><div class="td-sub"></div></td>' +
         '<td><span class="estado ' + c.estado + '"></span></td>' +
         '<td></td>' +
-        '<td class="col-num"></td>';
+        '<td class="col-num"></td>' +
+        '<td class="col-acoes">' +
+          '<button type="button" class="linha-acao perigo" aria-label="Excluir flashcard">' + LIXEIRA + '</button>' +
+        '</td>';
       var tds = tr.children;
       tds[0].querySelector(".td-frente").textContent = c.frente;
       tds[0].querySelector(".td-sub").textContent = c.origem;
       tds[1].querySelector(".estado").textContent = ROTULO_ESTADO[c.estado];
       tds[2].textContent = c.quando;
       tds[3].textContent = c.acertos;
-      tr.addEventListener("click", function () {
-        abrirGaveta({ frente: c.frente, verso: c.verso, origem: c.origem, trecho: "Origem: " + c.origem + ", no deck " + c.deck + "." });
+      /* O card de verdade, e não uma cópia dos campos: a gaveta escreve no
+         objeto que recebe, e com uma cópia a edição se perdia ao fechar. */
+      tr.addEventListener("click", function () { abrirGaveta(c); });
+      tr.querySelector(".linha-acao").addEventListener("click", function (e) {
+        e.stopPropagation();
+        perguntar({
+          titulo: "Excluir flashcard",
+          descricao: ['Tem certeza que deseja excluir "', { forte: c.frente }, '"? Esta ação não pode ser desfeita.'],
+          rotuloOk: "Excluir",
+          onConfirmar: function () { excluirCard(c); }
+        });
       });
       corpo.appendChild(tr);
     });
@@ -6607,8 +7156,11 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
     kpis.appendChild(cartaoDeNumero(String(total), "Cards no acervo"));
     kpis.appendChild(cartaoDeNumero(String(decks.length), "Decks"));
     kpis.appendChild(cartaoDeNumero(String(fila), "Na fila de hoje", "amber"));
-    kpis.appendChild(cartaoDeNumero(Math.round(soma / decks.length) + "%", "Acerto em 30 dias", "green"));
+    /* Excluir o último deck deixava a média dividindo por zero, e o cartão
+       anunciava "NaN%". Sem deck não há acerto a mostrar. */
+    kpis.appendChild(cartaoDeNumero(decks.length ? Math.round(soma / decks.length) + "%" : "—", "Acerto em 30 dias", "green"));
     $("contaDecks").textContent = decks.length;
+    $("contaDecks").hidden = false;
     $("seloRevisar").textContent = fila;
   }
 
@@ -6692,17 +7244,23 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
   /* O cartão de deck é um botão: a peça inteira abre o deck. Serve à tela de
      Decks e ao bloco de desempenho dos Relatórios, com o mesmo desenho. */
   function cartaoDeDeck(d) {
-    var el = document.createElement("button");
-    el.type = "button";
+    var el = document.createElement("article");
     el.className = "deck-card";
     var sit = situacaoDoDeck(d);
     var selo = sit === "fila" ? '<span class="estado hoje">' + d.hoje + ' na fila</span>'
       : sit === "novo" ? '<span class="estado novo">Vazio</span>'
       : '<span class="estado emdia">Em dia</span>';
+    /* Abrir vem primeiro no DOM para o Tab chegar nele antes das ações: a ação
+       principal do cartão é entrar nele. */
     el.innerHTML =
+      '<button type="button" class="deck-abrir"></button>' +
       '<div class="deck-topo">' +
         '<span style="min-width:0;text-align:left"><span class="deck-nome"></span><span class="deck-sub" style="display:block"></span></span>' +
         selo +
+        '<div class="deck-acoes">' +
+          '<button type="button" class="deck-acao" data-acao="duplicar">' + ICO_DUPLICAR + '</button>' +
+          '<button type="button" class="deck-acao perigo" data-acao="excluir">' + ICO_LIXEIRA + '</button>' +
+        '</div>' +
       '</div>' +
       '<div class="deck-numeros">' +
         '<span class="deck-num"><b>' + d.conta + '</b><span>cards</span></span>' +
@@ -6715,8 +7273,70 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
       '</div>';
     el.querySelector(".deck-nome").textContent = d.nome;
     el.querySelector(".deck-sub").textContent = d.ultimo;
-    el.addEventListener("click", function () { abrirDeck(d); });
+    /* O nome não está dentro do botão de abrir, então ele precisa se nomear. */
+    el.querySelector(".deck-abrir").setAttribute("aria-label", "Abrir " + d.nome);
+    el.querySelector(".deck-abrir").addEventListener("click", function () { abrirDeck(d); });
+
+    var duplicar = el.querySelector('[data-acao="duplicar"]');
+    var excluir = el.querySelector('[data-acao="excluir"]');
+    duplicar.title = "Duplicar " + d.nome;
+    duplicar.setAttribute("aria-label", duplicar.title);
+    excluir.title = "Excluir " + d.nome;
+    excluir.setAttribute("aria-label", excluir.title);
+    duplicar.addEventListener("click", function () { duplicarDeck(d); });
+    excluir.addEventListener("click", function () {
+      var n = d.conta;
+      perguntar({
+        titulo: "Excluir deck",
+        descricao: ['Tem certeza que deseja excluir "', { forte: d.nome },
+          n ? '" e os ' + n + ' flashcards dentro dele? Esta ação não pode ser desfeita.'
+            : '"? Esta ação não pode ser desfeita.'],
+        rotuloOk: "Excluir",
+        onConfirmar: function () { excluirDeck(d); }
+      });
+    });
     return el;
+  }
+
+  /* A cópia entra logo depois do original, e não no fim: é onde os olhos já
+     estão. Nasce sem histórico de revisão, porque ninguém a revisou — e sem os
+     cards, que pertencem ao deck que os criou. */
+  function duplicarDeck(d) {
+    var copia = {};
+    for (var k in d) if (Object.prototype.hasOwnProperty.call(d, k)) copia[k] = d[k];
+    copia.nome = d.nome + " (cópia)";
+    copia.ultimo = "Sem revisão ainda";
+    copia.conta = 0;
+    copia.hoje = 0;
+    copia.retencao = 0;
+    delete copia.id;
+    decks.splice(decks.indexOf(d) + 1, 0, copia);
+    pintarGradeDecks();
+    pintarDecks();
+    avisar("success", "Deck duplicado", copia.nome + " está na lista.");
+    gravar({ acao: "deck.criar", nome: copia.nome, desc: copia.desc || "" })
+      .then(function (r) { if (r.id) copia.id = r.id; });
+  }
+
+  function excluirDeck(d) {
+    var i = decks.indexOf(d);
+    if (i < 0) return;
+    decks.splice(i, 1);
+    /* No banco os cards caem junto, por `ON DELETE CASCADE`. Em memória isso é
+       manual: sem esta linha a tabela seguiria listando cards de um deck que
+       não existe mais, até alguém dar refresh. */
+    for (var k = ACERVO_CARDS.length - 1; k >= 0; k--) {
+      if (ACERVO_CARDS[k].deck === d.nome) ACERVO_CARDS.splice(k, 1);
+    }
+    /* O deck excluído podia ser o recorte da listagem de cards: sem isto a
+       tabela continuaria filtrada por um deck que não existe mais. */
+    if (deckAtual === d.nome) deckAtual = decks.length ? decks[0].nome : "";
+    if (deckAberto === d) { deckAberto = null; irVista("deck-lista"); }
+    pintarGradeDecks();
+    pintarDecks();
+    pintarTabela();
+    avisar("success", "Deck excluído", d.nome + " saiu da lista.");
+    if (d.id) gravar({ acao: "deck.excluir", id: d.id });
   }
 
   function pintarDecks() {
@@ -7099,6 +7719,7 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
   }
 
   var ICO_PASTA = '<svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>';
+  var ICO_FLASHCARD = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="14" height="13" rx="2.5"/><path d="M8 3h10a3 3 0 0 1 3 3v10"/></svg>';
   var ICO_ARQUIVO = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg>';
   /* Duplicar: dois retângulos deslocados, um por cima do outro. Os dois vieram
      do portal, com o traço de 1.8 que os ícones daqui usam. */
@@ -7219,7 +7840,11 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
     grade.innerHTML = "";
     $("vazioPastas").hidden = visiveis.length > 0;
     /* O selo do menu conta o acervo, e não o que o filtro deixou passar. */
+    /* O selo nasce escondido e só aparece com número de verdade: escrito no
+       HTML, ele mostrava a contagem do conteúdo de partida até o banco
+       responder, e trocava de valor na frente de quem estava lendo. */
     $("contaPastas").textContent = PASTAS.length;
+    $("contaPastas").hidden = false;
     visiveis.forEach(function (c) {
       var el = document.createElement("article");
       el.className = "pasta-card";
@@ -7237,22 +7862,19 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
           '</div>' +
         '</div>' +
         '<div class="etiquetas-cartao"></div>' +
+        /* Ícone e número, lado a lado: o rótulo por extenso ocupava duas linhas
+           para dizer o que o desenho diz de relance. O nome vai no `title`, e
+           no `aria-label` para quem não vê o ícone. */
         '<div class="pasta-numeros">' +
-          '<span class="pasta-num"><b>' + c.lista.length + '</b><span>arquivos</span></span>' +
-          '<span class="pasta-num"><b>' + cardsDaPasta(c) + '</b><span>flashcards</span></span>' +
+          '<span class="pasta-num" title="' + c.lista.length + ' arquivos" aria-label="' + c.lista.length + ' arquivos">' +
+            ICO_ARQUIVO + '<b>' + c.lista.length + '</b></span>' +
+          '<span class="pasta-num" title="' + cardsDaPasta(c) + ' flashcards" aria-label="' + cardsDaPasta(c) + ' flashcards">' +
+            ICO_FLASHCARD + '<b>' + cardsDaPasta(c) + '</b></span>' +
         '</div>';
       el.querySelector(".pasta-nome").textContent = c.nome;
       el.querySelector(".pasta-sub").textContent = c.ultimo;
 
-      /* Pasta sem etiqueta não ganha uma faixa vazia: a linha some junto. */
-      var faixa = el.querySelector(".etiquetas-cartao");
-      if (!(c.tags && c.tags.length)) faixa.remove();
-      else c.tags.forEach(function (t) {
-        var selo = document.createElement("span");
-        selo.className = "etiqueta-selo " + corDaEtiqueta(t);
-        selo.textContent = t;
-        faixa.appendChild(selo);
-      });
+      pintarSelosEm(el.querySelector(".etiquetas-cartao"), c.tags);
       /* O nome não está dentro do botão de abrir, então ele precisa se nomear. */
       el.querySelector(".pasta-abrir").setAttribute("aria-label", "Abrir " + c.nome);
 
@@ -7371,38 +7993,112 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
         '<span class="arquivo-linha-ico">' + ICO_ARQUIVO + '</span>' +
         '<span class="arquivo-linha-texto"><span class="arquivo-linha-nome"></span><span class="arquivo-linha-sub" style="display:block"></span></span>' +
         '<span class="arquivo-linha-meta"></span>';
+      /* Contagem sai do que existe, e não de um número guardado ao lado: o
+         banco devolve o arquivo sem `palavras` nem `cards`, e confiar neles
+         escrevia "undefined flashcards" na linha. */
+      var palavras = palavrasDe(d.corpo);
+      var cards = cardsDoArquivo(d);
       linha.querySelector(".arquivo-linha-nome").textContent = d.nome;
-      linha.querySelector(".arquivo-linha-sub").textContent = d.palavras
-        ? d.palavras.toLocaleString("pt-BR") + " palavras" : "em branco";
-      linha.querySelector(".arquivo-linha-meta").textContent = d.cards + " flashcards";
+      linha.querySelector(".arquivo-linha-sub").textContent = palavras
+        ? palavras.toLocaleString("pt-BR") + " palavras" : "em branco";
+      linha.querySelector(".arquivo-linha-meta").textContent =
+        cards + (cards === 1 ? " flashcard" : " flashcards");
 
       /* As etiquetas do arquivo na própria linha, depois do nome: é por elas
          que se reconhece o que é o texto antes de abri-lo. */
-      if (d.tags && d.tags.length) {
-        var faixa = document.createElement("span");
-        faixa.className = "arquivo-linha-etiquetas";
-        d.tags.forEach(function (t) {
-          var selo = document.createElement("span");
-          selo.className = "etiqueta-selo " + corDaEtiqueta(t);
-          selo.textContent = t;
-          faixa.appendChild(selo);
-        });
-        linha.insertBefore(faixa, linha.querySelector(".arquivo-linha-meta"));
-      }
+      var faixa = document.createElement("span");
+      faixa.className = "arquivo-linha-etiquetas";
+      linha.insertBefore(faixa, linha.querySelector(".arquivo-linha-meta"));
+      pintarSelosEm(faixa, d.tags);
 
       linha.addEventListener("click", function () { abrirArquivo(null, d); });
       caixa.appendChild(linha);
     });
   }
 
-  function abrirPasta(c) {
-    pastaAberta = c;
+  /* Os selos de etiqueta são os mesmos em toda parte — cartão, linha, cabeçalho
+     de pasta e de arquivo. A caixa some quando não há nenhuma, em vez de ficar
+     uma faixa vazia ocupando altura. */
+  function pintarSelosEm(caixa, tags) {
+    if (!caixa) return;
+    caixa.innerHTML = "";
+    var todas = tags || [];
+    caixa.hidden = !todas.length;
+    todas.forEach(function (t) {
+      var selo = document.createElement("span");
+      selo.className = "etiqueta-selo " + corDaEtiqueta(t);
+      selo.textContent = t;
+      caixa.appendChild(selo);
+    });
+  }
+
+  /* Resumo e etiquetas ocupam duas linhas, e cada uma some sozinha quando não
+     tem o que mostrar. As duas portas que abrem uma pasta — a lista e um
+     arquivo de outra pasta — pintam o mesmo cabeçalho, então quem monta é uma
+     função só. */
+  function pintarCabecalhoDaPasta(c) {
     $("trilhaPasta").textContent = c.nome;
     $("pastaTitulo").textContent = c.nome;
+    $("pastaDesc").textContent = c.desc || "";
+    $("pastaDesc").hidden = !c.desc;
+    pintarSelosEm($("pastaEtiquetas"), c.tags);
+  }
+
+  /* Renomear a pasta no lugar onde o nome é lido. Enter grava e sai do campo;
+     Escape desfaz; sair do campo grava também, porque clicar fora depois de
+     escrever é gesto de quem já terminou. */
+  (function () {
+    var campo = $("pastaTitulo"), antes = "";
+
+    function gravarNome() {
+      if (!pastaAberta) return;
+      /* Quebra de linha e espaço duplo não são nome: um `contenteditable`
+         aceita os dois, e o que volta do banco tem de ser o que se lê. */
+      var nome = campo.textContent.replace(/\s+/g, " ").trim();
+
+      if (!nome) { campo.textContent = antes; return; }
+      var outra = acharPasta(nome);
+      if (outra && outra !== pastaAberta) {
+        avisar("error", "Já existe uma pasta com esse nome", "Duas iguais na lista não se distinguem.");
+        campo.textContent = antes;
+        return;
+      }
+      /* Normaliza a exibição mesmo sem mudança: quem só apagou um espaço a mais
+         não deve ver o espaço voltar. */
+      campo.textContent = nome;
+      if (nome === pastaAberta.nome) return;
+
+      pastaAberta.nome = nome;
+      antes = nome;
+      /* O nome aparece em três lugares além daqui: os dois degraus de volta e a
+         lista atrás desta tela. */
+      $("trilhaPasta").textContent = nome;
+      $("trilhaVoltaPasta").textContent = nome;
+      pintarPastas();
+      if (pastaAberta.id) {
+        gravar({ acao: "pasta.renomear", id: pastaAberta.id, nome: nome,
+                 desc: pastaAberta.desc || "", tags: pastaAberta.tags || [] });
+      }
+    }
+
+    campo.addEventListener("focus", function () { antes = campo.textContent.trim(); });
+    campo.addEventListener("keydown", function (e) {
+      if (e.key === "Enter") { e.preventDefault(); campo.blur(); return; }
+      if (e.key === "Escape") { e.preventDefault(); campo.textContent = antes; campo.blur(); }
+    });
+    campo.addEventListener("blur", gravarNome);
+    /* Colar traz marcação junto; aqui só o texto interessa. */
+    campo.addEventListener("paste", function (e) {
+      e.preventDefault();
+      var texto = (e.clipboardData || window.clipboardData).getData("text");
+      document.execCommand("insertText", false, texto.replace(/\s+/g, " "));
+    });
+  })();
+
+  function abrirPasta(c) {
+    pastaAberta = c;
     $("trilhaVoltaPasta").textContent = c.nome;
-    /* As pastas antigas têm descrição; as novas têm etiquetas. O subtítulo
-       mostra o que houver, em vez de uma linha vazia. */
-    $("pastaDesc").textContent = c.desc || (c.tags || []).join(" · ");
+    pintarCabecalhoDaPasta(c);
     /* Abrir outra pasta começa do zero: o recorte era daquela, não desta. */
     if (barraArquivos) barraArquivos.limpar(); else pintarArquivos();
     irVista("pasta");
@@ -7414,9 +8110,7 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
   function abrirArquivo(pasta, d) {
     if (pasta && pasta !== pastaAberta) {
       pastaAberta = pasta;
-      $("trilhaPasta").textContent = pasta.nome;
-      $("pastaTitulo").textContent = pasta.nome;
-      $("pastaDesc").textContent = pasta.desc || (pasta.tags || []).join(" · ");
+      pintarCabecalhoDaPasta(pasta);
       if (barraArquivos) barraArquivos.limpar(); else pintarArquivos();
     } else {
       /* A lista fica atrás do arquivo aberto: repintar agora é o que garante
@@ -7431,15 +8125,7 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
     $("arquivoDesc").textContent = d.desc || "";
     $("arquivoDesc").hidden = !d.desc;
 
-    var faixa = $("arquivoEtiquetas");
-    faixa.innerHTML = "";
-    faixa.hidden = !(d.tags && d.tags.length);
-    (d.tags || []).forEach(function (t) {
-      var selo = document.createElement("span");
-      selo.className = "etiqueta-selo " + corDaEtiqueta(t);
-      selo.textContent = t;
-      faixa.appendChild(selo);
-    });
+    pintarSelosEm($("arquivoEtiquetas"), d.tags);
 
     /* O texto mora no objeto, e não na página: é aqui que ele entra no editor.
        O trecho de demonstração vive dentro do texto, então a referência a ele
@@ -7490,10 +8176,19 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
   function cardsDe(nome) {
     return ACERVO_CARDS.filter(function (c) { return c.origem === nome; }).length;
   }
+  /* Pelo id quando os dois lados o têm, e pelo nome quando não: o card criado
+     antes de o arquivo existir no banco só sabe de onde veio pelo nome. O id é
+     o caminho melhor porque sobrevive a um arquivo renomeado. */
+  function cardsDoArquivo(a) {
+    return ACERVO_CARDS.filter(function (c) {
+      if (a.id && c.arquivoId) return c.arquivoId === a.id;
+      return c.origem === a.nome;
+    }).length;
+  }
   /* Os números da pasta saem do que ela tem dentro. Guardados ao lado, eles
      envelheciam: criar um arquivo não mexia neles. */
   function cardsDaPasta(c) {
-    return c.lista.reduce(function (t, a) { return t + cardsDe(a.nome); }, 0);
+    return c.lista.reduce(function (t, a) { return t + cardsDoArquivo(a); }, 0);
   }
 
 
@@ -7513,13 +8208,8 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
       sincronizarTitulo();
       montarIndice();
       if (barraArquivos) pintarArquivos();
-      /* Grava na pausa, e não a cada tecla: uma ida ao Turso por letra digitada
-         seria uma ida ao Turso por letra digitada. */
-      if (arquivoAberto.id) {
-        gravar({ acao: "arquivo.salvar", id: arquivoAberto.id, nome: arquivoAberto.nome,
-                 desc: arquivoAberto.desc || "", corpo: arquivoAberto.corpo });
-      }
     }, 400);
+    agendarGravarArquivo();
   });
 
   /* O trecho já selecionado e o pop-up em cima dele só podem ser medidos com
@@ -7554,11 +8244,14 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
   $("btnRevisarDeck").addEventListener("click", function () { irPaginaAtual("revisao"); montarFila(); });
   $("btnRevisar").addEventListener("click", function () { irPaginaAtual("revisao"); });
 
-  /* ═══ Estado inicial ═════════════════════════════════════════════════ */
-  desenhar();
-  pintar();
-  montarFila();
-  pintarTabela();
+  /* ═══ Estado inicial ═════════════════════════════════════════════════
+     A ordem aqui importa mais do que parece. O conteúdo de partida existe para
+     semear um banco vazio, e não para aparecer na tela: pintá-lo antes da
+     resposta do banco mostra pastas que já foram excluídas, que somem no
+     instante seguinte. Por isso nada é pintado antes — a tela nasce esperando,
+     e `carregar()` é o último a rodar, para que a espera não seja apagada por
+     uma pintura vinda logo atrás. */
+
   /* Cada arquivo recebe o texto do seu modelo. Os criados daqui em diante
      nascem com o corpo vazio e o título no primeiro cabeçalho. */
   PASTAS.forEach(function (c) {
@@ -7568,14 +8261,17 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
       delete a.modelo;
     });
   });
-  carregar();
+
+  /* As barras de filtro são estrutura, não conteúdo: montam vazias e precisam
+     existir antes de qualquer pintura, que é quem as consulta. */
   montarFiltrosDePasta();
   montarFiltrosDeArquivo();
   montarFiltrosDeCard();
   montarFiltrosDeDeck();
-  pintarGradeDecks();
-  pintarPastas();
+  pintar();
   irVista("lista");
+
+  carregar();
 })();
 </script>
 </body>

@@ -8,7 +8,12 @@
 //  hospedando outra coisa, e `pastas` ou `decks` são nomes que qualquer projeto
 //  reivindicaria. Com o prefixo, criar isto aqui não atropela nada que já exista.
 // ─────────────────────────────────────────────────────────────────────────────
-import { createClient, type Client } from '@libsql/client';
+/* O ponto de entrada `/web` é o cliente só-HTTP. O `@libsql/client` padrão traz
+   `libsql` como dependência normal, que é o binding nativo em `.node`, e num
+   runtime serverless ele falha ao carregar: a função nem chega a rodar, e o que
+   aparece é FUNCTION_INVOCATION_FAILED, sem pista do motivo. Contra um Turso
+   remoto o nativo não serve para nada mesmo, porque a conversa é HTTP. */
+import { createClient, type Client } from '@libsql/client/web';
 
 let cliente: Client | null = null;
 let schemaPronto: Promise<void> | null = null;
@@ -113,6 +118,25 @@ const SCHEMA = [
 ];
 
 /**
+ * Colunas que nasceram depois da tabela.
+ *
+ * `CREATE TABLE IF NOT EXISTS` não acrescenta coluna a uma tabela que já existe,
+ * então quem chegou depois precisa ser garantido à parte. SQLite não tem
+ * `ADD COLUMN IF NOT EXISTS`, e por isso a checagem vem antes.
+ */
+const COLUNAS: [string, string, string][] = [
+  ['sinapse_arquivos', 'notas', `TEXT NOT NULL DEFAULT ''`],
+];
+
+async function garantirColunas(cx: ReturnType<typeof db>): Promise<void> {
+  for (const [tabela, coluna, tipo] of COLUNAS) {
+    const info = await cx.execute(`PRAGMA table_info(${tabela})`);
+    const tem = info.rows.some((linha) => (linha as unknown as { name: string }).name === coluna);
+    if (!tem) await cx.execute(`ALTER TABLE ${tabela} ADD COLUMN ${coluna} ${tipo}`);
+  }
+}
+
+/**
  * Garante o schema uma vez por processo.
  *
  * A promessa fica presa num módulo: requisições simultâneas na mesma instância
@@ -123,6 +147,7 @@ export function garantirSchema(): Promise<void> {
   schemaPronto = (async () => {
     const cx = db();
     for (const ddl of SCHEMA) await cx.execute(ddl);
+    await garantirColunas(cx);
     await cx.execute('PRAGMA foreign_keys = ON');
   })().catch((erro) => {
     // Falhou: solta a promessa para a próxima requisição tentar de novo, em vez
