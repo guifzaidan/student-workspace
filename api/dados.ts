@@ -10,7 +10,15 @@
 //  tela. Gravar segue o mesmo caminho para não espalhar a checagem de schema.
 // ─────────────────────────────────────────────────────────────────────────────
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { db, garantirSchema, novoId, agora } from './_db';
+/* A extensão `.js` é obrigatória, e não enfeite. O pacote é `type: module`, então
+   na Vercel este arquivo vira `dados.js` e roda como ESM — e o carregador ESM do
+   Node não completa extensão em caminho relativo. Sem ela o import quebra só em
+   produção, no carregamento do módulo: a função morre antes do handler e a
+   resposta é um 500 em texto puro, sem passar pelo try/catch daqui.
+
+   Aponta para `_db.ts` mesmo assim: com `moduleResolution: "bundler"`, o
+   TypeScript lê `.js` como o `.ts` correspondente. */
+import { db, garantirSchema, novoId, agora } from './_db.js';
 
 type Linha = Record<string, unknown>;
 
