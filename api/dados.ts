@@ -151,13 +151,26 @@ async function lerTudo() {
  * SM-2 enxuto: o grau vai de 0 a 3, e o que sai é o próximo intervalo.
  * Errou volta para o começo; acertou multiplica pela facilidade, que sobe com
  * o Fácil e desce com o Difícil.
+ *
+ * IMPORTANTE: esta função tem uma cópia no cliente (index.html,
+ * `proximoIntervalo`), porque a tela de revisão precisa dizer em cada botão
+ * daqui a quanto o card volta — antes de gravar, e sem uma ida de rede no meio
+ * da sessão. Mexeu aqui, mexe lá.
  */
 function proximoIntervalo(grau: number, intervalo: number, facilidade: number) {
   let fac = facilidade + (grau === 3 ? 0.15 : grau === 2 ? 0 : grau === 1 ? -0.15 : -0.2);
   fac = Math.min(2.8, Math.max(1.3, fac));
   if (grau === 0) return { intervalo: 0, facilidade: fac };
   if (!intervalo) return { intervalo: grau === 1 ? 1 : grau === 2 ? 3 : 8, facilidade: fac };
-  return { intervalo: Math.max(1, Math.round(intervalo * fac)), facilidade: fac };
+  /* Cada grau tem o seu passo, e não só o empurrão na facilidade: ela varia
+     0,15 de um grau para o seguinte, o que dá menos de 5% de diferença no
+     intervalo. Num card de 5 dias, Difícil, Bom e Fácil devolviam 12, 13 e 13
+     dias — e a tela anunciava "em 2 semanas" nos três botões. Escolher entre
+     eles deixava de querer dizer alguma coisa.
+     Com o passo: 6, 13 e 17 dias. O Difícil quase não estica, o Bom segue a
+     facilidade e o Fácil dá o salto. */
+  const passo = grau === 1 ? 1.2 : grau === 3 ? fac * 1.3 : fac;
+  return { intervalo: Math.max(1, Math.round(intervalo * passo)), facilidade: fac };
 }
 
 function emDias(dias: number): string {
