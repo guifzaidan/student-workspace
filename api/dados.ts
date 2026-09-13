@@ -213,6 +213,16 @@ async function gravar(corpo: Record<string, unknown>) {
       await cx.execute('DELETE FROM sinapse_arquivos WHERE id = ?', [texto(corpo.id)]);
       return { ok: true };
 
+    /* Esvaziar uma pasta antes de apagá-la. Numa instrução só, e não um UPDATE
+       por arquivo: a pasta é apagada logo em seguida, e um arquivo que ficasse
+       para trás no meio do caminho seria levado junto pelo ON DELETE CASCADE. */
+    case 'arquivos.mover':
+      await cx.execute(
+        'UPDATE sinapse_arquivos SET pasta_id = ?, atualizado_em = ? WHERE pasta_id = ?',
+        [texto(corpo.para), t, texto(corpo.de)],
+      );
+      return { ok: true };
+
     case 'deck.criar': {
       const id = novoId('dck');
       await cx.execute(
@@ -224,6 +234,14 @@ async function gravar(corpo: Record<string, unknown>) {
     }
     case 'deck.excluir':
       await cx.execute('DELETE FROM sinapse_decks WHERE id = ?', [texto(corpo.id)]);
+      return { ok: true };
+
+    /* O mesmo, para os cards de um deck que vai ser apagado. */
+    case 'cards.mover':
+      await cx.execute(
+        'UPDATE sinapse_flashcards SET deck_id = ?, atualizado_em = ? WHERE deck_id = ?',
+        [texto(corpo.para), t, texto(corpo.de)],
+      );
       return { ok: true };
 
     case 'card.criar': {

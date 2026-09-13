@@ -1025,8 +1025,6 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
    de rosa faria o bloco chamar mais atenção do que o conteúdo dele. */
 .aviso-caixa svg { color: var(--yellow-forte); margin-top: 3px; }
 .aviso-caixa b { color: var(--black); }
-.virou-card { background: linear-gradient(transparent 62%, var(--yd) 62%); border-radius: 2px; }
-.marcado { background: var(--yd); border-radius: 3px; box-shadow: 0 0 0 1px var(--yb); }
 
 /* ─── Grifo e comentário no texto ────────────────────────────────────── */
 /* O grifo é chapa, e o comentário é fio embaixo: um marca o que importa, o
@@ -1056,6 +1054,7 @@ mark.grifo {
   gap: 6px;
   text-align: left;
   width: 100%;
+  cursor: pointer;
   transition: border-color var(--transition), background var(--transition);
 }
 .comentario:hover, .comentario.ativo { border-color: var(--gray2); }
@@ -1691,7 +1690,29 @@ textarea.form-input { resize: vertical; min-height: 84px; line-height: 1.55; }
 }
 .delete-confirm-title { font-size: 15px; font-weight: 700; color: var(--black); margin: 0 0 8px; }
 .delete-confirm-desc { font-size: 13px; color: var(--gray); margin: 0 0 20px; line-height: 1.5; }
-.delete-confirm-actions { display: flex; gap: 8px; justify-content: flex-end; }
+.delete-confirm-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+/* Com três respostas a caixa alarga, em vez de quebrar os botões em duas
+   linhas: eles são alternativas entre si, e alternativas se leem lado a lado.
+   O `flex-wrap` fica como rede para tela estreita, onde o `max-width` manda. */
+.delete-confirm-modal.tres { width: 460px; }
+.delete-confirm-actions > button { white-space: nowrap; }
+/* O que a pergunta precisa além do texto — o destino de uma migração, por
+   exemplo — entre a descrição e os botões. */
+.dialogo-corpo { margin: -8px 0 20px; display: flex; flex-direction: column; gap: 6px; }
+/* A saída da caixa, quando ela tem três respostas: sem moldura, um degrau
+   abaixo da ação secundária. Três botões de peso igual obrigam a ler os três
+   para achar a porta. Sozinho, o Cancelar mantém a moldura — a regra só vale
+   quando existe um terceiro à frente dele. */
+.delete-confirm-sair:has(~ .delete-confirm-cancel:not([hidden])) {
+  border-color: transparent;
+  background: transparent;
+  color: var(--gray2);
+}
+.delete-confirm-sair:has(~ .delete-confirm-cancel:not([hidden])):hover {
+  border-color: transparent;
+  background: var(--gray4);
+  color: var(--black);
+}
 .delete-confirm-cancel {
   padding: 7px 16px;
   border-radius: var(--radius-md);
@@ -2421,6 +2442,7 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
 .pagina-cristal .pasta-card,
 .pagina-cristal .deck-card,
 .pagina-cristal .fcard,
+.pagina-cristal .comentario,
 .pagina-cristal .admin-stat-card-v2 {
   border-color: var(--cristal-borda);
   box-shadow: inset 0 1px 0 var(--cristal-luz),
@@ -2451,6 +2473,11 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
 .pagina-cristal .pasta-card:hover,
 .pagina-cristal .deck-card:hover,
 .pagina-cristal .fcard:hover,
+/* A nota é clicável como o rascunho — abre a mesma gaveta —, então sobe igual.
+   `.ativo` entra na mesma regra: a nota que o texto está apontando fica
+   levantada, e não só com a borda mais escura. */
+.pagina-cristal .comentario:hover,
+.pagina-cristal .comentario.ativo,
 .pagina-cristal .kpi:hover,
 .pagina-cristal .admin-stat-card-v2:hover {
   transform: translateY(-2px);
@@ -2814,6 +2841,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 .ciclo-texto { flex: 1; min-width: 0; }
 .ciclo-arquivo { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ciclo-nota-linha { font-size: 11.5px; font-weight: 500; color: var(--gray2); }
+.ciclo-vazio { font-size: 12.5px; color: var(--gray2); margin: 0; line-height: 1.5; }
 .bloco-cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 6px; }
 .bloco-titulo-solto { font-size: 14px; font-weight: 800; letter-spacing: -.01em; }
 .bloco-titulo { font-size: 13px; font-weight: 800; padding: 13px 14px; border-bottom: 1px solid var(--gray3); letter-spacing: -.01em; }
@@ -3270,10 +3298,10 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
        </div>
 
        <div class="kpi-fila">
-         <div class="admin-stat-card-v2"><span class="admin-stat-value">31</span><span class="admin-stat-label">Revisados hoje</span></div>
-         <div class="admin-stat-card-v2"><span class="admin-stat-value">1h 12</span><span class="admin-stat-label">Em foco hoje</span></div>
-         <div class="admin-stat-card-v2" style="--accent-color: var(--green)"><span class="admin-stat-value">87%</span><span class="admin-stat-label">Acerto em 30 dias</span></div>
-         <div class="admin-stat-card-v2" style="--accent-color: var(--green)"><span class="admin-stat-value">12</span><span class="admin-stat-label">Dias seguidos</span></div>
+         <div class="admin-stat-card-v2"><span class="admin-stat-value" id="kpiRevisadosHoje">0</span><span class="admin-stat-label">Revisados hoje</span></div>
+         <div class="admin-stat-card-v2"><span class="admin-stat-value" id="kpiFocoHoje">0h</span><span class="admin-stat-label">Em foco hoje</span></div>
+         <div class="admin-stat-card-v2" style="--accent-color: var(--green)"><span class="admin-stat-value" id="kpiAcerto30">—</span><span class="admin-stat-label">Acerto em 30 dias</span></div>
+         <div class="admin-stat-card-v2" style="--accent-color: var(--green)"><span class="admin-stat-value" id="kpiSequencia">0</span><span class="admin-stat-label">Dias seguidos</span></div>
        </div>
 
        <div class="bloco grafico">
@@ -3309,29 +3337,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
                  <th>Último estudo</th>
                </tr>
              </thead>
-             <tbody>
-               <tr>
-                 <td style="font-weight:600">Clínica Médica</td>
-                 <td class="col-num">14</td>
-                 <td class="col-num">186</td>
-                 <td class="col-num">9h 40</td>
-                 <td>Hoje, às 09:05</td>
-               </tr>
-               <tr>
-                 <td style="font-weight:600">Cardiologia</td>
-                 <td class="col-num">9</td>
-                 <td class="col-num">74</td>
-                 <td class="col-num">4h 15</td>
-                 <td>Anteontem</td>
-               </tr>
-               <tr>
-                 <td style="font-weight:600">Rascunhos</td>
-                 <td class="col-num">6</td>
-                 <td class="col-num">34</td>
-                 <td class="col-num">1h 50</td>
-                 <td>Há 6 dias</td>
-               </tr>
-             </tbody>
+             <tbody id="corpoPorPasta"></tbody>
            </table>
          </div>
        </div>
@@ -3414,9 +3420,9 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
           Pastas
         </button>
         <span class="trilha-barra">/</span>
-        <button type="button" class="trilha-degrau" data-volta="pasta" id="trilhaVoltaPasta">Clínica Médica</button>
+        <button type="button" class="trilha-degrau" data-volta="pasta" id="trilhaVoltaPasta"></button>
         <span class="trilha-barra">/</span>
-        <span class="trilha-aqui" id="trilhaArquivo">Pneumonia hospitalar na UTI</span>
+        <span class="trilha-aqui" id="trilhaArquivo"></span>
       </nav>
 
       <aside class="arquivo-indice" aria-label="Índice do arquivo">
@@ -3430,7 +3436,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
        <div class="coluna-leitura">
         <div class="admin-page-header">
           <div style="min-width:0">
-            <h1 class="admin-page-title" id="arquivoTitulo">Manejo da Pneumonia Hospitalar na UTI</h1>
+            <h1 class="admin-page-title" id="arquivoTitulo"></h1>
             <p class="admin-page-desc" id="arquivoDesc">Quando suspeitar, como confirmar e por quanto tempo tratar.</p>
             <div class="arquivo-etiquetas" id="arquivoEtiquetas" hidden></div>
           </div>
@@ -3462,7 +3468,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
               <button type="button" class="aba" id="abaCards" role="tab" aria-selected="true" aria-controls="painelCards">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="14" height="13" rx="2.5"/><path d="M8 3h10a3 3 0 0 1 3 3v10"/></svg>
                 Flashcards
-                <span class="aba-conta" id="abaConta">3</span>
+                <span class="aba-conta" id="abaConta" hidden></span>
               </button>
               <button type="button" class="aba" id="abaComentarios" role="tab" aria-selected="false" aria-controls="painelComentarios">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg>
@@ -3474,11 +3480,11 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 
 
           <section class="painel" id="painelCards" role="tabpanel" aria-labelledby="abaCards">
-            <p class="painel-rotulo"><span>Rascunhos desta sessão</span><b id="contaRascunhos">3</b></p>
+            <p class="painel-rotulo"><span>Rascunhos desta sessão</span><b id="contaRascunhos">0</b></p>
 
             <div class="cards-lista" id="listaCards"></div>
 
-            <div class="vazio" id="estadoVazio" hidden>
+            <div class="vazio" id="estadoVazio">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="14" height="13" rx="2.5"/><path d="M8 3h10a3 3 0 0 1 3 3v10"/></svg>
               <span><b>Nenhum rascunho.</b><br>Selecione um trecho no texto e use <b>Criar flashcard</b>.</span>
             </div>
@@ -3486,12 +3492,12 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
             <div class="bloco-salvar">
               <button type="button" class="select-gatilho" id="gatilhoDeck" aria-haspopup="listbox" aria-expanded="false">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5M3 17l9 5 9-5"/></svg>
-                <span class="rotulo" id="deckRotulo">Clínica Médica</span>
+                <span class="rotulo" id="deckRotulo"></span>
                 <svg class="seta" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
               </button>
-              <button type="button" class="btn btn-primary" id="btnSalvar">
+              <button type="button" class="btn btn-primary" id="btnSalvar" disabled>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>
-                <span id="rotuloSalvar">Salvar 3 flashcards</span>
+                <span id="rotuloSalvar">Nada para salvar</span>
               </button>
             </div>
           </section>
@@ -3681,10 +3687,9 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
        </div>
 
        <div class="kpi-fila">
-         <div class="admin-stat-card-v2"><span class="admin-stat-value">1h 12</span><span class="admin-stat-label">Em foco hoje</span></div>
-         <div class="admin-stat-card-v2"><span class="admin-stat-value">2</span><span class="admin-stat-label">Ciclos fechados</span></div>
-         <div class="admin-stat-card-v2"><span class="admin-stat-value">17</span><span class="admin-stat-label">Cards criados</span></div>
-         <div class="admin-stat-card-v2" style="--accent-color: var(--green)"><span class="admin-stat-value">12</span><span class="admin-stat-label">Dias seguidos</span></div>
+         <div class="admin-stat-card-v2"><span class="admin-stat-value" id="pgFocoHoje">0h</span><span class="admin-stat-label">Em foco hoje</span></div>
+         <div class="admin-stat-card-v2"><span class="admin-stat-value" id="pgCiclos">0</span><span class="admin-stat-label">Ciclos fechados</span></div>
+         <div class="admin-stat-card-v2" style="--accent-color: var(--green)"><span class="admin-stat-value" id="pgSequencia">0</span><span class="admin-stat-label">Dias seguidos</span></div>
        </div>
 
        <div class="pomodoro-grade">
@@ -3724,34 +3729,15 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
              <div class="ciclos" aria-hidden="true">
                <span class="ciclo feito"></span><span class="ciclo feito"></span><span class="ciclo atual"></span><span class="ciclo"></span>
              </div>
-             <p class="ciclo-nota">Estudando: Pneumonia hospitalar na UTI</p>
+             <p class="ciclo-nota" id="assuntoCiclo" hidden></p>
            </div>
          </div>
 
          <div style="display:flex;flex-direction:column;gap:14px">
            <div class="bloco">
              <p class="bloco-titulo">Ciclos de hoje</p>
-             <div class="ciclo-linha">
-               <span class="ciclo-hora">08:10 a 08:35</span>
-               <span class="ciclo-texto">
-                 <span class="ciclo-arquivo">Distúrbios ácido-base</span>
-                 <span class="ciclo-nota-linha">6 flashcards criados</span>
-               </span>
-             </div>
-             <div class="ciclo-linha">
-               <span class="ciclo-hora">08:40 a 09:05</span>
-               <span class="ciclo-texto">
-                 <span class="ciclo-arquivo">Sepse, bundle da 1ª hora</span>
-                 <span class="ciclo-nota-linha">11 flashcards criados</span>
-               </span>
-             </div>
-             <div class="ciclo-linha">
-               <span class="ciclo-hora">agora</span>
-               <span class="ciclo-texto">
-                 <span class="ciclo-arquivo">Pneumonia hospitalar na UTI</span>
-                 <span class="ciclo-nota-linha">3 rascunhos abertos</span>
-               </span>
-             </div>
+             <div id="listaCiclos"></div>
+             <p class="ciclo-vazio" id="vazioCiclos">Nenhum ciclo hoje. Comece um pelo botão de foco.</p>
            </div>
 
            <div class="bloco">
@@ -3856,8 +3842,13 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     aria-labelledby="dialogoTitulo" aria-describedby="dialogoDesc">
     <p class="delete-confirm-title" id="dialogoTitulo"></p>
     <p class="delete-confirm-desc" id="dialogoDesc"></p>
+    <!-- O que a pergunta precisa além do texto: o destino de uma migração, por
+         exemplo. Entra entre a descrição e os botões. -->
+    <div class="dialogo-corpo" id="dialogoCorpo" hidden></div>
     <div class="delete-confirm-actions">
-      <button type="button" class="delete-confirm-cancel" id="dialogoCancelar">Cancelar</button>
+      <button type="button" class="delete-confirm-cancel delete-confirm-sair" id="dialogoCancelar">Cancelar</button>
+      <!-- Uma terceira resposta, entre sair e confirmar. Só aparece quando há. -->
+      <button type="button" class="delete-confirm-cancel" id="dialogoMeio" hidden></button>
       <button type="button" class="delete-confirm-ok" id="dialogoOk">Confirmar</button>
     </div>
   </div>
@@ -3888,125 +3879,6 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     </div>
   </div>
 </div>
-
-<!-- Os textos de partida. Ficam em <template> para não serem
-     desenhados: quem os põe na tela é quem abre o arquivo. -->
-<template id="corpoPneumonia">
-            <h1>Manejo da Pneumonia Hospitalar na UTI</h1>
-
-            <p class="abertura">A pneumonia hospitalar responde por cerca de <strong>22% de todas as infecções adquiridas na UTI</strong>. <span class="marcado" id="trechoDemo">Diferente da PAC, cujo principal agente é o <em>Streptococcus pneumoniae</em>, a pneumonia hospitalar é dominada por bacilos Gram-negativos e por <em>S. aureus</em></span>, com um perfil de resistência que muda de unidade para unidade.</p>
-
-            <h2>Definições e classificação</h2>
-            <p>O marco temporal é o que separa as duas entidades, e ele pesa mais do que parece na hora de escolher o esquema empírico.</p>
-            <ul>
-              <li><strong>PAH</strong>: pneumonia que surge <span class="virou-card"><strong>≥ 48 h após a admissão</strong> hospitalar</span>, sem intubação no momento do diagnóstico.</li>
-              <li><strong>PAV</strong>: pneumonia que surge <strong>≥ 48 h após a intubação orotraqueal</strong>.</li>
-              <li><strong>Precoce ou tardia</strong>: o corte em 5 dias ainda orienta a probabilidade de multirresistência, mas perdeu peso nas diretrizes de 2016 frente aos fatores de risco individuais.</li>
-            </ul>
-
-            <h3>Por que a janela de 48 horas importa</h3>
-            <p>Antes de 48 h, presume-se que o agente já estava incubando na chegada, e o raciocínio terapêutico segue o de PAC. A partir daí, a flora que coloniza a orofaringe do paciente já é a flora da unidade, com o antibiograma da unidade.</p>
-
-            <h2>Critérios diagnósticos</h2>
-            <p>O diagnóstico é clínico-radiológico e permanece imperfeito: <strong>nenhum critério isolado tem acurácia suficiente</strong>. Combine-os.</p>
-            <ul>
-              <li>Infiltrado <strong>novo ou progressivo</strong> na radiografia de tórax, <strong>mais</strong></li>
-              <li>dois dos três: temperatura <span class="medida">&gt; 38 °C</span>, leucócitos <span class="medida">&gt; 12.000</span> ou <span class="medida">&lt; 4.000/mm³</span>, secreção traqueal purulenta.</li>
-            </ul>
-
-            <h3>CPIS, Clinical Pulmonary Infection Score</h3>
-            <p><span class="virou-card">Pontuação de 0 a 12 que combina temperatura, leucócitos, secreção, oxigenação (<span class="medida">PaO₂/FiO₂</span>), radiografia e cultura. <strong>CPIS &gt; 6</strong> sustenta o diagnóstico</span> e favorece iniciar o antibiótico. Reavalie em 72 h: se o escore cair e a cultura for negativa, suspenda.</p>
-
-            <h3>Culturas quantitativas</h3>
-            <ul>
-              <li>Aspirado traqueal: <span class="medida">≥ 10⁵ UFC/mL</span></li>
-              <li>Lavado broncoalveolar (LBA): <span class="medida">≥ 10⁴ UFC/mL</span></li>
-              <li>Escovado protegido: <span class="medida">≥ 10³ UFC/mL</span></li>
-            </ul>
-            <p>Colha <strong>antes</strong> da primeira dose, desde que isso não atrase o antibiótico em mais de 30 a 60 minutos.</p>
-
-            <h2>Estratificação de risco</h2>
-            <h3>Fatores de risco para germes multirresistentes</h3>
-            <ul>
-              <li>Antibiótico intravenoso nos <strong>últimos 90 dias</strong>, o fator isolado de maior peso.</li>
-              <li><strong>≥ 5 dias</strong> de hospitalização antes do início dos sintomas.</li>
-              <li>Choque séptico no momento do diagnóstico de PAV.</li>
-              <li>SDRA precedendo a pneumonia.</li>
-              <li>Terapia de substituição renal aguda antes do quadro.</li>
-              <li>Prevalência local de MRSA <span class="medida">&gt; 20%</span> ou de Gram-negativos resistentes <span class="medida">&gt; 10%</span>.</li>
-            </ul>
-            <div class="aviso-caixa">
-              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-5M12 8h.01"/></svg>
-              <p><b>Regra prática:</b> sem nenhum fator acima e em unidade de baixa prevalência, monoterapia de espectro estreito é adequada, e evita o dano de cobrir demais.</p>
-            </div>
-            
-
-            <h2>Terapia empírica e descalonamento</h2>
-            <p>A escolha inicial cobre <em>Pseudomonas aeruginosa</em> e entéricos Gram-negativos. A cobertura para MRSA entra só quando há fator de risco ou prevalência local alta.</p>
-            <ul>
-              <li>Piperacilina-tazobactam <span class="medida">4,5 g IV 6/6 h</span>, cefepime <span class="medida">2 g 8/8 h</span> ou meropenem <span class="medida">1 g 8/8 h</span>.</li>
-              <li>Cobertura de MRSA: vancomicina com alvo de <span class="medida">AUC/CIM 400 a 600</span> ou linezolida <span class="medida">600 mg 12/12 h</span>.</li>
-              <li>Duplo Gram-negativo apenas quando há risco de multirresistência <strong>somado</strong> a instabilidade hemodinâmica.</li>
-            </ul>
-
-            <h3>Reavaliação em 48 a 72 horas</h3>
-            <p>Com cultura negativa e melhora clínica, <strong>suspenda</strong>. Confirmada a etiologia, <strong>descale</strong> para o espectro mais estreito possível e complete <strong>7 dias</strong>. Não há ganho em estender para 14, salvo situações selecionadas.</p>
-</template>
-<template id="corpoSepse">
-            <h1>Sepse: o pacote da primeira hora</h1>
-            <p class="abertura">A mortalidade sobe cerca de <strong>7% a cada hora</strong> sem antibiótico no choque séptico. O pacote existe porque a decisão boa tomada tarde vira decisão ruim.</p>
-            <h2>Reconhecer</h2>
-            <p>Disfunção orgânica ameaçadora à vida causada por resposta desregulada à infecção. À beira do leito, o <strong>qSOFA</strong> levanta a suspeita:</p>
-            <ul>
-              <li>Frequência respiratória <span class="medida">≥ 22 irpm</span></li>
-              <li>Alteração do nível de consciência</li>
-              <li>Pressão sistólica <span class="medida">≤ 100 mmHg</span></li>
-            </ul>
-            <h2>As cinco medidas da primeira hora</h2>
-            <ul>
-              <li>Dosar <strong>lactato</strong>, e repetir em 2 a 4 h se estiver acima de 2 mmol/L.</li>
-              <li>Colher <strong>hemoculturas antes</strong> do antibiótico, desde que isso não atrase a primeira dose.</li>
-              <li><strong>Antibiótico de amplo espectro</strong> por via intravenosa.</li>
-              <li><span class="medida">30 mL/kg</span> de cristaloide na hipotensão ou no lactato acima de 4.</li>
-              <li><strong>Vasopressor</strong> para manter a PAM em <span class="medida">65 mmHg</span> se o volume não bastar.</li>
-            </ul>
-            <h3>Reavaliar, e não repetir</h3>
-            <p>Depois do volume inicial, a conduta passa a depender da resposta: perfusão, diurese, lactato e ecocardiograma à beira do leito. Repetir cristaloide sem reavaliar é o erro mais comum daqui para a frente.</p>
-</template>
-<template id="corpoAcidoBase">
-            <h1>Distúrbios ácido-base</h1>
-            <p class="abertura">A gasometria se lê na mesma ordem, sempre. Pular um passo é o que faz um distúrbio triplo passar por simples.</p>
-            <h2>A ordem da leitura</h2>
-            <ul>
-              <li><strong>pH</strong>: acidemia abaixo de 7,35, alcalemia acima de 7,45.</li>
-              <li><strong>pCO₂</strong> e <strong>HCO₃⁻</strong>: qual dos dois explica o pH.</li>
-              <li><strong>Ânion gap</strong>: Na⁺ menos a soma de Cl⁻ e HCO₃⁻, normal entre <span class="medida">8 e 12 mEq/L</span>.</li>
-              <li><strong>Compensação</strong>: se o esperado bate com o medido.</li>
-            </ul>
-            <h3>Fórmula de Winter</h3>
-            <p>Na acidose metabólica, a pCO₂ esperada é <span class="medida">1,5 × HCO₃⁻ + 8</span>, com 2 de margem. Acima disso há acidose respiratória associada; abaixo, alcalose respiratória.</p>
-</template>
-<template id="corpoCoronarianas">
-            <h1>Síndromes coronarianas agudas</h1>
-            <p class="abertura">O eletrocardiograma em <strong>até 10 minutos</strong> da chegada separa as duas estradas, e elas não se cruzam depois.</p>
-            <h2>Com supradesnível de ST</h2>
-            <ul>
-              <li>Angioplastia primária em até <span class="medida">90 minutos</span> do primeiro contato médico.</li>
-              <li>Até <span class="medida">120 minutos</span> quando há transferência entre serviços.</li>
-              <li>Fora dessa janela, trombólise em até 30 minutos, e transferir depois.</li>
-            </ul>
-            <h2>Sem supradesnível</h2>
-            <p>A estratificação de risco manda no tempo: <strong>GRACE acima de 140</strong>, instabilidade ou dor refratária pedem cateterismo em 24 h.</p>
-</template>
-<template id="corpoErros">
-            <h1>Erros que repeti em simulado</h1>
-            <p class="abertura">Anotação crua, para virar flashcard depois. O que cai duas vezes não é azar.</p>
-            <ul>
-              <li>Confundi a janela da PAH com a da PAV: as duas são 48 h, mas a contagem começa em pontos diferentes.</li>
-              <li>Calculei o ânion gap sem corrigir pela albumina em paciente cirrótico.</li>
-              <li>Marquei trombólise onde cabia angioplastia primária, por não ter olhado o tempo de transferência.</li>
-            </ul>
-</template>
 
 <div class="fab" id="fab" data-aberto="false">
   <span class="fab-trilho" aria-hidden="true"></span>
@@ -4220,59 +4092,77 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       .sort(function (a, b) { return a.estado === "atrasado" ? -1 : 1; })
       .forEach(function (c) { FILA_BASE.push(c); });
 
-    if (d.revisoesPorDia && d.revisoesPorDia.length) {
-      SETE_DIAS.length = 0;
-      var nomes = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
-      var hoje = new Date().toISOString().slice(0, 10);
-      d.revisoesPorDia.slice(-7).forEach(function (r) {
-        var dt = new Date(r.dia + "T12:00:00");
-        SETE_DIAS.push({
-          dia: nomes[dt.getDay()],
-          data: dt.toLocaleDateString("pt-BR", { day: "numeric", month: "long" }),
-          n: r.total, hoje: r.dia === hoje
-        });
+    SETE_DIAS.length = 0;
+    var nomes = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+    var hoje = new Date().toISOString().slice(0, 10);
+    (d.revisoesPorDia || []).slice(-7).forEach(function (r) {
+      var dt = new Date(r.dia + "T12:00:00");
+      SETE_DIAS.push({
+        dia: nomes[dt.getDay()],
+        data: dt.toLocaleDateString("pt-BR", { day: "numeric", month: "long" }),
+        n: r.total, hoje: r.dia === hoje
       });
+    });
+
+    /* Os números dos painéis vinham escritos no HTML. Agora saem daqui, do que
+       o banco respondeu — inclusive quando a resposta é "nada ainda". */
+    REVISOES = d.revisoesPorDia || [];
+    FOCO_HOJE = d.focoHoje || { minutos: 0, ciclos: 0 };
+  }
+
+  var REVISOES = [], FOCO_HOJE = { minutos: 0, ciclos: 0 };
+
+  function emHoras(min) {
+    if (!min) return "0h";
+    var h = Math.floor(min / 60), m = min % 60;
+    return h ? h + "h" + (m ? " " + m : "") : m + "min";
+  }
+
+  /* A sequência é o número de dias seguidos, contando de hoje para trás, em que
+     houve revisão. Quebra no primeiro dia sem nenhuma — é o que "dias seguidos"
+     quer dizer, e não o total de dias com estudo. */
+  function diasSeguidos() {
+    var porDia = {};
+    REVISOES.forEach(function (r) { if (r.total) porDia[r.dia] = true; });
+    var n = 0, d = new Date();
+    for (var i = 0; i < 400; i++) {
+      var chave = d.toISOString().slice(0, 10);
+      /* Hoje sem revisão ainda não quebra a sequência: o dia não acabou. */
+      if (!porDia[chave]) { if (i > 0) break; }
+      else n++;
+      d.setDate(d.getDate() - 1);
     }
+    return n;
+  }
+
+  function pintarKpis() {
+    var hoje = new Date().toISOString().slice(0, 10);
+    var doDia = null, soma = 0, acertos = 0;
+    REVISOES.forEach(function (r) {
+      if (r.dia === hoje) doDia = r;
+      soma += r.total;
+      acertos += r.acertos;
+    });
+    var taxa = soma ? Math.round(acertos / soma * 100) + "%" : "—";
+    var seq = diasSeguidos();
+
+    var valores = {
+      kpiRevisadosHoje: doDia ? String(doDia.total) : "0",
+      kpiFocoHoje: emHoras(FOCO_HOJE.minutos),
+      kpiAcerto30: taxa,
+      kpiSequencia: String(seq),
+      pgFocoHoje: emHoras(FOCO_HOJE.minutos),
+      pgCiclos: String(FOCO_HOJE.ciclos),
+      pgSequencia: String(seq)
+    };
+    Object.keys(valores).forEach(function (id) {
+      var e = $(id);
+      if (e) e.textContent = valores[id];
+    });
   }
 
   /* Banco vazio ganha o conteúdo de partida: um app que abre sem nada não
      mostra o que ele faz. Roda uma vez, e só. */
-  function semear() {
-    var pedidos = [];
-    PASTAS.forEach(function (pasta) {
-      pedidos.push(function () {
-        return chamar({ acao: "pasta.criar", nome: pasta.nome, desc: pasta.desc || "", tags: pasta.tags || [] })
-          .then(function (r) {
-            var seq = Promise.resolve();
-            pasta.lista.forEach(function (a) {
-              seq = seq.then(function () {
-                return chamar({
-                  acao: "arquivo.criar", pastaId: r.id, nome: a.nome,
-                  desc: a.desc || "", tags: a.tags || [], corpo: a.corpo || ""
-                });
-              });
-            });
-            return seq;
-          });
-      });
-    });
-    decks.forEach(function (dk) {
-      pedidos.push(function () {
-        return chamar({ acao: "deck.criar", nome: dk.nome, desc: dk.desc || "" }).then(function (r) {
-          var meus = ACERVO_CARDS.filter(function (c) { return c.deck === dk.nome; });
-          if (!meus.length) return null;
-          return chamar({
-            acao: "card.criar", deckId: r.id,
-            cards: meus.map(function (c) {
-              return { frente: c.frente, verso: c.verso, trecho: c.trecho || "", origem: c.origem || "" };
-            })
-          });
-        });
-      });
-    });
-    return pedidos.reduce(function (seq, f) { return seq.then(f); }, Promise.resolve());
-  }
-
   function repintarTudo() {
     pintarPastas();
     pintarGradeDecks();
@@ -4280,6 +4170,8 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     pintarTabela();
     pintarArquivos();
     pintarGrafico();
+    pintarPorPasta();
+    pintarKpis();
     desenhar();
     montarFila();
   }
@@ -4290,10 +4182,9 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       comBanco = true;
       jaAvisouSemBanco = false;
       $("faixaFalha").hidden = true;
-      if (!d.pastas || !d.pastas.length) {
-        avisar("info", "Preparando o banco", "Levando o conteúdo de partida para o Turso.");
-        return semear().then(function () { return chamar(null); });
-      }
+      /* Banco vazio é banco vazio: a tela mostra o que existe nele, e nada
+         mais. Aqui havia uma semeadura de conteúdo de demonstração, que dava a
+         impressão de dados reais na primeira abertura. */
       return d;
     }).then(function (d) {
       aplicarDoBanco(d);
@@ -5047,7 +4938,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   });
 
   /* ═══ Pop-up de seleção ══════════════════════════════════════════════ */
-  var selPop = $("selPop"), trechoDemo = null;
+  var selPop = $("selPop");
   var textoPendente = "", secaoPendente = "Introdução";
 
   function secaoDe(no) {
@@ -5077,7 +4968,6 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       if (!sel || sel.isCollapsed) return;
       var texto = sel.toString().trim();
       if (texto.length < 4) return;
-      if (trechoDemo) trechoDemo.classList.remove("marcado");
       textoPendente = texto;
       secaoPendente = secaoDe(sel.anchorNode);
       selPop.classList.remove("surge");
@@ -5090,8 +4980,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     marcarSecao();
     if (selPop.hidden) return;
     var sel = window.getSelection();
-    var r = (sel && !sel.isCollapsed) ? sel.getRangeAt(0).getBoundingClientRect()
-          : (trechoDemo && trechoDemo.classList.contains("marcado") ? trechoDemo.getBoundingClientRect() : null);
+    var r = (sel && !sel.isCollapsed) ? sel.getRangeAt(0).getBoundingClientRect() : null;
     if (!r || r.bottom < 80 || r.top > window.innerHeight - 40) { esconderPop(); return; }
     posicionar(r);
   }, { passive: true });
@@ -5362,20 +5251,15 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   /* ═══ Dropdown da casa ═══════════════════════════════════════════════ */
   /* Uma lista só. Antes eram duas, `decks` para o seletor e `DECKS_INFO` para
      os cartões, e criar um deck tinha de lembrar de empurrar nas duas. */
-  var decks = [
-    { nome: "Clínica Médica", conta: 142, hoje: 12, retencao: 88, ultimo: "Estudado hoje, às 09:05",
-      desc: "Enfermaria, terapia intensiva e o que cai na prova." },
-    { nome: "Pneumologia", conta: 64, hoje: 3, retencao: 74, ultimo: "Estudado ontem",
-      desc: "Ventilação, gasometria e as pneumonias." },
-    { nome: "Infectologia", conta: 88, hoje: 0, retencao: 91, ultimo: "Estudado há 3 dias",
-      desc: "Antibiótico certo, no tempo certo, pelo tempo certo." }
-  ];
+  var decks = [];
   /* A situação sai dos próprios números: deck vazio é novo, com fila é fila. */
   function situacaoDoDeck(d) {
     if (!d.conta) return "novo";
     return d.hoje > 0 ? "fila" : "emdia";
   }
-  var deckAtual = decks[0].nome;
+  /* Sem decks no banco não há deck atual: o seletor do trilho nasce vazio e
+     ganha nome quando o primeiro deck existir. */
+  var deckAtual = decks.length ? decks[0].nome : "";
   var listaAberta = null, gatilhoAberto = null;
   var CHECK = '<svg class="opcao-check" width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg>';
 
@@ -5527,21 +5411,11 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     function () { return deckAtual; }, function (nome) { deckAtual = nome; });
 
   /* ═══ Flashcards ═════════════════════════════════════════════════════ */
-  var rascunhos = [
-    { id: 1, frente: "Qual o principal patógeno associado à PAC?",
-      verso: "Streptococcus pneumoniae. O pneumococo segue como agente mais frequente da pneumonia adquirida na comunidade.",
-      origem: "Introdução",
-      trecho: "Diferente da PAC, cujo principal agente é o Streptococcus pneumoniae, a pneumonia hospitalar é dominada por bacilos Gram-negativos e por S. aureus." },
-    { id: 2, frente: "A partir de quando uma pneumonia é classificada como hospitalar?",
-      verso: "≥ 48 horas após a admissão, sem intubação no momento do diagnóstico.",
-      origem: "Definições e classificação",
-      trecho: "PAH: pneumonia que surge ≥ 48 h após a admissão hospitalar, sem intubação no momento do diagnóstico." },
-    { id: 3, frente: "Qual valor de CPIS sustenta o diagnóstico de PAV?",
-      verso: "CPIS > 6, numa escala de 0 a 12. Reavaliar em 72 h e suspender o antibiótico se o escore cair.",
-      origem: "CPIS, Clinical Pulmonary Infection Score",
-      trecho: "Pontuação de 0 a 12 que combina temperatura, leucócitos, secreção, oxigenação, radiografia e cultura. CPIS > 6 sustenta o diagnóstico." }
-  ];
-  var proximoId = 4, assinatura = "", listaCards = $("listaCards");
+  /* Começa vazio, e é o que o rótulo do painel sempre prometeu: "rascunhos
+     desta sessão". Aqui moravam três de demonstração, escritos no código — eles
+     voltavam a cada carregamento, então descartá-los não adiantava nada. */
+  var rascunhos = [];
+  var proximoId = 1, assinatura = "", listaCards = $("listaCards");
 
   var LIXEIRA = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13h10l1-13"/></svg>';
   var RAIO = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13.2 2.5 5.1 13.2a.5.5 0 0 0 .4.8h5l-.8 7.5a.5.5 0 0 0 .9.35l8.1-10.7a.5.5 0 0 0-.4-.8h-5l.8-7.5a.5.5 0 0 0-.9-.35Z"/></svg>';
@@ -5575,8 +5449,17 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 
       el.querySelector(".fcard-tirar").addEventListener("click", function (e) {
         e.stopPropagation();
-        rascunhos = rascunhos.filter(function (x) { return x.id !== d.id; });
-        desenhar();
+        /* Rascunho descartado não volta: ele ainda não foi para o banco, e não
+           há de onde recuperá-lo. Por isso pergunta, como toda exclusão daqui. */
+        perguntar({
+          titulo: "Descartar rascunho",
+          descricao: ['Tem certeza que deseja descartar "', { forte: d.frente }, '"? Ele ainda não foi salvo em nenhum deck.'],
+          rotuloOk: "Descartar",
+          onConfirmar: function () {
+            rascunhos = rascunhos.filter(function (x) { return x.id !== d.id; });
+            desenhar();
+          }
+        });
       });
       el.addEventListener("click", function () { abrirGaveta(d); });
       el.addEventListener("keydown", function (e) {
@@ -5584,6 +5467,10 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       });
       listaCards.appendChild(el);
     });
+
+    /* O rótulo do seletor de deck acompanha o deck atual: ele nasce vazio, e
+       sem isto continuaria vazio até alguém abrir a lista e escolher. */
+    $("deckRotulo").textContent = deckAtual || "Nenhum deck ainda";
 
     var n = rascunhos.length;
     $("abaConta").textContent = n;
@@ -5614,7 +5501,6 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     if (mqTrilho.matches) alternarTrilho(true);
     desenhar();
     esconderPop();
-    if (trechoDemo) trechoDemo.classList.remove("marcado");
     var s = window.getSelection(); if (s) s.removeAllRanges();
     avisar("info", "Rascunho criado", "Revise a frente antes de salvar no deck.");
   });
@@ -6396,11 +6282,12 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 
      Não é só de exclusão: a mesma caixa serve qualquer pergunta fechada. Por
      isso o texto e o rótulo vêm de fora, e o vermelho é escolha, não regra. */
-  var dialogoOverlay = $("dialogoOverlay"), dialogoDepois = null, dialogoVeioDe = null;
+  var dialogoOverlay = $("dialogoOverlay"), dialogoDepois = null, dialogoMeioDepois = null, dialogoVeioDe = null;
 
   function fecharDialogo(aoTerminar) {
     if (dialogoOverlay.hidden) return;
     dialogoDepois = null;
+    dialogoMeioDepois = null;
     dialogoOverlay.classList.add("saindo");
     var volta = dialogoVeioDe;
     dialogoVeioDe = null;
@@ -6430,6 +6317,25 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     $("dialogoOk").textContent = o.rotuloOk || "Confirmar";
     $("dialogoCancelar").textContent = o.rotuloCancelar || "Cancelar";
     $("dialogoCaixa").classList.toggle("perigo", o.perigo !== false);
+
+    /* O corpo é opcional e some quando não vem: uma caixa com um vão vazio
+       entre a frase e os botões parece que perdeu alguma coisa. */
+    var corpo = $("dialogoCorpo");
+    corpo.innerHTML = "";
+    if (o.corpo) corpo.appendChild(o.corpo);
+    corpo.hidden = !o.corpo;
+
+    /* A terceira saída fica no meio porque é ação, como a de confirmar, e não o
+       jeito de sair — esse é o primeiro botão, e por isso o único sem moldura
+       quando há três: três botões de peso igual obrigam a ler os três para
+       achar a porta. */
+    var meio = $("dialogoMeio");
+    var temMeio = !!(o.rotuloMeio && o.onMeio);
+    meio.hidden = !temMeio;
+    meio.textContent = o.rotuloMeio || "";
+    dialogoMeioDepois = o.onMeio || null;
+    $("dialogoCaixa").classList.toggle("tres", temMeio);
+
     dialogoDepois = o.onConfirmar || null;
     dialogoVeioDe = document.activeElement;
     dialogoOverlay.hidden = false;
@@ -6437,6 +6343,10 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   }
 
   $("dialogoCancelar").addEventListener("click", function () { fecharDialogo(); });
+  $("dialogoMeio").addEventListener("click", function () {
+    var depois = dialogoMeioDepois;
+    fecharDialogo(depois);
+  });
   $("dialogoOk").addEventListener("click", function () {
     var depois = dialogoDepois;
     fecharDialogo(depois);
@@ -6614,6 +6524,13 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       e.setAttribute("aria-pressed", String(rodando));
       e.setAttribute("aria-label", rodando ? "Desligar o foco" : "Ligar o foco");
     });
+    /* O assunto do ciclo era um texto cravado no HTML. Agora vem de quem
+       começou o ciclo, e a linha some quando não há assunto nenhum. */
+    var nota = $("assuntoCiclo");
+    if (nota) {
+      nota.textContent = assuntoDoCiclo ? "Estudando: " + assuntoDoCiclo : "";
+      nota.hidden = !assuntoDoCiclo;
+    }
     pintarBalaoCiclo();
   }
   /* Parar é o fim do foco, por pausa ou por conclusão: o que o silêncio segurou
@@ -6820,17 +6737,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 
   /* ═══ Busca rápida ═══════════════════════════════════════════════════ */
   var qsOverlay = $("qsOverlay"), qsInput = $("qsInput"), qsResults = $("qsResults"), qsAtivo = 0, qsVisiveis = [];
-  var ACERVO = [
-    { grupo: "Arquivos", titulo: "Pneumonia hospitalar na UTI", sub: "Clínica Médica", meta: "8 cards" },
-    { grupo: "Arquivos", titulo: "Sepse, bundle da 1ª hora", sub: "Clínica Médica", meta: "14 cards" },
-    { grupo: "Arquivos", titulo: "Distúrbios ácido-base", sub: "Clínica Médica", meta: "22 cards" },
-    { grupo: "Arquivos", titulo: "Síndromes coronarianas", sub: "Cardiologia", meta: "31 cards" },
-    { grupo: "Decks", titulo: "Clínica Médica", sub: "12 para revisar hoje", meta: "142 cards" },
-    { grupo: "Decks", titulo: "Pneumologia", sub: "3 para revisar hoje", meta: "64 cards" },
-    { grupo: "Decks", titulo: "Infectologia", sub: "em dia", meta: "88 cards" },
-    { grupo: "Flashcards", titulo: "Qual o principal patógeno associado à PAC?", sub: "Clínica Médica", meta: "revisar hoje" },
-    { grupo: "Flashcards", titulo: "Qual valor de CPIS sustenta o diagnóstico de PAV?", sub: "Pneumologia", meta: "em 3 dias" }
-  ];
+  var ACERVO = [];
   var ICO_GRUPO = {
     Arquivos: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>',
     Decks: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5"/></svg>',
@@ -6841,7 +6748,33 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
      letra, e a faixa de marcas combinantes tira o acento que sobrou. */
   function semAcento(s) { return s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase(); }
 
+  /* O índice da busca é montado na hora, a partir do que está carregado. Era um
+     array escrito à mão que envelhecia a cada arquivo criado ou excluído —
+     agora ele não pode discordar do resto da tela, porque é o resto da tela. */
+  function montarAcervo() {
+    ACERVO.length = 0;
+    PASTAS.forEach(function (pasta) {
+      (pasta.lista || []).forEach(function (a) {
+        var n = cardsDoArquivo(a);
+        ACERVO.push({
+          grupo: "Arquivos", titulo: a.nome, sub: pasta.nome,
+          meta: n + (n === 1 ? " card" : " cards"), pasta: pasta, arquivo: a
+        });
+      });
+    });
+    decks.forEach(function (d) {
+      ACERVO.push({
+        grupo: "Decks", titulo: d.nome, sub: d.desc || "",
+        meta: d.conta + (d.conta === 1 ? " card" : " cards"), deck: d
+      });
+    });
+    ACERVO_CARDS.forEach(function (c) {
+      ACERVO.push({ grupo: "Flashcards", titulo: c.frente, sub: c.deck || "", meta: c.quando, card: c });
+    });
+  }
+
   function pintarBusca() {
+    montarAcervo();
     var termo = semAcento(qsInput.value.trim());
     var achados = termo ? ACERVO.filter(function (i) { return semAcento(i.titulo + " " + i.sub).indexOf(termo) >= 0; }) : ACERVO;
     qsVisiveis = achados;
@@ -6878,9 +6811,19 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       qsResults.appendChild(row);
     });
   }
+  /* Escolher abre de verdade: antes o resultado só anunciava num aviso, porque
+     o índice era de mentira e não apontava para nada. */
   function escolherBusca(item) {
     fecharBusca();
-    avisar("info", item.titulo, "Abrindo de " + item.grupo.toLowerCase() + ".");
+    if (item.arquivo) { abrirArquivo(item.pasta, item.arquivo); return; }
+    if (item.deck) { abrirDeck(item.deck); return; }
+    if (item.card) {
+      /* O card não tem tela própria: a listagem recortada pelo deck dele é o
+         lugar mais perto de onde ele está. */
+      var dono = null;
+      decks.forEach(function (d) { if (d.nome === item.card.deck) dono = d; });
+      if (dono) abrirDeck(dono); else irPaginaAtual("decks");
+    }
   }
   function abrirBusca() {
     qsOverlay.hidden = false;
@@ -7013,20 +6956,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   }
 
   /* ═══ Tela: Flashcards ═══════════════════════════════════════════════ */
-  var ACERVO_CARDS = [
-    { frente: "Qual o principal patógeno associado à PAC?", verso: "Streptococcus pneumoniae, o pneumococo.", deck: "Clínica Médica", origem: "Pneumonia hospitalar na UTI", estado: "hoje", quando: "Hoje", acertos: "12 de 14" },
-    { frente: "A partir de quando uma pneumonia é classificada como hospitalar?", verso: "≥ 48 horas após a admissão.", deck: "Clínica Médica", origem: "Pneumonia hospitalar na UTI", estado: "hoje", quando: "Hoje", acertos: "9 de 9" },
-    { frente: "Qual valor de CPIS sustenta o diagnóstico de PAV?", verso: "CPIS maior que 6, numa escala de 0 a 12.", deck: "Pneumologia", origem: "Pneumonia hospitalar na UTI", estado: "atrasado", quando: "Há 2 dias", acertos: "4 de 8" },
-    { frente: "Qual o corte quantitativo do lavado broncoalveolar?", verso: "10⁴ UFC/mL ou mais.", deck: "Pneumologia", origem: "Pneumonia hospitalar na UTI", estado: "hoje", quando: "Hoje", acertos: "6 de 7" },
-    { frente: "Qual o fator isolado de maior peso para germe multirresistente?", verso: "Antibiótico intravenoso nos últimos 90 dias.", deck: "Infectologia", origem: "Pneumonia hospitalar na UTI", estado: "novo", quando: "Não estudado", acertos: "sem histórico" },
-    { frente: "Por quantos dias tratar a pneumonia hospitalar não complicada?", verso: "Sete dias. Não há ganho em estender para 14.", deck: "Clínica Médica", origem: "Pneumonia hospitalar na UTI", estado: "emdia", quando: "Em 8 dias", acertos: "15 de 16" },
-    { frente: "Quais os três critérios do qSOFA?", verso: "Frequência respiratória ≥ 22, alteração do sensório e pressão sistólica ≤ 100 mmHg.", deck: "Clínica Médica", origem: "Sepse, bundle da 1ª hora", estado: "atrasado", quando: "Há 1 dia", acertos: "7 de 12" },
-    { frente: "Qual o volume de cristaloide na ressuscitação inicial da sepse?", verso: "30 mL/kg nas primeiras três horas.", deck: "Clínica Médica", origem: "Sepse, bundle da 1ª hora", estado: "hoje", quando: "Hoje", acertos: "11 de 13" },
-    { frente: "Qual o alvo de PAM no choque séptico?", verso: "65 mmHg, com noradrenalina como primeira escolha.", deck: "Clínica Médica", origem: "Sepse, bundle da 1ª hora", estado: "emdia", quando: "Em 5 dias", acertos: "19 de 20" },
-    { frente: "Como calcular o ânion gap?", verso: "Na⁺ menos a soma de Cl⁻ e HCO₃⁻. Normal entre 8 e 12 mEq/L.", deck: "Clínica Médica", origem: "Distúrbios ácido-base", estado: "emdia", quando: "Em 12 dias", acertos: "22 de 23" },
-    { frente: "O que a fórmula de Winter estima?", verso: "A pCO₂ esperada na acidose metabólica compensada.", deck: "Clínica Médica", origem: "Distúrbios ácido-base", estado: "novo", quando: "Não estudado", acertos: "sem histórico" },
-    { frente: "Qual a janela para angioplastia primária no IAM com supra?", verso: "Até 90 minutos do primeiro contato médico, ou 120 se houver transferência.", deck: "Clínica Médica", origem: "Síndromes coronarianas", estado: "atrasado", quando: "Há 3 dias", acertos: "5 de 11" }
-  ];
+  var ACERVO_CARDS = [];
   var ROTULO_ESTADO = { hoje: "Na fila de hoje", atrasado: "Atrasado", emdia: "Em dia", novo: "Novo" };
   var barraCards = null, filtroEstado = [], assinaturaTabela = "";
 
@@ -7176,14 +7106,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   }
 
   /* ═══ Tela: Revisão de hoje ══════════════════════════════════════════ */
-  var FILA_BASE = [
-    { origem: "Pneumonia hospitalar na UTI", frente: "Qual o principal patógeno associado à PAC?", verso: "Streptococcus pneumoniae. O pneumococo segue como agente mais frequente da pneumonia adquirida na comunidade." },
-    { origem: "Pneumonia hospitalar na UTI", frente: "A partir de quando uma pneumonia é classificada como hospitalar?", verso: "≥ 48 horas após a admissão, sem intubação no momento do diagnóstico." },
-    { origem: "Pneumonia hospitalar na UTI", frente: "Qual valor de CPIS sustenta o diagnóstico de PAV?", verso: "CPIS maior que 6, numa escala de 0 a 12. Reavaliar em 72 h e suspender se o escore cair." },
-    { origem: "Sepse, bundle da 1ª hora", frente: "Quais os três critérios do qSOFA?", verso: "Frequência respiratória ≥ 22 irpm, alteração do nível de consciência e pressão sistólica ≤ 100 mmHg." },
-    { origem: "Sepse, bundle da 1ª hora", frente: "Qual o alvo de pressão arterial média no choque séptico?", verso: "PAM de 65 mmHg, com noradrenalina como vasopressor de primeira escolha." },
-    { origem: "Distúrbios ácido-base", frente: "Como se calcula o ânion gap?", verso: "Sódio menos a soma de cloro e bicarbonato. O valor normal fica entre 8 e 12 mEq/L." }
-  ];
+  var FILA_BASE = [];
   var fila = [], posicao = 0, acertosFila = 0;
 
   function montarFila() {
@@ -7284,18 +7207,57 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     excluir.title = "Excluir " + d.nome;
     excluir.setAttribute("aria-label", excluir.title);
     duplicar.addEventListener("click", function () { duplicarDeck(d); });
-    excluir.addEventListener("click", function () {
-      var n = d.conta;
+    excluir.addEventListener("click", function () { perguntarExcluirDeck(d); });
+    return el;
+  }
+
+  /* Mesma ideia da pasta: deck com cards dentro oferece levá-los para outro
+     antes de sumir, em vez de só avisar que vão junto. */
+  function perguntarExcluirDeck(d) {
+    var n = d.conta;
+    var destinos = decks.filter(function (k) { return k !== d; });
+
+    if (!n) {
       perguntar({
         titulo: "Excluir deck",
-        descricao: ['Tem certeza que deseja excluir "', { forte: d.nome },
-          n ? '" e os ' + n + ' flashcards dentro dele? Esta ação não pode ser desfeita.'
-            : '"? Esta ação não pode ser desfeita.'],
+        descricao: ['Tem certeza que deseja excluir "', { forte: d.nome }, '"? Esta ação não pode ser desfeita.'],
         rotuloOk: "Excluir",
         onConfirmar: function () { excluirDeck(d); }
       });
+      return;
+    }
+
+    var quantos = n + (n === 1 ? " flashcard" : " flashcards");
+    if (!destinos.length) {
+      perguntar({
+        titulo: "Excluir deck",
+        descricao: ['"', { forte: d.nome }, '" tem ' + quantos + ' e é o único deck. Excluí-lo apaga os cards, e não há para onde movê-los.'],
+        rotuloOk: "Excluir tudo",
+        onConfirmar: function () { excluirDeck(d); }
+      });
+      return;
+    }
+
+    var escolhido = destinos[0].nome;
+    var campo = grupo("Mover os flashcards para", campoSelect(escolhido,
+      destinos.map(function (k) {
+        return { nome: k.nome, nota: k.conta + (k.conta === 1 ? " card" : " cards") };
+      }),
+      function (v) { escolhido = v; }));
+
+    perguntar({
+      titulo: "Excluir deck",
+      descricao: ['"', { forte: d.nome }, '" tem ' + quantos + ' dentro. O que fazer com eles?'],
+      corpo: campo,
+      rotuloMeio: "Mover e excluir",
+      onMeio: function () {
+        var destino = null;
+        decks.forEach(function (k) { if (k.nome === escolhido) destino = k; });
+        excluirDeck(d, destino);
+      },
+      rotuloOk: "Excluir tudo",
+      onConfirmar: function () { excluirDeck(d); }
     });
-    return el;
   }
 
   /* A cópia entra logo depois do original, e não no fim: é onde os olhos já
@@ -7318,25 +7280,48 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       .then(function (r) { if (r.id) copia.id = r.id; });
   }
 
-  function excluirDeck(d) {
+  /* Com `destino`, os cards mudam de deck antes de este sumir; sem ele, vão
+     junto pelo `ON DELETE CASCADE`. Mover primeiro, apagar depois: o contrário
+     deixaria o cascade alcançá-los antes do UPDATE. */
+  function excluirDeck(d, destino) {
     var i = decks.indexOf(d);
     if (i < 0) return;
+    var levados = d.conta;
     decks.splice(i, 1);
-    /* No banco os cards caem junto, por `ON DELETE CASCADE`. Em memória isso é
-       manual: sem esta linha a tabela seguiria listando cards de um deck que
-       não existe mais, até alguém dar refresh. */
-    for (var k = ACERVO_CARDS.length - 1; k >= 0; k--) {
-      if (ACERVO_CARDS[k].deck === d.nome) ACERVO_CARDS.splice(k, 1);
+
+    if (destino && destino !== d) {
+      /* Em memória o vínculo é o nome do deck: os cards passam a apontar para
+         o novo, em vez de sumirem da tabela. */
+      ACERVO_CARDS.forEach(function (c) { if (c.deck === d.nome) c.deck = destino.nome; });
+    } else {
+      /* No banco os cards caem junto. Em memória isso é manual: sem isto a
+         tabela seguiria listando cards de um deck que não existe mais. */
+      for (var k = ACERVO_CARDS.length - 1; k >= 0; k--) {
+        if (ACERVO_CARDS[k].deck === d.nome) ACERVO_CARDS.splice(k, 1);
+      }
     }
+    recontarDecks();
+
     /* O deck excluído podia ser o recorte da listagem de cards: sem isto a
        tabela continuaria filtrada por um deck que não existe mais. */
-    if (deckAtual === d.nome) deckAtual = decks.length ? decks[0].nome : "";
-    if (deckAberto === d) { deckAberto = null; irVista("deck-lista"); }
+    if (deckAtual === d.nome) deckAtual = (destino && destino.nome) || (decks.length ? decks[0].nome : "");
+    if (deckAberto === d) { deckAberto = destino || null; irVista("deck-lista"); }
     pintarGradeDecks();
     pintarDecks();
     pintarTabela();
-    avisar("success", "Deck excluído", d.nome + " saiu da lista.");
-    if (d.id) gravar({ acao: "deck.excluir", id: d.id });
+
+    if (destino && levados) {
+      avisar("success", "Deck excluído",
+        levados + (levados === 1 ? " flashcard foi" : " flashcards foram") + " para " + destino.nome + ".");
+    } else {
+      avisar("success", "Deck excluído", d.nome + " saiu da lista.");
+    }
+
+    if (!d.id) return;
+    var mover = destino && destino.id && levados
+      ? gravar({ acao: "cards.mover", de: d.id, para: destino.id })
+      : Promise.resolve({});
+    mover.then(function () { gravar({ acao: "deck.excluir", id: d.id }); });
   }
 
   function pintarDecks() {
@@ -7350,17 +7335,37 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   /* Sete dias, uma série só, um tom só: a cor diz "isto é dado", não separa
      ninguém. O dia de hoje é o único marcado, e o valor aparece no ponteiro em
      vez de um número em cima de cada barra. */
-  var SETE_DIAS = [
-    { dia: "Sáb", data: "6 de setembro", n: 18 },
-    { dia: "Dom", data: "7 de setembro", n: 9 },
-    { dia: "Seg", data: "8 de setembro", n: 34 },
-    { dia: "Ter", data: "9 de setembro", n: 27 },
-    { dia: "Qua", data: "10 de setembro", n: 41 },
-    { dia: "Qui", data: "11 de setembro", n: 38 },
-    { dia: "Sex", data: "12 de setembro", n: 31, hoje: true }
-  ];
+  var SETE_DIAS = [];
+
+  /* A tabela do painel sai das pastas carregadas. Aqui havia três linhas
+     escritas no HTML, que não mudavam com nada — nem ao criar uma pasta, nem
+     ao excluir. "Tempo em foco" por pasta o banco ainda não guarda, e por isso
+     aparece como traço em vez de um número inventado. */
+  function pintarPorPasta() {
+    var corpo = $("corpoPorPasta");
+    if (!corpo) return;
+    corpo.innerHTML = "";
+    PASTAS.forEach(function (c) {
+      var tr = document.createElement("tr");
+      tr.innerHTML =
+        '<td style="font-weight:600"></td>' +
+        '<td class="col-num"></td>' +
+        '<td class="col-num"></td>' +
+        '<td class="col-num">—</td>' +
+        '<td></td>';
+      var tds = tr.children;
+      tds[0].textContent = c.nome;
+      tds[1].textContent = (c.lista || []).length;
+      tds[2].textContent = cardsDaPasta(c);
+      tds[4].textContent = c.ultimo || "Ainda não estudado";
+      corpo.appendChild(tr);
+    });
+  }
+
   function pintarGrafico() {
-    var teto = Math.max.apply(null, SETE_DIAS.map(function (d) { return d.n; }));
+    /* `Math.max` de lista vazia devolve `-Infinity`, e o teto do gráfico
+       aparecia escrito assim. Sem dias não há teto: zero. */
+    var teto = SETE_DIAS.length ? Math.max.apply(null, SETE_DIAS.map(function (d) { return d.n; })) : 0;
     var cols = $("colunas7d"), dias = $("dias7d");
     cols.innerHTML = "";
     dias.innerHTML = "";
@@ -7667,30 +7672,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   /* ═══ Pastas: lista, pasta, arquivo ════════════════════════════
      Os três degraus vivem dentro da mesma tela. Quem diz onde se está é a
      trilha, e o menu lateral continua plano. */
-  var PASTAS = [
-    { nome: "Clínica Médica", ultimo: "Estudado hoje, às 09:05", situacao: "hoje",
-      desc: "Enfermaria e terapia intensiva.", tags: ["UTI", "Enfermaria"],
-      lista: [
-        { nome: "Pneumonia hospitalar na UTI", modelo: "corpoPneumonia",
-          desc: "Quando suspeitar, como confirmar e por quanto tempo tratar." },
-        { nome: "Sepse, bundle da 1ª hora", modelo: "corpoSepse",
-          desc: "As cinco medidas que precisam sair na primeira hora." },
-        { nome: "Distúrbios ácido-base", modelo: "corpoAcidoBase",
-          desc: "A ordem de leitura da gasometria, sem pular passo." }
-      ] },
-    { nome: "Cardiologia", ultimo: "Estudado anteontem", situacao: "semana",
-      desc: "Do eletrocardiograma à hemodinâmica.", tags: ["ECG", "Prova"],
-      lista: [
-        { nome: "Síndromes coronarianas", modelo: "corpoCoronarianas",
-          desc: "O eletrocardiograma em dez minutos, e as duas estradas." }
-      ] },
-    { nome: "Rascunhos", ultimo: "Estudado há 6 dias", situacao: "parado",
-      desc: "O que ainda não virou texto limpo.", tags: ["Revisar"],
-      lista: [
-        { nome: "Erros que repeti em simulado", modelo: "corpoErros",
-          desc: "Anotação crua, para virar flashcard depois." }
-      ] }
-  ];
+  var PASTAS = [];
   var pastaAberta = PASTAS[0];
 
   /* Aqui a troca tem degrau: a lista abre uma pasta, que abre um arquivo.
@@ -7887,14 +7869,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 
       el.querySelector(".pasta-abrir").addEventListener("click", function () { abrirPasta(c); });
       duplicar.addEventListener("click", function () { duplicarPasta(c); });
-      excluir.addEventListener("click", function () {
-        perguntar({
-          titulo: "Excluir pasta",
-          descricao: ['Tem certeza que deseja excluir "', { forte: c.nome }, '"? Esta ação não pode ser desfeita.'],
-          rotuloOk: "Excluir",
-          onConfirmar: function () { excluirPasta(c); }
-        });
-      });
+      excluir.addEventListener("click", function () { perguntarExcluirPasta(c); });
       grade.appendChild(el);
     });
   }
@@ -7929,13 +7904,82 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       });
   }
 
-  function excluirPasta(c) {
+  /* Pasta vazia some com uma pergunta simples. Com arquivos dentro, a pergunta
+     ganha uma terceira resposta: levar o conteúdo para outra pasta antes de
+     apagar esta. Sem isso a única saída era perder os arquivos junto — o banco
+     tem `ON DELETE CASCADE`, e eles iriam de qualquer jeito. */
+  function perguntarExcluirPasta(c) {
+    var n = (c.lista || []).length;
+    var destinos = PASTAS.filter(function (p) { return p !== c; });
+
+    if (!n) {
+      perguntar({
+        titulo: "Excluir pasta",
+        descricao: ['Tem certeza que deseja excluir "', { forte: c.nome }, '"? Esta ação não pode ser desfeita.'],
+        rotuloOk: "Excluir",
+        onConfirmar: function () { excluirPasta(c); }
+      });
+      return;
+    }
+
+    var quantos = n + (n === 1 ? " arquivo" : " arquivos");
+    if (!destinos.length) {
+      perguntar({
+        titulo: "Excluir pasta",
+        descricao: ['"', { forte: c.nome }, '" tem ' + quantos + ' e é a única pasta. Excluí-la apaga o que está dentro, e não há para onde mover.'],
+        rotuloOk: "Excluir tudo",
+        onConfirmar: function () { excluirPasta(c); }
+      });
+      return;
+    }
+
+    var escolhido = destinos[0].nome;
+    var campo = grupo("Mover os arquivos para", campoSelect(escolhido,
+      destinos.map(function (p) {
+        var q = (p.lista || []).length;
+        return { nome: p.nome, nota: q + (q === 1 ? " arquivo" : " arquivos") };
+      }),
+      function (v) { escolhido = v; }));
+
+    perguntar({
+      titulo: "Excluir pasta",
+      descricao: ['"', { forte: c.nome }, '" tem ' + quantos + ' dentro. O que fazer com eles?'],
+      corpo: campo,
+      rotuloMeio: "Mover e excluir",
+      onMeio: function () { excluirPasta(c, acharPasta(escolhido)); },
+      rotuloOk: "Excluir tudo",
+      onConfirmar: function () { excluirPasta(c); }
+    });
+  }
+
+  /* Com `destino`, os arquivos mudam de pasta antes de esta sumir; sem ele, vão
+     junto. A ordem importa: mover primeiro, apagar depois — o contrário deixaria
+     o cascade levar os arquivos antes de o UPDATE alcançá-los. */
+  function excluirPasta(c, destino) {
     var i = PASTAS.indexOf(c);
     if (i < 0) return;
+    var levados = (c.lista || []).length;
+
+    if (destino && destino !== c) {
+      destino.lista = (destino.lista || []).concat(c.lista || []);
+      c.lista = [];
+    }
     PASTAS.splice(i, 1);
+    if (pastaAberta === c) { pastaAberta = destino || null; irVista("lista"); }
     pintarPastas();
-    avisar("success", "Pasta excluída", c.nome + " saiu da lista.");
-    if (c.id) gravar({ acao: "pasta.excluir", id: c.id });
+
+    if (destino && levados) {
+      avisar("success", "Pasta excluída",
+        levados + (levados === 1 ? " arquivo foi" : " arquivos foram") + " para " + destino.nome + ".");
+    } else {
+      avisar("success", "Pasta excluída", c.nome + " saiu da lista.");
+    }
+
+    if (!c.id) return;
+    var mover = destino && destino.id && levados
+      ? gravar({ acao: "arquivos.mover", de: c.id, para: destino.id })
+      : Promise.resolve({});
+    mover.then(function () { gravar({ acao: "pasta.excluir", id: c.id }); });
   }
 
   var barraArquivos = null, filtroArqCards = [], filtroArqTamanho = [], assinaturaArquivos = "";
@@ -7970,7 +8014,13 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   }
 
   function pintarArquivos() {
-    if (!pastaAberta) return;
+    /* Sem pasta aberta a lista fica vazia, e não intocada: se a espera tiver
+       posto um giro ali, sair cedo o deixaria girando para sempre. */
+    if (!pastaAberta) {
+      var caixa = $("listaArquivos");
+      if (caixa) caixa.innerHTML = "";
+      return;
+    }
     var q = semAcento(barraArquivos ? barraArquivos.termo().trim() : "");
     var visiveis = pastaAberta.lista.filter(function (d) {
       if (filtroArqCards.length && filtroArqCards.indexOf(cardsDe(d.nome) > 0 ? "com" : "sem") < 0) return false;
@@ -8144,7 +8194,6 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       d.corpo = molde.innerHTML;
     }
     arquivoCorpo.innerHTML = d.corpo;
-    trechoDemo = $("trechoDemo");
     editor.scrollTop = 0;
     montarIndice();
     /* As notas são do arquivo, não da sessão: trocar de arquivo troca a lista,
@@ -8215,17 +8264,11 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   /* O trecho já selecionado e o pop-up em cima dele só podem ser medidos com
      o arquivo na tela: antes disso o retângulo é zero e o balão nasceria no
      canto. Por isso a demonstração espera a vista abrir. */
+  /* Abrir um arquivo acerta a seção ativa no índice. Antes daqui também saía o
+     pop-up de seleção já aberto sobre um trecho grifado de demonstração — que
+     não existe mais, porque não existe texto de demonstração. */
   function mostrarArquivo() {
-    requestAnimationFrame(function () {
-      marcarSecao();
-      if (!trechoDemo || !trechoDemo.isConnected || !trechoDemo.classList.contains("marcado")) return;
-      textoPendente = trechoDemo.textContent.trim();
-      secaoPendente = "Introdução";
-      selPop.classList.remove("surge");
-      void selPop.offsetWidth;
-      selPop.classList.add("surge");
-      posicionar(trechoDemo.getBoundingClientRect());
-    });
+    requestAnimationFrame(marcarSecao);
   }
 
   Array.prototype.forEach.call(document.querySelectorAll("[data-volta]"), function (b) {
@@ -8245,22 +8288,10 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   $("btnRevisar").addEventListener("click", function () { irPaginaAtual("revisao"); });
 
   /* ═══ Estado inicial ═════════════════════════════════════════════════
-     A ordem aqui importa mais do que parece. O conteúdo de partida existe para
-     semear um banco vazio, e não para aparecer na tela: pintá-lo antes da
-     resposta do banco mostra pastas que já foram excluídas, que somem no
-     instante seguinte. Por isso nada é pintado antes — a tela nasce esperando,
+     A ordem aqui importa mais do que parece. Tudo que a tela mostra vem do
+     banco, então nada é pintado antes da resposta dele: a tela nasce esperando,
      e `carregar()` é o último a rodar, para que a espera não seja apagada por
      uma pintura vinda logo atrás. */
-
-  /* Cada arquivo recebe o texto do seu modelo. Os criados daqui em diante
-     nascem com o corpo vazio e o título no primeiro cabeçalho. */
-  PASTAS.forEach(function (c) {
-    c.lista.forEach(function (a) {
-      var modelo = a.modelo && $(a.modelo);
-      a.corpo = modelo ? modelo.innerHTML : "";
-      delete a.modelo;
-    });
-  });
 
   /* As barras de filtro são estrutura, não conteúdo: montam vazias e precisam
      existir antes de qualquer pintura, que é quem as consulta. */

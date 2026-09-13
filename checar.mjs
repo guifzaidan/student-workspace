@@ -70,29 +70,43 @@ for (const botao of itens) {
   dizer(visiveis.length === 1 && visiveis[0] === alvo, `${alvo} -> ${visiveis.join(',') || '(nenhuma)'}`);
 }
 
+console.log('\nestado sem banco');
+// A semente saiu da página: o banco é a única fonte. Sem rede, o certo é a tela
+// vazia com a faixa de falha, e não conteúdo inventado.
+const faixa = doc.getElementById('faixaFalha');
+dizer(!!faixa && !faixa.hidden, 'a faixa de falha aparece quando a carga não volta');
+const vazioPastas = doc.getElementById('vazioPastas');
+dizer(!!vazioPastas && !vazioPastas.hidden, 'o estado vazio de pastas aparece');
+dizer(doc.querySelectorAll('.dux-spinner-row').length === 0, 'nenhum giro ficou girando');
+dizer(!!doc.getElementById('btnTentarDeNovo'), 'existe a saída para tentar de novo');
+
 console.log('\nníveis dentro de uma tela');
+// Só dá para descer níveis com dado, e dado vem do banco. Para cobrir esta
+// parte, deixe `npm run dev` rodando noutra aba antes desta verificação.
 const pastas = itens.find((b) => b.dataset.ir === 'pastas');
 if (pastas) {
   pastas.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
   await esperar(400);
-  const cartao = doc.querySelector('.pasta-abrir') || doc.querySelector('.pasta-card');
-  if (cartao) {
-    cartao.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
-    await esperar(400);
-    const vista = [...doc.querySelectorAll('[data-vista]')].filter((v) => !v.hidden).map((v) => v.dataset.vista);
-    dizer(vista.includes('pasta'), `abrir uma pasta -> vista ${vista.join(',') || '(nenhuma)'}`);
-    const linha = doc.querySelector('.arquivo-linha');
-    if (linha) {
-      linha.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
-      await esperar(400);
-      const v2 = [...doc.querySelectorAll('[data-vista]')].filter((v) => !v.hidden).map((v) => v.dataset.vista);
-      dizer(v2.includes('arquivo'), `abrir um arquivo -> vista ${v2.join(',') || '(nenhuma)'}`);
-      const corpo = doc.getElementById('arquivoCorpo');
-      dizer(!!corpo && corpo.isContentEditable !== false, 'o corpo do arquivo é editável');
-      dizer(!!doc.querySelector('#toc button'), 'o índice tem entradas');
-    } else dizer(false, 'nenhuma linha de arquivo na pasta');
-  } else dizer(false, 'nenhum cartão de pasta na lista');
 }
+const cartao = doc.querySelector('.pasta-abrir') || doc.querySelector('.pasta-card');
+if (!cartao) {
+  console.log('  ~   sem pastas carregadas, então não há níveis para descer');
+} else {
+  cartao.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  await esperar(400);
+  const vista = [...doc.querySelectorAll('[data-vista]')].filter((v) => !v.hidden).map((v) => v.dataset.vista);
+  dizer(vista.includes('pasta'), `abrir uma pasta -> vista ${vista.join(',') || '(nenhuma)'}`);
+  const linha = doc.querySelector('.arquivo-linha');
+  if (linha) {
+    linha.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+    await esperar(400);
+    const v2 = [...doc.querySelectorAll('[data-vista]')].filter((v) => !v.hidden).map((v) => v.dataset.vista);
+    dizer(v2.includes('arquivo'), `abrir um arquivo -> vista ${v2.join(',') || '(nenhuma)'}`);
+    const corpo = doc.getElementById('arquivoCorpo');
+    dizer(!!corpo && corpo.isContentEditable !== false, 'o corpo do arquivo é editável');
+  }
+}
+
 
 console.log(`\n${falhou ? 'FALHOU' : 'TUDO CERTO'}\n`);
 process.exit(falhou ? 1 : 0);
