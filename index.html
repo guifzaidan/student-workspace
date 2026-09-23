@@ -8993,20 +8993,82 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 
   /* Os pedaços que podem mudar de folha: os blocos do texto, e os itens de
      lista um a um — uma lista comprida é comum, e empurrá-la inteira deixaria
-     meia folha em branco. */
+     meia folha em branco.
+
+     Texto colado de fora (do Gemini, de um site) chega embrulhado em camadas
+     de `div`, e um embrulho só pode segurar vinte parágrafos. Inteiro ele não
+     cabe numa folha, e aí atravessava a quebra com o texto por cima do vão.
+     Por isso o embrulho sem moldura própria se abre nos blocos de dentro, e o
+     que tem moldura (a caixa da tabela, uma citação) só se abre quando não
+     cabe numa folha. A tabela que não cabe se abre nas linhas. */
+  var ABRE_SEMPRE_LISTA = /^(UL|OL)$/, EMBRULHO = /^(DIV|SECTION|ARTICLE|BLOCKQUOTE|ASIDE|MAIN|HEADER|FOOTER|NAV)$/;
+  var GRUPO_TABELA = /^(THEAD|TBODY|TFOOT)$/, EM_BLOCO = /^(block|list-item|table|flow-root|flex|grid)$/;
+
+  function soBlocos(el) {
+    for (var n = el.firstChild; n; n = n.nextSibling) {
+      if (n.nodeType === 3 && /\S/.test(n.nodeValue)) return false;
+      if (n.nodeType === 1 && !EM_BLOCO.test(getComputedStyle(n).display)) return false;
+    }
+    return true;
+  }
+
+  function semMoldura(el) {
+    var s = getComputedStyle(el);
+    return !parseFloat(s.borderTopWidth) && !parseFloat(s.borderLeftWidth) && !parseFloat(s.paddingTop) &&
+      !parseFloat(s.paddingLeft) && s.backgroundImage === "none" && /^(transparent|rgba\(0, 0, 0, 0\))$/.test(s.backgroundColor);
+  }
+
+  function abrir(el) {
+    if (!el.firstElementChild) return false;
+    if (ABRE_SEMPRE_LISTA.test(el.tagName)) return el.children.length > 1;
+    if (GRUPO_TABELA.test(el.tagName)) return true;
+    var util = A4.altura - 2 * A4.margem;
+    if (el.tagName === "TABLE") return el.offsetHeight > util;
+    if (!EMBRULHO.test(el.tagName) || !soBlocos(el)) return false;
+    return el.offsetHeight > util || semMoldura(el);
+  }
+
   function unidadesDoTexto() {
     var u = [];
+    function juntar(el, sel) {
+      if (!abrir(el)) { u.push({ el: el, sel: sel }); return; }
+      Array.prototype.forEach.call(el.children, function (f, j) {
+        juntar(f, sel + " > :nth-child(" + (j + 1) + ")");
+      });
+    }
     Array.prototype.forEach.call(arquivoCorpo.children, function (b, i) {
-      var seletor = "#arquivoCorpo > :nth-child(" + (i + 1) + ")";
-      if (/^(UL|OL)$/.test(b.tagName) && b.children.length > 1) {
-        Array.prototype.forEach.call(b.children, function (li, j) {
-          u.push({ el: li, sel: seletor + " > :nth-child(" + (j + 1) + ")" });
-        });
-      } else {
-        u.push({ el: b, sel: seletor });
-      }
+      juntar(b, "#arquivoCorpo > :nth-child(" + (i + 1) + ")");
     });
     return u;
+  }
+
+  /* A regra que desce um pedaço `empurra` pixels. Linha de tabela não tem
+     margem: quem desce é o conteúdo das células, pelo respiro de cima.
+
+     Nos outros, margens de blocos vizinhos se sobrepõem em vez de somar: o vão
+     é a maior delas, e o primeiro filho de um embrulho divide a margem com o
+     embrulho e com o bloco antes dele. A margem nova conta com essa roda
+     inteira para andar exatamente o empurrão. Numa coluna flex (as listas)
+     nada se sobrepõe, e aí é só somar. */
+  function regraDeEmpurrar(u, empurra) {
+    if (u.el.tagName === "TR") {
+      var cel = u.el.firstElementChild;
+      var pt = cel ? parseFloat(getComputedStyle(cel).paddingTop) || 0 : 0;
+      return u.sel + " > *{padding-top:" + (pt + empurra) + "px!important}";
+    }
+    var mt = parseFloat(getComputedStyle(u.el).marginTop) || 0, roda = mt;
+    var el = u.el, pai = el.parentElement;
+    if (!/^(flex|grid|inline-flex|inline-grid)$/.test(getComputedStyle(pai).display)) {
+      while (!el.previousElementSibling && pai !== arquivoCorpo) {
+        var sp = getComputedStyle(pai);
+        if (parseFloat(sp.paddingTop) || parseFloat(sp.borderTopWidth) || sp.display !== "block" || sp.overflow !== "visible") break;
+        roda = Math.max(roda, parseFloat(sp.marginTop) || 0);
+        el = pai; pai = el.parentElement;
+      }
+      var antes = el.previousElementSibling;
+      if (antes) roda = Math.max(roda, parseFloat(getComputedStyle(antes).marginBottom) || 0);
+    }
+    return u.sel + "{margin-top:" + (roda + empurra) + "px!important}";
   }
 
   /* A altura dentro da folha, em pixels da própria folha: o zoom dela não
@@ -9041,7 +9103,6 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
        de qualquer jeito, e ler a altura só antecipa a mesma conta. */
     var altos = unidades.map(function (u) { return u.el.offsetHeight; });
     if (mesmoRetrato(unidades, altos)) return;
-    retratoPaginas = { margem: A4.margem, els: unidades.map(function (u) { return u.el; }), altos: altos };
 
     /* Uma medida só, sem empurrão nenhum, e o resto é conta. Antes cada bloco
        empurrado pedia uma medida nova da página inteira, e um texto de 25
@@ -9049,6 +9110,12 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
        A altura mínima fica onde estava enquanto se mede: tirar os empurrões
        encolhe o texto por um instante, e a rolagem pularia para cima junto. */
     regrasPaginas.textContent = "";
+    /* A linha de tabela empurrada cresce junto (o empurrão é respiro dela),
+       então a altura que vale para a conta é a medida sem empurrão nenhum. */
+    var temLinha = unidades.some(function (u) { return u.el.tagName === "TR"; });
+    if (temLinha) {
+      altos = unidades.map(function (u) { return u.el.offsetHeight; });
+    }
     var topos = unidades.map(function (u) { return alturaNaFolha(u.el); });
     var regras = [], desvio = 0, fundo = A4.margem;
     unidades.forEach(function (u, k) {
@@ -9062,17 +9129,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
         if (topo < inicio) empurra = inicio - topo;
         else if (topo + alto > limite) empurra = (pagina + 1) * passo + A4.margem - topo;
         if (empurra) {
-          /* Margens de blocos vizinhos se sobrepõem em vez de somar: o vão é
-             a maior das duas. A margem nova conta com isso para andar
-             exatamente o empurrão. Item de lista mora numa coluna flex, onde
-             nada se sobrepõe, e aí é só somar. */
-          var mt = parseFloat(getComputedStyle(u.el).marginTop) || 0, nova = mt + empurra;
-          if (u.el.tagName !== "LI") {
-            var antes = u.el.previousElementSibling;
-            var mb = antes ? parseFloat(getComputedStyle(antes).marginBottom) || 0 : 0;
-            nova = Math.max(mb, mt) + empurra;
-          }
-          regras.push(u.sel + "{margin-top:" + nova + "px!important}");
+          regras.push(regraDeEmpurrar(u, empurra));
           desvio += empurra;
           topo += empurra;
         }
@@ -9080,6 +9137,10 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       fundo = Math.max(fundo, topo + alto);
     });
     regrasPaginas.textContent = regras.join("\n");
+    /* O retrato guarda a altura com os empurrões postos, que é a que a próxima
+       tecla vai medir. Só a linha de tabela muda entre uma e outra. */
+    if (temLinha) altos = unidades.map(function (u) { return u.el.offsetHeight; });
+    retratoPaginas = { margem: A4.margem, els: unidades.map(function (u) { return u.el; }), altos: altos };
     var folhas = Math.max(1, Math.ceil((fundo + A4.margem + A4.vao) / passo));
     arquivoCorpo.style.minHeight = (folhas * passo - A4.vao) + "px";
     while (camadaFolhas.children.length > folhas) camadaFolhas.lastChild.remove();
