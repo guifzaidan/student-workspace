@@ -6083,6 +6083,128 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     porCursorEm(todas[i]);
   });
 
+  /* ── A tabela não se mistura com o texto em volta ─────────────────────
+     Deixado por conta do navegador, o Backspace no começo da linha logo abaixo
+     da tabela puxa essa linha para dentro da caixa dela, e um Enter ali depois
+     racha a caixa em duas, com o texto numa moldura própria. Com o Delete no
+     fim da linha de cima é a mesma coisa, e dentro da célula o Backspace no
+     começo ou o Delete no fim juntam a célula com o que estiver fora.
+
+     Como no Docs: encostado na tabela, o Backspace leva o cursor para a última
+     célula, e a linha só some se estiver vazia. O Delete encostado nela, e as
+     duas teclas nas pontas de uma célula, não fazem nada. */
+  function caixaDaTabela(el) {
+    while (el && el.nodeType === 1) {
+      if (el.tagName === "TABLE" || el.classList.contains("tabela-envolto")) return el;
+      el = el.lastElementChild;
+    }
+    return null;
+  }
+  function caixaDaTabelaNoInicio(el) {
+    while (el && el.nodeType === 1) {
+      if (el.tagName === "TABLE" || el.classList.contains("tabela-envolto")) return el;
+      el = el.firstElementChild;
+    }
+    return null;
+  }
+
+  /* O bloco em que o cursor está, subido até o ponto em que ele tem um vizinho
+     do lado pedido, e esse vizinho. No texto colado a linha costuma estar no
+     fundo de alguns embrulhos, e o vizinho de verdade é o do embrulho. */
+  function blocoEVizinho(no, paraTras) {
+    var el = no.nodeType === 3 ? no.parentElement : no;
+    while (el && el !== arquivoCorpo && /^(inline|contents)/.test(getComputedStyle(el).display)) el = el.parentElement;
+    while (el && el !== arquivoCorpo && el.parentElement !== arquivoCorpo && !(paraTras ? el.previousElementSibling : el.nextElementSibling)) {
+      el = el.parentElement;
+    }
+    if (!el || !arquivoCorpo.contains(el) || el === arquivoCorpo) return null;
+    return { bloco: el, vizinho: paraTras ? el.previousElementSibling : el.nextElementSibling };
+  }
+
+  /* Se não há texto nem imagem entre o cursor e a ponta do bloco. */
+  function naPonta(bloco, sel, paraTras) {
+    var r = document.createRange();
+    r.selectNodeContents(bloco);
+    if (paraTras) r.setEnd(sel.anchorNode, sel.anchorOffset);
+    else r.setStart(sel.anchorNode, sel.anchorOffset);
+    if (r.toString() !== "") return false;
+    var pedaco = r.cloneContents();
+    return !pedaco.querySelector || !pedaco.querySelector("img, table, hr");
+  }
+
+  function vazio(bloco) {
+    return bloco.textContent.replace(/​/g, "").trim() === "" && !bloco.querySelector("img, table, hr");
+  }
+
+  arquivoCorpo.addEventListener("keydown", function (e) {
+    var paraTras = e.key === "Backspace";
+    if ((!paraTras && e.key !== "Delete") || e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
+    var sel = window.getSelection();
+    if (!sel || !sel.rangeCount || !sel.isCollapsed || !arquivoCorpo.contains(sel.anchorNode)) return;
+
+    var cel = celulaDoCursor();
+    if (cel) {
+      if (naPonta(cel, sel, paraTras)) e.preventDefault();
+      return;
+    }
+    /* O primeiro Backspace num item de lista tira a marcação, e quem cuida
+       disso é o tratamento da lista. */
+    if (paraTras && itemDeLista(sel.anchorNode)) return;
+
+    var par = blocoEVizinho(sel.anchorNode, paraTras);
+    if (!par || !par.vizinho) return;
+    var caixa = paraTras ? caixaDaTabela(par.vizinho) : caixaDaTabelaNoInicio(par.vizinho);
+    if (!caixa || !naPonta(par.bloco, sel, paraTras)) return;
+    e.preventDefault();
+    if (!paraTras) return;
+    var celulas = caixa.querySelectorAll("th, td");
+    var ultima = celulas[celulas.length - 1];
+    if (vazio(par.bloco)) { par.bloco.remove(); salvarTexto(); }
+    if (ultima) porCursorEm(ultima, true);
+  });
+
+  /* A rede de baixo: o que já entrou na caixa da tabela (colado, arrastado, ou
+     misturado antes desta trava existir) sai para logo depois dela, e a caixa
+     rachada sem tabela nenhuma se desfaz. O cursor fica no mesmo nó, que só
+     muda de lugar. */
+  function desmisturarTabelas() {
+    var mexeu = false;
+    Array.prototype.forEach.call(arquivoCorpo.querySelectorAll(".tabela-envolto"), function (caixa) {
+      var tabela = null;
+      Array.prototype.forEach.call(caixa.children, function (f) { if (!tabela && f.tagName === "TABLE") tabela = f; });
+      var soltos = Array.prototype.filter.call(caixa.childNodes, function (n) {
+        return n !== tabela && !(n.nodeType === 3 && !/\S/.test(n.nodeValue));
+      });
+      if (!soltos.length) return;
+      var sel = window.getSelection();
+      var guarda = sel && sel.rangeCount && caixa.contains(sel.anchorNode) ? [sel.anchorNode, sel.anchorOffset] : null;
+      if (!tabela) {
+        while (caixa.firstChild) caixa.parentNode.insertBefore(caixa.firstChild, caixa);
+        caixa.remove();
+      } else {
+        var depois = caixa.nextSibling;
+        soltos.forEach(function (n) {
+          /* Texto solto vira linha própria, para não colar no bloco seguinte. */
+          if (n.nodeType !== 1 || /^(inline|contents)/.test(getComputedStyle(n).display)) {
+            var linha = document.createElement("p");
+            caixa.parentNode.insertBefore(linha, depois);
+            linha.appendChild(n);
+          } else {
+            caixa.parentNode.insertBefore(n, depois);
+          }
+        });
+      }
+      if (guarda && guarda[0].isConnected) {
+        try { sel.collapse(guarda[0], guarda[1]); } catch (err) { /* o nó mudou de tamanho */ }
+      }
+      mexeu = true;
+    });
+    return mexeu;
+  }
+  arquivoCorpo.addEventListener("input", function () {
+    if (desmisturarTabelas()) salvarTexto();
+  });
+
   /* ── Largura das colunas ─────────────────────────────────────────────
      A tabela ocupa sempre a largura entre as margens; o que se ajusta é a
      divisão dela. Arrastar o fio entre duas colunas passa largura de uma para
@@ -8913,6 +9035,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     $("beAlinharIco").setAttribute("d", ALINHAMENTOS[0].ico);
     /* Tabelas medidas em pixels antes de as colunas virarem porcentagem. */
     Array.prototype.forEach.call(arquivoCorpo.querySelectorAll("table.tabela-texto.medida"), normalizarMedida);
+    desmisturarTabelas();
     aplicarMargem();
   }
 
@@ -9004,18 +9127,19 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   var ABRE_SEMPRE_LISTA = /^(UL|OL)$/, EMBRULHO = /^(DIV|SECTION|ARTICLE|BLOCKQUOTE|ASIDE|MAIN|HEADER|FOOTER|NAV)$/;
   var GRUPO_TABELA = /^(THEAD|TBODY|TFOOT)$/, EM_BLOCO = /^(block|list-item|table|flow-root|flex|grid)$/;
 
-  function soBlocos(el) {
-    for (var n = el.firstChild; n; n = n.nextSibling) {
-      if (n.nodeType === 3 && /\S/.test(n.nodeValue)) return false;
-      if (n.nodeType === 1 && !EM_BLOCO.test(getComputedStyle(n).display)) return false;
-    }
-    return true;
-  }
+  /* Só vale abrir o que tem bloco dentro. Um trecho solto entre os blocos (um
+     grifo, uma palavra fora de parágrafo) fica onde está: ele não tem margem
+     para ser empurrado, e segurar o embrulho inteiro por causa dele deixava
+     meia folha em branco. */
+  function emBloco(el) { return EM_BLOCO.test(getComputedStyle(el).display); }
+  function temBloco(el) { return Array.prototype.some.call(el.children, emBloco); }
 
+  /* Moldura é o que se vê: borda ou fundo. O respiro de lado não conta — o
+     texto colado do Gemini vem num embrulho com 20px de cada lado. */
   function semMoldura(el) {
     var s = getComputedStyle(el);
-    return !parseFloat(s.borderTopWidth) && !parseFloat(s.borderLeftWidth) && !parseFloat(s.paddingTop) &&
-      !parseFloat(s.paddingLeft) && s.backgroundImage === "none" && /^(transparent|rgba\(0, 0, 0, 0\))$/.test(s.backgroundColor);
+    return !parseFloat(s.borderTopWidth) && !parseFloat(s.borderLeftWidth) &&
+      s.backgroundImage === "none" && /^(transparent|rgba\(0, 0, 0, 0\))$/.test(s.backgroundColor);
   }
 
   function abrir(el) {
@@ -9024,7 +9148,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     if (GRUPO_TABELA.test(el.tagName)) return true;
     var util = A4.altura - 2 * A4.margem;
     if (el.tagName === "TABLE") return el.offsetHeight > util;
-    if (!EMBRULHO.test(el.tagName) || !soBlocos(el)) return false;
+    if (!EMBRULHO.test(el.tagName) || !temBloco(el)) return false;
     return el.offsetHeight > util || semMoldura(el);
   }
 
@@ -9032,7 +9156,9 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     var u = [];
     function juntar(el, sel) {
       if (!abrir(el)) { u.push({ el: el, sel: sel }); return; }
+      var embrulho = EMBRULHO.test(el.tagName);
       Array.prototype.forEach.call(el.children, function (f, j) {
+        if (embrulho && !emBloco(f)) return;
         juntar(f, sel + " > :nth-child(" + (j + 1) + ")");
       });
     }
