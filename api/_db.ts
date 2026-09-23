@@ -143,6 +143,8 @@ const SCHEMA = [
  */
 const COLUNAS: [string, string, string][] = [
   ['sinapse_arquivos', 'notas', `TEXT NOT NULL DEFAULT ''`],
+  // Margem da folha em centímetros; 2,54 é a do Docs e do Word.
+  ['sinapse_arquivos', 'margem', `REAL NOT NULL DEFAULT 2.54`],
 ];
 
 async function garantirColunas(cx: ReturnType<typeof db>): Promise<void> {

@@ -828,6 +828,14 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
   transition: border-color var(--transition), color var(--transition), background var(--transition);
 }
 .admin-toolbar-btn:hover { border-color: var(--gray2); color: var(--black); background: var(--bg); }
+/* O botão que apaga só fica vermelho quando o ponteiro chega: em repouso ele é
+   igual aos vizinhos, para não gritar no cabeçalho de todo arquivo. */
+.admin-toolbar-btn.perigo:hover,
+.pagina-cristal .admin-toolbar-btn.perigo:hover:not(:disabled) {
+  color: var(--red);
+  background: var(--red-soft);
+  border-color: color-mix(in srgb, var(--red) 35%, var(--gray3));
+}
 
 /* ─── Botões ─────────────────────────────────────────────────────────── */
 .btn {
@@ -897,14 +905,14 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
    texto em `ch`, então a diferença entre os dois depende da fonte e nunca dá
    exatamente zero. Encostado à esquerda, esse resto se acumulava todo num lado
    e lia como buraco; dividido, lê como margem. */
-.arquivo-corpo { font-size: 15px; line-height: 1.7; max-width: min(100%, 92ch); margin-inline: auto; }
+.arquivo-corpo { font-size: 15px; line-height: 1.5; max-width: min(100%, 92ch); margin-inline: auto; }
 .arquivo-corpo h1 { font-size: 27px; line-height: 1.2; font-weight: 800; letter-spacing: -.02em; margin: 0 0 14px; text-wrap: balance; scroll-margin-top: 20px; }
 .arquivo-corpo h2 { font-size: 19.5px; line-height: 1.3; font-weight: 800; letter-spacing: -.015em; margin: 38px 0 10px; text-wrap: balance; scroll-margin-top: 20px; }
 .arquivo-corpo h3 { font-size: 15px; line-height: 1.4; font-weight: 700; margin: 26px 0 8px; color: var(--gray); scroll-margin-top: 20px; }
-.arquivo-corpo p { margin: 0 0 15px; }
-.arquivo-corpo ul { margin: 0 0 16px; list-style: none; display: flex; flex-direction: column; gap: 9px; }
+.arquivo-corpo p { margin: 0 0 8px; }
+.arquivo-corpo ul { margin: 0 0 10px; list-style: none; display: flex; flex-direction: column; gap: 4px; }
 .arquivo-corpo li { position: relative; padding-left: 22px; }
-.arquivo-corpo li::before { content: ''; position: absolute; left: 5px; top: .72em; width: 5px; height: 5px; border-radius: 50%; background: var(--gray2); }
+.arquivo-corpo li::before { content: ''; position: absolute; left: 5px; top: .6em; width: 5px; height: 5px; border-radius: 50%; background: var(--gray2); }
 .arquivo-corpo strong { font-weight: 700; }
 /* O link. O acento da casa é claro demais para virar cor de texto sobre a
    folha, então o que entra é ele puxado para o preto: fica com a mesma família
@@ -953,6 +961,42 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
   border-color: var(--yb);
   box-shadow: var(--shadow-card);
 }
+/* Excluir a imagem. O botão aparece sobre ela no hover, e o contorno marca a
+   imagem sobre a qual a confirmação está perguntando. Os dois vivem fora do
+   texto, senão iriam para o banco junto. */
+.figura-moldura {
+  position: fixed;
+  border: 2px solid var(--yellow-forte);
+  border-radius: var(--radius-md);
+  box-shadow: 0 0 0 4px var(--yd);
+  pointer-events: none;
+  z-index: 250;
+}
+.figura-excluir {
+  position: fixed;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--gray3);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--gray);
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  z-index: 251;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+.figura-excluir:hover,
+.figura-excluir:focus-visible {
+  outline: none;
+  color: var(--red);
+  border-color: color-mix(in srgb, var(--red) 40%, var(--gray3));
+  background: color-mix(in srgb, var(--red) 8%, var(--white));
+}
+.figura-moldura[hidden], .figura-excluir[hidden], .guia-coluna[hidden] { display: none; }
 /* Enquanto a imagem sobe, o lugar dela já existe: sem isto o texto dá um salto
    quando ela chega, e quem colou não sabe se alguma coisa aconteceu. */
 .arquivo-corpo .figura-subindo {
@@ -969,11 +1013,11 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
 }
 .arquivo-corpo:focus { outline: none; }
 .arquivo-corpo ol {
-  margin: 0 0 16px;
+  margin: 0 0 10px;
   padding-left: 26px;
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 4px;
 }
 .arquivo-corpo ol li::before { content: none; }
 .arquivo-corpo ol li { padding-left: 0; list-style: decimal; }
@@ -1054,8 +1098,11 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
 
 /* A tabela do texto. A da listagem tem cabeçalho em caixa alta e linha inteira
    clicável; aqui dentro nada disso vale, porque não se navega a partir dela. */
+/* O vão de baixo é maior que o dos outros blocos porque é nele que aparece o
+   "+" de linha nova: com os 16px de sempre a faixa passava por cima do bloco
+   seguinte. */
 .arquivo-corpo .tabela-envolto {
-  margin: 0 0 16px;
+  margin: 0 0 28px;
   overflow-x: auto;
   border: 1px solid var(--gray3);
   border-radius: var(--radius-md);
@@ -1083,6 +1130,89 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
 }
 .arquivo-corpo table.tabela-texto td:focus,
 .arquivo-corpo table.tabela-texto th:focus { outline: none; background: var(--gray4); }
+/* Tabela com largura escolhida à mão: cada coluna tem a medida que ganhou no
+   arrasto, e o piso de 90px sairia por cima dela. A palavra comprida quebra em
+   vez de empurrar a coluna de volta. */
+.arquivo-corpo table.tabela-texto.medida th,
+.arquivo-corpo table.tabela-texto.medida td { min-width: 0; overflow-wrap: anywhere; }
+/* Perto do fio entre duas colunas o ponteiro vira o de puxar: é o aviso de que
+   ali se arrasta, e não se escreve. */
+.arquivo-corpo.na-borda-coluna,
+.arquivo-corpo.na-borda-coluna * { cursor: col-resize; }
+body.puxando-coluna { user-select: none; cursor: col-resize; }
+body.puxando-coluna * { cursor: col-resize !important; }
+/* O fio aceso mostra qual borda vai andar antes do clique, e acompanha o
+   arrasto. Vive fora do texto para não entrar no que se grava. */
+.guia-coluna {
+  position: fixed;
+  width: 2px;
+  margin-left: -1px;
+  background: var(--yellow-forte);
+  border-radius: 2px;
+  pointer-events: none;
+  z-index: 250;
+}
+
+/* A barra da tabela. Aparece com o cursor dentro de uma célula, presa ao canto
+   de cima da tabela: mexer na grade não pode exigir saber atalho. */
+.mesa-barra {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  background: var(--white);
+  border: 1px solid var(--gray3);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  z-index: 250;
+  animation: fadeIn .12s ease both;
+}
+.mesa-barra[hidden] { display: none; }
+/* Os balões de "+": uma faixa embaixo da tabela e outra à direita. Quietos
+   até o ponteiro chegar neles, para não brigar com o texto da tabela. */
+.mesa-mais {
+  position: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px dashed var(--gray3);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--gray2);
+  cursor: pointer;
+  z-index: 249;
+  animation: fadeIn .12s ease both;
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+.mesa-mais.linha { height: 18px; }
+.mesa-mais.coluna { width: 20px; }
+.mesa-mais:hover {
+  border-style: solid;
+  border-color: var(--yb);
+  background: var(--yd);
+  color: var(--black);
+}
+.mesa-mais[hidden] { display: none; }
+
+.mesa-barra-fio { width: 1px; height: 18px; background: var(--gray3); margin: 0 3px; }
+.mesa-barra button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--gray);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+.mesa-barra button:hover { background: var(--gray4); color: var(--black); }
+.mesa-barra button.perigo:hover { background: color-mix(in srgb, var(--red) 12%, transparent); color: var(--red); }
+.mesa-barra button:disabled { opacity: .35; cursor: default; background: none; color: var(--gray); }
 /* A dica do bloco em branco. Some sozinha na primeira tecla, porque `:empty`
    deixa de valer, e não é texto de verdade: não entra na contagem nem é
    selecionável. */
@@ -1092,6 +1222,279 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
   pointer-events: none;
 }
 .arquivo-corpo em { font-style: italic; }
+
+/* ─── Barra de formatação ──────────────────────────────────────────────
+   Presa no alto da rolagem do texto: formatar é coisa que se faz no meio de
+   uma página comprida, e voltar ao topo para achar o negrito não faz sentido.
+
+   Quando não cabe, ela quebra em linhas por grupo, e não rola de lado: com o
+   índice e o trilho abertos a coluna tem uns 570px, e a rolagem escondia
+   metade dos botões sem nenhum sinal de que eles existiam. */
+.barra-edicao {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  row-gap: 4px;
+  min-height: 42px;
+  padding: 5px 0;
+  background: var(--white);
+  border: 1.5px solid var(--gray3);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+/* O divisor é o fundo do grupo, na borda esquerda, puxado 1px para fora. O
+   grupo que abre uma linha tem o divisor fora da barra, e o `overflow` dela o
+   corta: divisor no começo de linha não divide nada. */
+.be-grupo {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  margin-left: -1px;
+  padding: 0 7px;
+  background: linear-gradient(var(--gray3), var(--gray3)) left center / 1px 20px no-repeat;
+  flex-grow: 1;
+  justify-content: space-between;
+}
+.be-grupo > * { flex-shrink: 0; }
+/* Os grupos crescem para a linha cheia não deixar um vão à direita. A última
+   linha é a exceção: este fim invisível cresce mil vezes mais que eles e fica
+   com quase toda a sobra dela, então o que quebrou para baixo continua junto,
+   encostado à esquerda, em vez de se espalhar pela largura inteira. */
+.barra-edicao::after { content: ""; flex-grow: 1000; }
+/* Grupo de um item só não tem entre o que distribuir: a caixa estica, com a
+   seta indo para a ponta, e o tamanho fica no meio. */
+.be-grupo > .be-caixa:only-child { flex-grow: 1; justify-content: space-between; }
+.be-grupo > .be-tamanho:only-child { margin-inline: auto; }
+.be-btn {
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--gray);
+  transition: background var(--transition), color var(--transition);
+}
+.be-btn:hover, .be-btn:focus-visible { outline: none; background: var(--gray4); color: var(--black); }
+.be-btn[aria-pressed="true"], .be-btn[aria-expanded="true"] { background: var(--yd); color: var(--black); }
+.be-caixa {
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 6px 0 8px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--gray);
+  transition: background var(--transition), color var(--transition);
+}
+.be-caixa:hover, .be-caixa:focus-visible { outline: none; background: var(--gray4); color: var(--black); }
+.be-caixa[aria-expanded="true"] { background: var(--gray4); color: var(--black); }
+.be-caixa span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
+.be-zoom span { width: 38px; }
+.be-estilo span { width: 84px; }
+.be-fonte span { width: 96px; }
+/* A busca dos menus cresce ao ganhar o foco: parada ela só anuncia que
+   existe, e é digitando que ela precisa de espaço. */
+.be-menus {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: 104px;
+  height: 30px;
+  margin-right: 4px;
+  padding: 0 10px;
+  border-radius: var(--radius-pill);
+  background: var(--gray4);
+  color: var(--gray2);
+  cursor: text;
+  transition: width var(--transition-spring), box-shadow var(--transition);
+}
+.be-menus:focus-within { width: 190px; box-shadow: 0 0 0 2px var(--yb); color: var(--gray); }
+.be-menus input {
+  width: 100%;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: none;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--black);
+}
+.be-menus input::placeholder { color: var(--gray); }
+.be-tamanho { display: inline-flex; align-items: center; gap: 2px; }
+.be-tamanho .be-btn { width: 24px; }
+.be-tamanho input {
+  width: 38px;
+  height: 26px;
+  border: 1.5px solid var(--gray3);
+  border-radius: 6px;
+  background: var(--white);
+  text-align: center;
+  font-size: 12.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.be-tamanho input:focus { outline: none; border-color: var(--yellow); }
+/* O "A" da cor do texto leva embaixo a última cor escolhida, como no Docs:
+   clicar de novo na mesma cor é o gesto mais comum. */
+.be-cor { flex-direction: column; gap: 1px; }
+.be-cor-barra { width: 16px; height: 3.5px; border-radius: 2px; background: #D93025; }
+.be-com-seta { width: 38px; gap: 1px; }
+.be-dividido { display: inline-flex; }
+.be-dividido .be-btn:first-child { width: 28px; border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+.be-dividido .be-seta { width: 14px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+
+/* O menu das caixas com seta. A lista é a mesma peça dos outros menus da casa;
+   aqui ela só ganha altura, porque a lista de comandos da busca é comprida. */
+.barra-menu { max-height: min(420px, 70vh); min-width: 190px; }
+.barra-menu .filter-dropdown-option { align-items: center; }
+.be-opcao-marca { width: 14px; flex-shrink: 0; color: var(--yellow-forte); opacity: 0; }
+.filter-dropdown-option.active .be-opcao-marca { opacity: 1; }
+.be-opcao-atalho { margin-left: auto; padding-left: 14px; font-size: 11px; font-weight: 600; color: var(--gray2); }
+.be-opcao-texto { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.be-menu-titulo {
+  padding: 8px 10px 4px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--gray2);
+}
+.be-paleta { display: grid; grid-template-columns: repeat(5, 22px); gap: 8px; padding: 6px 10px 10px; }
+.be-amostra {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid color-mix(in srgb, var(--black) 10%, transparent);
+  transition: transform var(--transition-spring), box-shadow var(--transition-spring);
+}
+.be-amostra:hover, .be-amostra:focus-visible { outline: none; transform: scale(1.16); box-shadow: 0 0 0 3px var(--gray4); }
+/* A grade de escolher o tamanho da tabela. */
+.be-tabela-grade { display: grid; grid-template-columns: repeat(8, 18px); gap: 3px; padding: 8px 8px 4px; }
+.be-tabela-casa {
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid var(--gray3);
+  border-radius: 4px;
+  background: var(--white);
+  transition: background var(--transition), border-color var(--transition);
+}
+.be-tabela-casa.acesa { background: var(--yd); border-color: var(--yellow-forte); }
+.be-tabela-legenda { padding: 2px 8px 6px; font-size: 12px; font-weight: 700; color: var(--gray); text-align: center; font-variant-numeric: tabular-nums; }
+.barra-menu:has(.be-tabela-grade) { min-width: 0; }
+/* A margem à mão, no pé do menu de margens. */
+.be-margem-livre {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 4px;
+  padding: 8px 10px 6px;
+  border-top: 1px solid var(--gray3);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--gray);
+}
+.be-margem-livre span:first-child { flex: 1; }
+.be-margem-livre input {
+  width: 52px;
+  height: 26px;
+  border: 1.5px solid var(--gray3);
+  border-radius: 6px;
+  background: var(--white);
+  text-align: center;
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.be-margem-livre input:focus { outline: none; border-color: var(--yellow); }
+.be-amostra.active { box-shadow: 0 0 0 2px var(--white), 0 0 0 3.5px var(--gray2); }
+
+/* As folhas A4. A folha do texto perde a moldura de card e passa a ter a
+   largura do papel; quem desenha o papel são as páginas da camada de trás,
+   uma por folha, com o vão entre elas. As margens de 2,54 cm são o respiro do
+   próprio texto. As medidas repetem as do JS, que é quem empurra os blocos. */
+.folha.folha-a4 {
+  width: 794px;
+  max-width: none;
+  flex-shrink: 0;
+  margin: 0 auto;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+.folha-a4 .arquivo-corpo { position: relative; z-index: 1; max-width: none; padding: var(--margem-folha, 96px); }
+.folhas-a4 { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.folhas-a4[hidden] { display: none; }
+.folha-a4-pagina {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1123px;
+  background: var(--white);
+  border: 1px solid var(--gray3);
+  border-radius: 4px;
+  box-shadow: var(--shadow-card);
+}
+.folha-a4-pagina span {
+  position: absolute;
+  right: var(--margem-folha, 96px);
+  bottom: 40px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gray2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* O pincel ligado: o cursor diz que o próximo trecho escolhido recebe a
+   formatação copiada. */
+.arquivo-corpo.pincel-ativo { cursor: copy; }
+
+/* Listas: variações de marcador, de numeração, e a lista de verificação. */
+.arquivo-corpo li > ul, .arquivo-corpo li > ol { margin: 4px 0 0; }
+.arquivo-corpo li > ul:not([data-marcador]) > li::before,
+.arquivo-corpo ul[data-marcador="circulo"] > li::before {
+  background: transparent;
+  border: 1.5px solid var(--gray2);
+  width: 6px;
+  height: 6px;
+}
+.arquivo-corpo ul[data-marcador="quadrado"] > li::before { border-radius: 1px; background: var(--gray2); border: none; width: 5px; height: 5px; }
+.arquivo-corpo ol[data-numero="alfa"] > li { list-style-type: lower-alpha; }
+.arquivo-corpo ol[data-numero="alfa-maiusc"] > li { list-style-type: upper-alpha; }
+.arquivo-corpo ol[data-numero="romano"] > li { list-style-type: lower-roman; }
+.arquivo-corpo ol[data-numero="romano-maiusc"] > li { list-style-type: upper-roman; }
+/* A caixinha é o próprio marcador do item, e o clique nela é medido pela
+   posição, como a seta do bloco recolhível: um <input> dentro do texto
+   editável viraria mais uma coisa para o cursor tropeçar. */
+.arquivo-corpo ul.lista-tarefas > li { padding-left: 28px; }
+.arquivo-corpo ul.lista-tarefas > li::before {
+  left: 1px;
+  top: .22em;
+  width: 16px;
+  height: 16px;
+  border-radius: 5px;
+  background: transparent center / 11px no-repeat;
+  border: 1.5px solid var(--gray2);
+  cursor: pointer;
+  transition: background-color var(--transition), border-color var(--transition);
+}
+.arquivo-corpo ul.lista-tarefas > li[data-feito]::before {
+  background-color: var(--yellow);
+  border-color: var(--yellow-forte);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23121316' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+}
+.arquivo-corpo ul.lista-tarefas:not([data-riscar="nao"]) > li[data-feito] { text-decoration: line-through; color: var(--gray2); }
 .abertura { font-size: 17px; color: var(--gray); line-height: 1.65; }
 .medida { font-weight: 700; font-variant-numeric: tabular-nums; }
 /* O destaque usa o acento da casa, e não uma cor só dele: o fio da esquerda é o
@@ -1432,6 +1835,15 @@ mark.grifo[data-cor="vermelho"] { --gr-cor: var(--gr-vermelho); }
 .ciclo.atual { border-color: var(--yellow); box-shadow: 0 0 0 3px var(--yd); }
 .ciclo-nota { text-align: center; font-size: 12px; font-weight: 500; color: var(--gray2); margin-top: 10px; }
 
+/* Chaves do mesmo grupo ficam empilhadas num bloco só, divididas por um fio:
+   soltas, o respiro entre elas era o mesmo que separa um grupo do outro, e as
+   três liam como três grupos de um item. */
+.pilha-chaves { display: flex; flex-direction: column; }
+.pilha-chaves .linha-switch { border-radius: 0; border-bottom-width: 0; }
+.pilha-chaves .linha-switch:first-child { border-radius: var(--radius-md) var(--radius-md) 0 0; }
+.pilha-chaves .linha-switch:last-child { border-radius: 0 0 var(--radius-md) var(--radius-md); border-bottom-width: 1.5px; }
+.pilha-chaves .linha-switch:only-child { border-radius: var(--radius-md); }
+
 .linha-switch {
   display: flex;
   align-items: center;
@@ -1723,6 +2135,11 @@ textarea.form-input { resize: vertical; min-height: 84px; line-height: 1.55; }
 /* O balão é o alvo do próprio gesto: enquanto ele aparece, arrastar por cima
    dele não pode desfazer a seleção que o trouxe. */
 .sel-pop { user-select: none; -webkit-user-select: none; }
+/* Só os botões e o campo pegam o clique; o resto do balão deixa passar. Ele
+   fica em cima da linha acima do trecho, e o vão entre os botões engolia o
+   clique de quem ia pôr o cursor ali — era preciso clicar de novo. */
+.sel-pop, .mesa-barra { pointer-events: none; }
+.sel-pop button, .sel-pop input, .mesa-barra button { pointer-events: auto; }
 /* Entrada própria, e não a `.surge` genérica: aquela termina em
    `transform: none`, e o `none` levava junto o `translate(-50%, -100%)` que põe
    o balão centrado acima do trecho. Durante os 0,18s ele aparecia ancorado pela
@@ -2679,6 +3096,37 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
 }
 .atividade-fechar:hover { background: var(--gray4); color: var(--red); }
 
+/* Os comandos do ciclo, no próprio balão. Sem eles, pausar o foco durante uma
+   leitura obrigava a ir até a tela do Pomodoro e voltar — e o balão existe
+   justamente para não precisar ir até lá.
+
+   Aparecem sempre, e não no hover: o balão é pequeno, some sozinho e vive num
+   canto da tela; esconder o que ele faz atrás do ponteiro é pedir para a pessoa
+   descobrir por acaso. */
+.atividade-acoes { display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0; }
+.atividade-acao {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--gray2);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition), transform var(--transition-spring);
+}
+.atividade-acao:hover { background: var(--gray4); color: var(--black); }
+.atividade-acao:active { transform: scale(.92); }
+.atividade-acao:focus-visible { outline: none; background: var(--gray4); color: var(--black); box-shadow: 0 0 0 2px var(--gray2); }
+/* O play é a ação que faz o ciclo andar: ele é o único que carrega o acento. */
+.atividade-acao.tocar { color: var(--yellow-forte); }
+.atividade-acao.tocar:hover { background: var(--yd); color: var(--yellow-forte); }
+.atividade-balao.rodando .atividade-acao.tocar { color: var(--gray2); }
+.atividade-balao.rodando .atividade-acao.tocar:hover { background: var(--gray4); color: var(--black); }
+
 /* ─── Trilha de volta ────────────────────────────────────────────────── */
 .trilha {
   display: flex;
@@ -2812,16 +3260,20 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
   overflow: hidden;
 }
 /* A contagem é rodapé do cartão, não manchete: fica miúda e sem peso, porque o
-   que se lê no cartão é o nome da pasta. Em negrito e em 14px ela competia com
-   ele de igual para igual. */
-.pasta-numeros { display: flex; gap: 12px; }
-.pasta-num { display: inline-flex; align-items: center; gap: 5px; color: var(--gray2); }
-/* Os dois ícones vêm de origens com medidas diferentes; aqui eles se igualam,
-   senão um contador pareceria maior que o outro. */
-.pasta-num svg { width: 13px; height: 13px; }
+   que se lê no cartão é o nome da pasta ou do deck. Em negrito e grande, ela
+   competia com ele de igual para igual.
+
+   Uma regra para os dois cartões: pasta e deck mostram a mesma coisa no mesmo
+   lugar, e tê-la escrita duas vezes foi justamente o que deixou um contador com
+   11,5px em cinza e o outro com 18px em negrito. */
+.pasta-numeros, .deck-numeros { display: flex; gap: 12px; }
+.conta-selo { display: inline-flex; align-items: center; gap: 5px; color: var(--gray2); }
+/* Os ícones vêm de origens com medidas diferentes; aqui eles se igualam, senão
+   um contador pareceria maior que o outro. */
+.conta-selo svg { width: 13px; height: 13px; }
 /* Número na mesma cor do ícone: os dois são a mesma informação, e o contraste
-   entre eles só disputava atenção com o nome da pasta, que é o que se lê. */
-.pasta-num b { font-size: 11.5px; font-weight: 500; line-height: 1.2; font-variant-numeric: tabular-nums; }
+   entre eles só disputava atenção com o nome, que é o que se lê. */
+.conta-selo b { font-size: 11.5px; font-weight: 500; line-height: 1.2; font-variant-numeric: tabular-nums; }
 
 /* ─── Linha de arquivo dentro de uma pasta ────────────────────────── */
 /* A linha deixou de ser um botão, para poder ter botões dentro — é o mesmo
@@ -2861,10 +3313,12 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
   width: 26px; height: 26px;
   border-radius: var(--radius-sm);
   color: var(--gray2);
-  opacity: 0;
   flex-shrink: 0;
   transition: background var(--transition), color var(--transition), opacity var(--transition);
 }
+/* A lixeira fica sempre à vista, só apagada: escondida até o hover, ninguém
+   descobria que dava para excluir um arquivo daqui. */
+.arquivo-acao { opacity: .55; }
 .arquivo-linha:hover .arquivo-acao,
 .arquivo-linha:focus-within .arquivo-acao { opacity: 1; }
 .arquivo-acao:hover { background: var(--gray4); color: var(--black); }
@@ -3197,7 +3651,10 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
 .filter-check.checked { background: var(--black); border-color: var(--black); color: var(--white); }
 
 /* ─── Tabela ─────────────────────────────────────────────────────────── */
-.admin-table-wrap { background: var(--white); border: 1.5px solid var(--gray3); border-radius: var(--radius-lg); overflow: hidden; }
+/* `flex-shrink: 0` porque a tela é uma coluna flex que rola: com o `overflow`
+   escondido a lista perde a altura mínima, encolhe até caber na janela e corta
+   as últimas linhas — e aí não sobra nada para rolar. */
+.admin-table-wrap { flex-shrink: 0; background: var(--white); border: 1.5px solid var(--gray3); border-radius: var(--radius-lg); overflow: hidden; }
 .admin-table-rolagem { overflow-x: auto; }
 .admin-table { width: 100%; border-collapse: collapse; }
 .admin-table th {
@@ -3585,9 +4042,6 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .deck-acao { transition: none; } }
 .deck-nome { font-size: 15px; font-weight: 800; letter-spacing: -.01em; }
 .deck-sub { font-size: 11.5px; font-weight: 500; color: var(--gray2); margin-top: 2px; }
-.deck-numeros { display: flex; gap: 18px; }
-.deck-num b { display: block; font-size: 18px; font-weight: 800; line-height: 1.2; font-variant-numeric: tabular-nums; }
-.deck-num span { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--gray2); }
 .medidor { display: flex; flex-direction: column; gap: 5px; }
 .medidor-topo { display: flex; align-items: baseline; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--gray2); text-transform: uppercase; letter-spacing: .07em; }
 .medidor-topo b { font-size: 12.5px; color: var(--black); text-transform: none; letter-spacing: 0; font-variant-numeric: tabular-nums; }
@@ -4190,9 +4644,149 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
             <button type="button" class="admin-toolbar-btn" title="Histórico de versões" aria-label="Histórico de versões">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"/><path d="M3 4v4h4M12 7v5l3 2"/></svg>
             </button>
+            <!-- Excluir de dentro do arquivo: é onde se está quando se decide
+                 que ele não serve mais, e voltar à lista só para isso é um
+                 caminho que ninguém adivinha. -->
+            <button type="button" class="admin-toolbar-btn perigo" id="btnExcluirArquivo" title="Excluir arquivo" aria-label="Excluir arquivo">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M10 11v6M14 11v6"/></svg>
+            </button>
             <button type="button" class="admin-toolbar-btn" id="btnTrilho" title="Ferramentas de estudo" aria-label="Alternar ferramentas de estudo">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M15 4v16"/></svg>
             </button>
+          </div>
+        </div>
+
+        <!-- A barra de formatação, na ordem da do Google Docs: quem vem de lá
+             acha cada coisa onde a mão já espera. Os botões não tomam o foco
+             (o JS barra o `mousedown`), senão o clique desfaria a seleção sobre
+             a qual eles agem. As listas das caixas com seta abrem num menu só,
+             solto na página, porque a barra corta o que passa da borda dela
+             (é assim que o divisor do começo de linha some). -->
+        <div class="barra-edicao" id="barraEdicao" role="toolbar" aria-label="Formatação do texto">
+          <div class="be-grupo">
+          <label class="be-menus" title="Buscar um comando (Alt+/)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input type="text" id="beMenus" placeholder="Menus" aria-label="Buscar nos menus" autocomplete="off" spellcheck="false">
+          </label>
+          <button type="button" class="be-btn" data-cmd="desfazer" title="Desfazer (Ctrl+Z)" aria-label="Desfazer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>
+          </button>
+          <button type="button" class="be-btn" data-cmd="refazer" title="Refazer (Ctrl+Y)" aria-label="Refazer">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m15 14 5-5-5-5"/><path d="M20 9H9.5a5.5 5.5 0 0 0 0 11H13"/></svg>
+          </button>
+          <button type="button" class="be-btn" data-cmd="imprimir" title="Imprimir (Ctrl+P)" aria-label="Imprimir">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V3h12v6"/><rect x="6" y="14" width="12" height="7" rx="1"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/></svg>
+          </button>
+          <button type="button" class="be-btn" data-cmd="ortografia" title="Verificação ortográfica" aria-label="Verificação ortográfica" aria-pressed="true">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 15 4-10 4 10"/><path d="M4.6 11h4.8"/><path d="m13 17 3 3 6-7"/></svg>
+          </button>
+          <button type="button" class="be-btn" data-cmd="pincel" title="Pintar formatação (clique duplo mantém ligado)" aria-label="Pintar formatação" aria-pressed="false">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="14" height="6" rx="1.5"/><path d="M17 6h2a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2h-7v3"/><rect x="10" y="14" width="4" height="7" rx="1"/></svg>
+          </button>
+          <button type="button" class="be-btn" data-menu="margem" title="Margens do documento" aria-label="Margens do documento" aria-haspopup="menu" aria-expanded="false">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 2v20M16 2v20" stroke-dasharray="2 2.2"/></svg>
+          </button>
+          <button type="button" class="be-caixa be-zoom" data-menu="zoom" title="Zoom" aria-haspopup="menu" aria-expanded="false">
+            <span id="beZoom">100%</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          </div>
+          <div class="be-grupo">
+          <button type="button" class="be-caixa be-estilo" data-menu="estilo" title="Estilos" aria-haspopup="menu" aria-expanded="false">
+            <span id="beEstilo">Texto normal</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          </div>
+          <div class="be-grupo">
+          <button type="button" class="be-caixa be-fonte" data-menu="fonte" title="Fonte" aria-haspopup="menu" aria-expanded="false">
+            <span id="beFonte">Manrope</span>
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          </div>
+          <div class="be-grupo">
+          <div class="be-tamanho">
+            <button type="button" class="be-btn" data-cmd="menor" title="Diminuir tamanho da fonte (Ctrl+Shift+,)" aria-label="Diminuir tamanho da fonte">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14"/></svg>
+            </button>
+            <input type="text" id="beTamanho" value="11" inputmode="decimal" aria-label="Tamanho da fonte" title="Tamanho da fonte" autocomplete="off">
+            <button type="button" class="be-btn" data-cmd="maior" title="Aumentar tamanho da fonte (Ctrl+Shift+.)" aria-label="Aumentar tamanho da fonte">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            </button>
+          </div>
+          </div>
+          <div class="be-grupo">
+          <button type="button" class="be-btn" data-cmd="negrito" title="Negrito (Ctrl+B)" aria-label="Negrito" aria-pressed="false">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h6a4 4 0 0 1 0 8H7z"/><path d="M7 12h7a4 4 0 0 1 0 8H7z"/></svg>
+          </button>
+          <button type="button" class="be-btn" data-cmd="italico" title="Itálico (Ctrl+I)" aria-label="Itálico" aria-pressed="false">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 4h-9M14 20H5M15 4 9 20"/></svg>
+          </button>
+          <button type="button" class="be-btn" data-cmd="sublinhado" title="Sublinhado (Ctrl+U)" aria-label="Sublinhado" aria-pressed="false">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4v6a6 6 0 0 0 12 0V4"/><path d="M4 21h16"/></svg>
+          </button>
+          <button type="button" class="be-btn be-cor" data-menu="cor" title="Cor do texto" aria-label="Cor do texto" aria-haspopup="menu" aria-expanded="false">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 17 6-13 6 13"/><path d="M8.5 12h7"/></svg>
+            <span class="be-cor-barra" id="beCorBarra"></span>
+          </button>
+          <button type="button" class="be-btn" data-menu="grifo" title="Cor de destaque" aria-label="Cor de destaque" aria-haspopup="menu" aria-expanded="false">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg>
+          </button>
+          </div>
+          <div class="be-grupo">
+          <button type="button" class="be-btn" data-cmd="link" title="Inserir link (Ctrl+K)" aria-label="Inserir link">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
+          </button>
+          <button type="button" class="be-btn" data-cmd="comentar" title="Adicionar nota ao trecho" aria-label="Adicionar nota ao trecho">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/><path d="M12 7v6M9 10h6"/></svg>
+          </button>
+          <button type="button" class="be-btn" data-menu="tabela" title="Inserir tabela" aria-label="Inserir tabela" aria-haspopup="menu" aria-expanded="false">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>
+          </button>
+          <button type="button" class="be-btn" data-cmd="imagem" title="Inserir imagem" aria-label="Inserir imagem">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg>
+          </button>
+          </div>
+          <div class="be-grupo">
+          <button type="button" class="be-btn be-com-seta" data-menu="alinhar" title="Alinhar" aria-label="Alinhar" aria-haspopup="menu" aria-expanded="false">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path id="beAlinharIco" d="M3 6h18M3 12h12M3 18h16"/></svg>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <button type="button" class="be-btn" data-menu="espaco" title="Espaçamento entre linhas" aria-label="Espaçamento entre linhas" aria-haspopup="menu" aria-expanded="false">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 6h10M11 12h10M11 18h10"/><path d="m3 8 3-3 3 3M3 16l3 3 3-3M6 5v14"/></svg>
+          </button>
+          <div class="be-dividido">
+            <button type="button" class="be-btn" data-cmd="tarefas" title="Lista de verificação (Ctrl+Shift+9)" aria-label="Lista de verificação" aria-pressed="false">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m3 7 2 2 4-4"/><path d="m3 17 2 2 4-4"/><path d="M13 7h8M13 17h8"/></svg>
+            </button>
+            <button type="button" class="be-btn be-seta" data-menu="tarefas" title="Opções da lista de verificação" aria-label="Opções da lista de verificação" aria-haspopup="menu" aria-expanded="false">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+          </div>
+          <div class="be-dividido">
+            <button type="button" class="be-btn" data-cmd="marcadores" title="Lista com marcadores (Ctrl+Shift+8)" aria-label="Lista com marcadores" aria-pressed="false">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><circle cx="4" cy="6" r="1.2" fill="currentColor"/><circle cx="4" cy="12" r="1.2" fill="currentColor"/><circle cx="4" cy="18" r="1.2" fill="currentColor"/></svg>
+            </button>
+            <button type="button" class="be-btn be-seta" data-menu="marcadores" title="Estilo dos marcadores" aria-label="Estilo dos marcadores" aria-haspopup="menu" aria-expanded="false">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+          </div>
+          <div class="be-dividido">
+            <button type="button" class="be-btn" data-cmd="numeros" title="Lista numerada (Ctrl+Shift+7)" aria-label="Lista numerada" aria-pressed="false">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6h11M10 12h11M10 18h11"/><path d="M4 4h1v5M4 9h2"/><path d="M6 20H4c0-1 2-2 2-3s-1-1.5-2-1"/></svg>
+            </button>
+            <button type="button" class="be-btn be-seta" data-menu="numeros" title="Estilo da numeração" aria-label="Estilo da numeração" aria-haspopup="menu" aria-expanded="false">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </button>
+          </div>
+          <button type="button" class="be-btn" data-cmd="desrecuar" title="Diminuir recuo (Ctrl+[)" aria-label="Diminuir recuo">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18M11 10h10M11 14h10M3 19h18"/><path d="m7 9-3 3 3 3"/></svg>
+          </button>
+          <button type="button" class="be-btn" data-cmd="recuar" title="Aumentar recuo (Ctrl+])" aria-label="Aumentar recuo">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18M11 10h10M11 14h10M3 19h18"/><path d="m4 9 3 3-3 3"/></svg>
+          </button>
+          <button type="button" class="be-btn" data-cmd="limpar" title="Limpar formatação (Ctrl+\)" aria-label="Limpar formatação">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V4h16v3"/><path d="M5 20h6"/><path d="M13 4 8 20"/><path d="m15 15 5 5M20 15l-5 5"/></svg>
+          </button>
           </div>
         </div>
 
@@ -4505,9 +5099,11 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
              </div>
 
              <div class="modos" role="group" aria-label="Duração do ciclo">
-               <button type="button" class="modo" data-min="25" aria-pressed="true">Foco 25</button>
-               <button type="button" class="modo" data-min="5" aria-pressed="false">Pausa 5</button>
-               <button type="button" class="modo" data-min="15" aria-pressed="false">Longa 15</button>
+               <!-- `data-tipo` diz o que o botão começa. Deduzir isso do número
+                    quebrava assim que foco e pausa pudessem ter a mesma duração. -->
+               <button type="button" class="modo" data-min="25" data-tipo="foco" aria-pressed="true">Foco 25</button>
+               <button type="button" class="modo" data-min="5" data-tipo="pausa" aria-pressed="false">Pausa 5</button>
+               <button type="button" class="modo" data-min="15" data-tipo="pausa" aria-pressed="false">Longa 15</button>
              </div>
 
              <div class="controles">
@@ -4744,6 +5340,9 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 <div class="atividade-cais" id="atividadeCais"></div>
 
 <div class="filter-dropdown-list lista-blocos" id="menuBlocos" role="listbox" aria-label="Tipo de bloco" hidden></div>
+<!-- O menu das caixas com seta da barra de formatação: um só, refeito a cada
+     abertura com as opções de quem o chamou. -->
+<div class="filter-dropdown-list barra-menu" id="barraMenu" role="menu" hidden></div>
 
 <div class="toast-cais" id="toastCais"></div>
 
@@ -4770,11 +5369,36 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     return Promise.resolve().then(function () { return pedir(corpo); });
   }
 
+  /* Escritas que morreriam com a página: as grandes demais para `keepalive`. */
+  var escritasFrageis = 0;
+  var TETO_KEEPALIVE = 60000;
+
   function pedir(corpo) {
     var opcoes = corpo
       ? { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(corpo) }
       : undefined;
-    return fetch(API, opcoes).then(function (r) {
+    /* Sem `keepalive`, recarregar a página corta a escrita que estava a
+       caminho, e o que parecia salvo não chegava ao banco. Com ele o navegador
+       termina o envio mesmo depois de a página sumir — mas só até uns 64 KB
+       somando tudo o que está no ar, e um texto longo passa disso. Esses vão
+       sem ele, e são contados para o aviso de saída. */
+    var fragil = false;
+    if (opcoes) {
+      if (opcoes.body.length < TETO_KEEPALIVE) opcoes.keepalive = true;
+      else { fragil = true; escritasFrageis++; }
+    }
+    var ida = fetch(API, opcoes).catch(function (e) {
+      /* A cota do `keepalive` é dividida entre as escritas no ar; estourada,
+         o navegador recusa na hora. Vai de novo pelo caminho comum. */
+      if (!opcoes || !opcoes.keepalive) throw e;
+      opcoes.keepalive = false;
+      return fetch(API, opcoes);
+    });
+    if (fragil) {
+      ida = ida.then(function (r) { escritasFrageis--; return r; },
+        function (e) { escritasFrageis--; throw e; });
+    }
+    return ida.then(function (r) {
       return r.json().catch(function () { throw new Error("Resposta inesperada do servidor (" + r.status + ")"); });
     }).then(function (d) {
       if (d && d.erro) throw new Error(d.erro);
@@ -4904,8 +5528,10 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
         id: pasta.id, nome: pasta.nome, desc: pasta.desc, tags: pasta.tags || [],
         situacao: "hoje", ultimo: "",
         lista: (pasta.lista || []).map(function (a) {
+          /* Campo por campo: o que não estiver aqui não chega à tela, e foi
+             assim que a margem gravada sumia a cada refresh. */
           return { id: a.id, nome: a.nome, desc: a.desc, tags: a.tags || [],
-                   corpo: a.corpo, comentarios: a.notas || [] };
+                   corpo: a.corpo, comentarios: a.notas || [], margem: a.margem };
         })
       });
     });
@@ -5272,7 +5898,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       t.textContent = texto;
       b.appendChild(t);
       b.addEventListener("click", function () {
-        editor.scrollTo({ top: h.offsetTop - 16, behavior: "smooth" });
+        editor.scrollTo({ top: naRolagem(h) - 16, behavior: "smooth" });
       });
       toc.appendChild(b);
       itensToc.push(b);
@@ -5281,10 +5907,17 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     marcarSecao();
   }
 
+  /* A altura do título dentro da rolagem do editor, medida na tela: o
+     `offsetTop` conta a partir da folha e ignora o zoom dela, e com as páginas
+     A4 encolhidas para caber o índice levava para o lugar errado. */
+  function naRolagem(el) {
+    return el.getBoundingClientRect().top - editor.getBoundingClientRect().top + editor.scrollTop;
+  }
+
   function marcarSecao() {
     var topo = editor.scrollTop + 140, atual = 0;
     for (var i = 0; i < itensToc.length; i++) {
-      if (cabecalhos[i] && cabecalhos[i].offsetTop <= topo) atual = i;
+      if (cabecalhos[i] && naRolagem(cabecalhos[i]) <= topo) atual = i;
     }
     for (var j = 0; j < itensToc.length; j++) itensToc[j].classList.toggle("ativo", j === atual);
   }
@@ -5398,15 +6031,22 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     salvarTexto();
   }
 
-  function montarTabela() {
+  /* Três colunas e duas linhas abaixo do cabeçalho quando ninguém diz a
+     medida, que é o caso da barra "/". A barra de formatação escolhe na grade. */
+  function montarTabela(colunas, linhas) {
+    colunas = colunas || 3;
+    linhas = linhas == null ? 2 : linhas;
     var envolto = document.createElement("div");
     envolto.className = "tabela-envolto";
-    var linhas = "";
-    for (var l = 0; l < 2; l++) linhas += "<tr><td><br></td><td><br></td><td><br></td></tr>";
+    var cabeca = "", corpo = "", linha = "";
+    for (var c = 0; c < colunas; c++) {
+      cabeca += '<th data-dica="Coluna"><br></th>';
+      linha += "<td><br></td>";
+    }
+    for (var l = 0; l < linhas; l++) corpo += "<tr>" + linha + "</tr>";
     envolto.innerHTML =
-      '<table class="tabela-texto"><thead><tr>' +
-      '<th data-dica="Coluna"><br></th><th data-dica="Coluna"><br></th><th data-dica="Coluna"><br></th>' +
-      '</tr></thead><tbody>' + linhas + '</tbody></table>';
+      '<table class="tabela-texto"><thead><tr>' + cabeca +
+      '</tr></thead><tbody>' + corpo + '</tbody></table>';
     return envolto;
   }
 
@@ -5443,6 +6083,405 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     porCursorEm(todas[i]);
   });
 
+  /* ── Largura das colunas ─────────────────────────────────────────────
+     A tabela ocupa sempre a largura entre as margens; o que se ajusta é a
+     divisão dela. Arrastar o fio entre duas colunas passa largura de uma para
+     a vizinha, e as bordas de fora não se arrastam. Duplo clique no fio
+     devolve a medida automática. As larguras ficam escritas em porcentagem em
+     cada <th>, então viajam com o texto e acompanham qualquer margem ou tela. */
+  var BORDA_COLUNA = 6, COLUNA_MINIMA = 48;
+  var guiaColuna = document.createElement("div");
+  guiaColuna.className = "guia-coluna";
+  guiaColuna.hidden = true;
+  document.body.appendChild(guiaColuna);
+  var puxando = null;
+
+  /* A borda sob o ponteiro, como tabela + índice da coluna que ela fecha. A
+     borda esquerda de uma célula é a direita da vizinha. */
+  function bordaSob(e) {
+    var cel = e.target && e.target.closest && e.target.closest("table.tabela-texto th, table.tabela-texto td");
+    if (!cel || !arquivoCorpo.contains(cel)) return null;
+    var r = cel.getBoundingClientRect();
+    var tabela = cel.closest("table");
+    var ultima = cel.parentElement.cells.length - 1;
+    if (e.clientX >= r.right - BORDA_COLUNA && cel.cellIndex < ultima) return { tabela: tabela, i: cel.cellIndex };
+    if (e.clientX <= r.left + BORDA_COLUNA && cel.cellIndex > 0) return { tabela: tabela, i: cel.cellIndex - 1 };
+    return null;
+  }
+
+  function mostrarGuia(tabela, i) {
+    var cab = tabela.rows[0].cells[i];
+    if (!cab) return;
+    var rc = cab.getBoundingClientRect(), rt = tabela.getBoundingClientRect();
+    /* Tabela larga rola dentro do envolto: o fio não passa da borda visível. */
+    var rv = tabela.parentElement.getBoundingClientRect();
+    var x = Math.min(Math.max(rc.right, rv.left), rv.right);
+    guiaColuna.style.left = x + "px";
+    guiaColuna.style.top = rt.top + "px";
+    guiaColuna.style.height = rt.height + "px";
+    guiaColuna.hidden = false;
+  }
+
+  /* Antes do primeiro arrasto a tabela se mede sozinha. Na hora de puxar, a
+     medida de cada coluna é congelada como está, senão mexer numa faria as
+     outras pularem para compensar. */
+  function porcento(v) { return (Math.round(v * 100) / 100) + "%"; }
+
+  function congelarColunas(tabela) {
+    var cabs = tabela.rows[0].cells;
+    var larguras = Array.prototype.map.call(cabs, function (c) { return c.getBoundingClientRect().width; });
+    var total = larguras.reduce(function (a, b) { return a + b; }, 0) || 1;
+    Array.prototype.forEach.call(cabs, function (c, k) { c.style.width = porcento(larguras[k] / total * 100); });
+    tabela.classList.add("medida");
+    tabela.style.tableLayout = "fixed";
+    tabela.style.removeProperty("width");
+  }
+
+  /* Refaz a divisão para somar 100%. Serve às tabelas medidas em pixels antes
+     desta regra (a proporção entre as colunas se mantém) e a quem ganhou ou
+     perdeu uma coluna. Coluna sem medida entra com a média das outras. */
+  function normalizarMedida(tabela) {
+    if (!tabela.classList.contains("medida") || !tabela.rows[0]) return;
+    var cabs = tabela.rows[0].cells;
+    var vals = Array.prototype.map.call(cabs, function (c) { return parseFloat(c.style.width) || 0; });
+    var conhecidos = vals.filter(function (v) { return v > 0; });
+    var media = conhecidos.length ? conhecidos.reduce(function (a, b) { return a + b; }, 0) / conhecidos.length : 1;
+    vals = vals.map(function (v) { return v > 0 ? v : media; });
+    var total = vals.reduce(function (a, b) { return a + b; }, 0);
+    Array.prototype.forEach.call(cabs, function (c, k) { c.style.width = porcento(vals[k] / total * 100); });
+    tabela.style.removeProperty("width");
+    tabela.style.tableLayout = "fixed";
+  }
+
+  function soltarColunas(tabela) {
+    Array.prototype.forEach.call(tabela.rows[0].cells, function (c) { c.style.removeProperty("width"); if (!c.getAttribute("style")) c.removeAttribute("style"); });
+    tabela.classList.remove("medida");
+    tabela.removeAttribute("style");
+  }
+
+  arquivoCorpo.addEventListener("pointermove", function (e) {
+    if (puxando || e.pointerType === "touch") return;
+    var b = bordaSob(e);
+    arquivoCorpo.classList.toggle("na-borda-coluna", !!b);
+    if (b) mostrarGuia(b.tabela, b.i); else guiaColuna.hidden = true;
+  });
+  arquivoCorpo.addEventListener("pointerleave", function () {
+    if (puxando) return;
+    arquivoCorpo.classList.remove("na-borda-coluna");
+    guiaColuna.hidden = true;
+  });
+
+  arquivoCorpo.addEventListener("pointerdown", function (e) {
+    if (e.button !== 0) return;
+    var b = bordaSob(e);
+    if (!b) return;
+    /* Sem isto o clique põe o cursor na célula e o arrasto vira seleção. */
+    e.preventDefault();
+    if (!b.tabela.classList.contains("medida")) congelarColunas(b.tabela);
+    else normalizarMedida(b.tabela);
+    var cabs = b.tabela.rows[0].cells;
+    puxando = {
+      tabela: b.tabela, i: b.i, esq: cabs[b.i], dir: cabs[b.i + 1], x: e.clientX,
+      pe: parseFloat(cabs[b.i].style.width), pd: parseFloat(cabs[b.i + 1].style.width),
+      largura: b.tabela.getBoundingClientRect().width
+    };
+    document.body.classList.add("puxando-coluna");
+    mostrarGuia(b.tabela, b.i);
+  });
+
+  document.addEventListener("pointermove", function (e) {
+    if (!puxando) return;
+    /* O que uma coluna ganha a vizinha perde: a soma não muda, e a tabela
+       fica do tamanho das margens. Nenhuma das duas desce do piso. */
+    var p = puxando, minimo = COLUNA_MINIMA / p.largura * 100;
+    var d = (e.clientX - p.x) / p.largura * 100;
+    d = Math.max(minimo - p.pe, Math.min(p.pd - minimo, d));
+    p.esq.style.width = porcento(p.pe + d);
+    p.dir.style.width = porcento(p.pd - d);
+    mostrarGuia(puxando.tabela, puxando.i);
+    posicionarMesaBarra();
+    pintarMais();
+  });
+
+  function fimDoPuxao() {
+    if (!puxando) return;
+    puxando = null;
+    document.body.classList.remove("puxando-coluna");
+    pintarMais();
+    arquivoCorpo.classList.remove("na-borda-coluna");
+    guiaColuna.hidden = true;
+    salvarTexto();
+  }
+  document.addEventListener("pointerup", fimDoPuxao);
+  document.addEventListener("pointercancel", fimDoPuxao);
+
+  arquivoCorpo.addEventListener("dblclick", function (e) {
+    var b = bordaSob(e);
+    if (!b || !b.tabela.classList.contains("medida")) return;
+    e.preventDefault();
+    soltarColunas(b.tabela);
+    guiaColuna.hidden = true;
+    salvarTexto();
+  });
+
+  /* ── A barra da tabela ───────────────────────────────────────────────
+     Linha e coluna novas, e os três jeitos de apagar. Os botões agem sobre a
+     célula onde está o cursor; o `mousedown` barrado é o que mantém o cursor
+     lá enquanto se clica. */
+  var ICO_MESA = {
+    linha: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="10" rx="2"/><path d="M3 9h18M12 17v4M10 19h4"/></svg>',
+    coluna: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="10" height="18" rx="2"/><path d="M8 3v18M17 12h4M19 10v4"/></svg>',
+    tiraLinha: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="10" rx="2"/><path d="M3 9h18M10 19h4"/></svg>',
+    tiraColuna: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="10" height="18" rx="2"/><path d="M8 3v18M17 12h4"/></svg>',
+    lixo: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>'
+  };
+  var mesaBarra = document.createElement("div");
+  mesaBarra.className = "mesa-barra";
+  mesaBarra.setAttribute("role", "toolbar");
+  mesaBarra.setAttribute("aria-label", "Tabela");
+  mesaBarra.hidden = true;
+  mesaBarra.innerHTML =
+    '<button type="button" data-mesa="linha" title="Linha abaixo" aria-label="Linha abaixo">' + ICO_MESA.linha + '</button>' +
+    '<button type="button" data-mesa="coluna" title="Coluna à direita" aria-label="Coluna à direita">' + ICO_MESA.coluna + '</button>' +
+    '<span class="mesa-barra-fio" aria-hidden="true"></span>' +
+    '<button type="button" class="perigo" data-mesa="tiraLinha" title="Excluir linha" aria-label="Excluir linha">' + ICO_MESA.tiraLinha + '</button>' +
+    '<button type="button" class="perigo" data-mesa="tiraColuna" title="Excluir coluna" aria-label="Excluir coluna">' + ICO_MESA.tiraColuna + '</button>' +
+    '<button type="button" class="perigo" data-mesa="tabela" title="Excluir tabela" aria-label="Excluir tabela">' + ICO_MESA.lixo + '</button>';
+  document.body.appendChild(mesaBarra);
+  var celulaDaBarra = null;
+
+  function posicionarMesaBarra() {
+    var cel = celulaDaBarra;
+    if (!cel || !cel.isConnected || !arquivoCorpo.offsetParent) { mesaBarra.hidden = true; return; }
+    var envolto = cel.closest(".tabela-envolto") || cel.closest("table");
+    var r = envolto.getBoundingClientRect();
+    if (!r.width) { mesaBarra.hidden = true; return; }
+    mesaBarra.hidden = false;
+    /* Presa ao canto de cima, à direita; sem espaço acima, desce para baixo da
+       tabela em vez de cobrir a primeira linha. */
+    var h = mesaBarra.offsetHeight, w = mesaBarra.offsetWidth;
+    var top = r.top - h - 6;
+    if (top < 8) top = r.bottom + 6;
+    var left = Math.min(r.right, window.innerWidth - 8) - w;
+    mesaBarra.style.top = top + "px";
+    mesaBarra.style.left = Math.max(8, left) + "px";
+    var soCabecalho = cel.tagName === "TH";
+    mesaBarra.querySelector('[data-mesa="tiraLinha"]').disabled = soCabecalho;
+  }
+
+  document.addEventListener("selectionchange", function () {
+    var cel = celulaDoCursor();
+    if (cel && !arquivoCorpo.contains(cel)) cel = null;
+    if (cel === celulaDaBarra) return;
+    celulaDaBarra = cel;
+    posicionarMesaBarra();
+  });
+  document.addEventListener("scroll", function () {
+    if (celulaDaBarra) posicionarMesaBarra();
+  }, true);
+  window.addEventListener("resize", function () {
+    if (celulaDaBarra) posicionarMesaBarra();
+  });
+  mesaBarra.addEventListener("mousedown", function (e) { e.preventDefault(); });
+
+  function celulaVazia(tag) {
+    var c = document.createElement(tag);
+    c.innerHTML = "<br>";
+    if (tag === "th") c.setAttribute("data-dica", "Coluna");
+    return c;
+  }
+
+  /* Linha nova depois de `depoisDe` (ou no fim, sem ela). Do cabeçalho, a
+     linha nova é a primeira do corpo. */
+  function adicionarLinha(tabela, depoisDe) {
+    var nova = document.createElement("tr");
+    for (var c = 0; c < tabela.rows[0].cells.length; c++) nova.appendChild(celulaVazia("td"));
+    var corpo = tabela.tBodies[0];
+    if (!corpo) { corpo = document.createElement("tbody"); tabela.appendChild(corpo); }
+    if (!depoisDe) corpo.appendChild(nova);
+    else if (depoisDe.parentElement.tagName === "THEAD") corpo.insertBefore(nova, corpo.firstChild);
+    else depoisDe.after(nova);
+    return nova;
+  }
+
+  /* Coluna nova depois da de índice `i`. Com medidas à mão, ela entra com a
+     largura média e as outras cedem na proporção do que tinham: a tabela não
+     passa da margem. */
+  function adicionarColuna(tabela, i) {
+    normalizarMedida(tabela);
+    Array.prototype.forEach.call(tabela.rows, function (tr) {
+      var ref = tr.cells[Math.min(i, tr.cells.length - 1)];
+      ref.after(celulaVazia(ref.tagName.toLowerCase()));
+    });
+    normalizarMedida(tabela);
+  }
+
+  /* ── Os balões de "+" ────────────────────────────────────────────────
+     Passar o ponteiro pela tabela mostra uma faixa embaixo (linha nova) e
+     outra à direita (coluna nova). É o caminho de quem não está com o cursor
+     na tabela e só quer que ela cresça. */
+  var ICO_MAIS = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+  var maisLinha = document.createElement("button");
+  maisLinha.type = "button";
+  maisLinha.className = "mesa-mais linha";
+  maisLinha.title = "Adicionar linha";
+  maisLinha.setAttribute("aria-label", "Adicionar linha");
+  maisLinha.innerHTML = ICO_MAIS;
+  maisLinha.hidden = true;
+  var maisColuna = maisLinha.cloneNode(true);
+  maisColuna.className = "mesa-mais coluna";
+  maisColuna.title = "Adicionar coluna";
+  maisColuna.setAttribute("aria-label", "Adicionar coluna");
+  document.body.appendChild(maisLinha);
+  document.body.appendChild(maisColuna);
+  var tabelaSobPonteiro = null, relogioMais = null;
+
+  function pintarMais() {
+    var t = tabelaSobPonteiro;
+    var envolto = t && t.isConnected && arquivoCorpo.offsetParent ? (t.closest(".tabela-envolto") || t) : null;
+    var r = envolto ? envolto.getBoundingClientRect() : null;
+    if (!r || !r.width || puxando) {
+      maisLinha.hidden = true;
+      maisColuna.hidden = true;
+      return;
+    }
+    /* A faixa da coluna acompanha a largura real da tabela, e não a do
+       envolto, quando a tabela é mais estreita que ele. */
+    var rt = t.getBoundingClientRect();
+    var direita = Math.min(r.right, rt.right);
+    maisLinha.hidden = false;
+    maisLinha.style.left = r.left + "px";
+    maisLinha.style.top = (r.bottom + 5) + "px";
+    maisLinha.style.width = (direita - r.left) + "px";
+    maisColuna.hidden = false;
+    maisColuna.style.left = (direita + 4) + "px";
+    maisColuna.style.top = r.top + "px";
+    maisColuna.style.height = r.height + "px";
+  }
+
+  function mostrarMais(tabela) {
+    clearTimeout(relogioMais);
+    if (tabela === tabelaSobPonteiro) return;
+    tabelaSobPonteiro = tabela;
+    pintarMais();
+  }
+  /* Uma folga antes de sumir: entre a tabela e o balão há um vão de 4px, e
+     atravessá-lo não pode apagar o balão que se ia clicar. */
+  function esconderMaisLogo() {
+    clearTimeout(relogioMais);
+    relogioMais = setTimeout(function () {
+      tabelaSobPonteiro = null;
+      pintarMais();
+    }, 180);
+  }
+
+  arquivoCorpo.addEventListener("mouseover", function (e) {
+    var t = e.target.closest && e.target.closest("table.tabela-texto");
+    if (t) mostrarMais(t);
+  });
+  arquivoCorpo.addEventListener("mouseout", function (e) {
+    if (!tabelaSobPonteiro) return;
+    var para = e.relatedTarget;
+    if (para && para.closest && para.closest("table.tabela-texto") === tabelaSobPonteiro) return;
+    esconderMaisLogo();
+  });
+  [maisLinha, maisColuna].forEach(function (b) {
+    b.addEventListener("mouseenter", function () { clearTimeout(relogioMais); });
+    b.addEventListener("mouseleave", function (e) {
+      var para = e.relatedTarget;
+      if (para && para.closest && para.closest("table.tabela-texto") === tabelaSobPonteiro) return;
+      esconderMaisLogo();
+    });
+    b.addEventListener("mousedown", function (e) { e.preventDefault(); });
+  });
+  maisLinha.addEventListener("click", function () {
+    var t = tabelaSobPonteiro;
+    if (!t || !t.isConnected) return;
+    var nova = adicionarLinha(t, null);
+    arquivoCorpo.focus();
+    porCursorEm(nova.cells[0]);
+    pintarMais();
+    salvarTexto();
+  });
+  maisColuna.addEventListener("click", function () {
+    var t = tabelaSobPonteiro;
+    if (!t || !t.isConnected) return;
+    var ultima = t.rows[0].cells.length - 1;
+    adicionarColuna(t, ultima);
+    arquivoCorpo.focus();
+    porCursorEm(t.rows[0].cells[ultima + 1]);
+    pintarMais();
+    posicionarMesaBarra();
+    salvarTexto();
+  });
+  document.addEventListener("scroll", function () {
+    if (tabelaSobPonteiro) pintarMais();
+  }, true);
+
+  mesaBarra.addEventListener("click", function (e) {
+    var botao = e.target.closest("button[data-mesa]");
+    var cel = celulaDaBarra;
+    if (!botao || botao.disabled || !cel || !cel.isConnected) return;
+    var tabela = cel.closest("table");
+    var linha = cel.parentElement;
+    var i = cel.cellIndex;
+    var acao = botao.getAttribute("data-mesa");
+    var destino = null;
+
+    function mexer() {
+      /* Entre a pergunta e o sim, a tabela pode ter saído da tela. */
+      if (!cel.isConnected) return;
+
+      if (acao === "linha") {
+        destino = adicionarLinha(tabela, linha).cells[i];
+      } else if (acao === "coluna") {
+        adicionarColuna(tabela, i);
+        destino = linha.cells[i + 1];
+      } else if (acao === "tiraLinha") {
+        var abaixo = linha.nextElementSibling || linha.previousElementSibling;
+        linha.remove();
+        destino = abaixo ? abaixo.cells[Math.min(i, abaixo.cells.length - 1)] : tabela.rows[0].cells[i];
+      } else if (acao === "tiraColuna") {
+        if (tabela.rows[0].cells.length <= 1) acao = "tabela";
+        else {
+          Array.prototype.forEach.call(tabela.rows, function (tr) { tr.cells[i].remove(); });
+          /* A largura da que saiu se reparte entre as que ficaram. */
+          normalizarMedida(tabela);
+          destino = linha.cells[Math.min(i, linha.cells.length - 1)];
+        }
+      }
+
+      if (acao === "tabela") {
+        var bloco = tabela.closest(".tabela-envolto") || tabela;
+        var vizinho = bloco.nextElementSibling || bloco.previousElementSibling;
+        bloco.remove();
+        if (!vizinho) {
+          vizinho = document.createElement("p");
+          vizinho.innerHTML = "<br>";
+          arquivoCorpo.appendChild(vizinho);
+        }
+        celulaDaBarra = null;
+        mesaBarra.hidden = true;
+        porCursorEm(vizinho);
+        salvarTexto();
+        return;
+      }
+
+      if (destino) porCursorEm(destino);
+      celulaDaBarra = destino || null;
+      posicionarMesaBarra();
+      salvarTexto();
+    }
+
+    if (acao === "linha" || acao === "coluna") { mexer(); return; }
+    var soUmaColuna = tabela.rows[0].cells.length <= 1;
+    confirmarExclusao(acao === "tiraLinha"
+      ? { coisa: "linha", alvo: "esta linha da tabela", onConfirmar: mexer }
+      : acao === "tiraColuna" && !soUmaColuna
+        ? { coisa: "coluna", alvo: "esta coluna da tabela", onConfirmar: mexer }
+        : { coisa: "tabela", alvo: "esta tabela inteira", onConfirmar: mexer });
+  });
+
   /* O nome do arquivo é o primeiro título do texto: quem escreve o título já
      disse como o arquivo se chama, e pedir o mesmo nome duas vezes é o tipo de
      coisa que sai diferente. O cabeçalho e a trilha só repetem o que está no
@@ -5472,20 +6511,57 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
      Vive aqui, e não dentro do `input`, porque mudança feita por código — virar
      um bloco, marcar um trecho, guardar uma nota — não dispara `input`, e essas
      escritas ficavam só na memória até alguém digitar mais alguma coisa. */
-  var relogioGravarArquivo = null;
+  var relogioGravarArquivo = null, arquivoPendente = null;
   function agendarGravarArquivo() {
     if (!arquivoAberto || !arquivoAberto.id) return;
-    var alvo = arquivoAberto;
+    /* Outro arquivo ainda esperando a vez: ele vai agora, senão a espera do
+       novo tomaria o lugar da dele e a mudança se perderia. */
+    if (arquivoPendente && arquivoPendente !== arquivoAberto) gravarArquivoAgora();
+    arquivoPendente = arquivoAberto;
     clearTimeout(relogioGravarArquivo);
-    relogioGravarArquivo = setTimeout(function () {
-      gravar({ acao: "arquivo.salvar", id: alvo.id, nome: alvo.nome,
-               desc: alvo.desc || "", corpo: alvo.corpo,
-               /* As notas vão na mesma escrita do corpo: elas se prendem a
-                  marcas que vivem dentro dele, e gravar em dois tempos abriria
-                  uma janela com uma coisa salva e a outra não. */
-               notas: alvo.comentarios || [] });
-    }, 400);
+    relogioGravarArquivo = setTimeout(gravarArquivoAgora, 400);
   }
+
+  /* A pausa de 400ms junta as teclas numa escrita só, mas quem sai antes
+     dela — refresh, fechar a aba, voltar para a pasta — levava a última
+     mudança junto. Sair antecipa a escrita que estava esperando.
+
+     Devolve se a escrita é grande demais para sobreviver ao fechamento: o
+     envio de verdade só sai no microtask seguinte, e o aviso de saída precisa
+     saber disso antes. */
+  function gravarArquivoAgora() {
+    clearTimeout(relogioGravarArquivo);
+    relogioGravarArquivo = null;
+    var alvo = arquivoPendente;
+    arquivoPendente = null;
+    if (!alvo) return false;
+    gravar({ acao: "arquivo.salvar", id: alvo.id, nome: alvo.nome,
+             desc: alvo.desc || "", corpo: alvo.corpo,
+             /* As notas vão na mesma escrita do corpo: elas se prendem a
+                marcas que vivem dentro dele, e gravar em dois tempos abriria
+                uma janela com uma coisa salva e a outra não. */
+             notas: alvo.comentarios || [],
+             /* A margem é do arquivo, como no Docs: ela vale para quem abrir
+                em qualquer aparelho. */
+             margem: alvo.margem || MARGEM_PADRAO });
+    return comBanco && (alvo.corpo || "").length > TETO_KEEPALIVE - 4000;
+  }
+
+  /* `pagehide` é o último aviso confiável antes de a página sumir, inclusive
+     no celular, onde `beforeunload` nem sempre vem; `visibilitychange`
+     cobre trocar de aba e fechar o app. */
+  window.addEventListener("pagehide", gravarArquivoAgora);
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "hidden") gravarArquivoAgora();
+  });
+  /* Uma escrita grande demais para sobreviver ao fechamento (ver `pedir`)
+     ainda a caminho: o navegador pergunta antes de sair, em vez de perder. */
+  window.addEventListener("beforeunload", function (e) {
+    var grande = gravarArquivoAgora();
+    if (!escritasFrageis && !grande) return;
+    e.preventDefault();
+    e.returnValue = "";
+  });
 
   function salvarTexto() {
     if (!arquivoAberto) return;
@@ -5904,7 +6980,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     /* Clique fora do texto não traz o balão de volta no `mouseup`. O navegador
        nem sempre desfaz a seleção ao clicar num botão de outra parte da tela, e
        era por aí que ele reaparecia sozinho depois de já dispensado. */
-    gestoNoTexto = editor.contains(e.target);
+    gestoNoTexto = editor.contains(e.target) && !$("barraEdicao").contains(e.target);
     esconderPop();
   });
   document.addEventListener("mouseup", function () {
@@ -6211,6 +7287,179 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     }), todas.indexOf(img));
   });
 
+  /* ── Excluir imagem ──────────────────────────────────────────────────
+     Dois caminhos: o botão que aparece sobre a imagem no hover, e o Backspace
+     (ou Delete) encostado nela. Os dois passam pela confirmação, como toda
+     exclusão: uma imagem some inteira de uma vez, e um toque a mais no fim de
+     um parágrafo não pode levá-la sem aviso. */
+  var molduraFigura = document.createElement("div");
+  molduraFigura.className = "figura-moldura";
+  molduraFigura.hidden = true;
+  var botaoExcluirFigura = document.createElement("button");
+  botaoExcluirFigura.type = "button";
+  botaoExcluirFigura.className = "figura-excluir";
+  botaoExcluirFigura.hidden = true;
+  botaoExcluirFigura.innerHTML =
+    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+  document.body.appendChild(molduraFigura);
+  document.body.appendChild(botaoExcluirFigura);
+  var figuraSobPonteiro = null, figuraMarcada = null;
+
+  function imagemDa(fig) { return fig && fig.isConnected ? fig.querySelector("img") : null; }
+
+  function pintarFerramentasDaFigura() {
+    var fig = figuraMarcada || figuraSobPonteiro;
+    var img = imagemDa(fig);
+    var r = img && arquivoCorpo.offsetParent ? img.getBoundingClientRect() : null;
+    if (!r || !r.width) {
+      molduraFigura.hidden = true;
+      botaoExcluirFigura.hidden = true;
+      return;
+    }
+    botaoExcluirFigura.hidden = false;
+    botaoExcluirFigura.title = "Excluir imagem";
+    botaoExcluirFigura.setAttribute("aria-label", "Excluir imagem");
+    var w = botaoExcluirFigura.offsetWidth;
+    botaoExcluirFigura.style.top = (r.top + 8) + "px";
+    botaoExcluirFigura.style.left = (r.right - w - 8) + "px";
+    molduraFigura.hidden = !figuraMarcada;
+    if (figuraMarcada) {
+      molduraFigura.style.top = (r.top - 2) + "px";
+      molduraFigura.style.left = (r.left - 2) + "px";
+      molduraFigura.style.width = (r.width + 4) + "px";
+      molduraFigura.style.height = (r.height + 4) + "px";
+    }
+  }
+
+  function marcarFigura(fig) {
+    figuraMarcada = fig;
+    pintarFerramentasDaFigura();
+  }
+
+  function excluirFigura(fig) {
+    if (!fig || !fig.isConnected) return;
+    var depois = fig.nextElementSibling, antes = fig.previousElementSibling;
+    /* O parágrafo vazio que nasceu junto com a imagem vai embora com ela: ele
+       só existia para haver onde escrever depois dela. */
+    if (depois && depois.tagName === "P" && !depois.textContent.trim() && !depois.querySelector("img") && antes) {
+      depois.remove();
+      depois = null;
+    }
+    fig.remove();
+    figuraMarcada = null;
+    figuraSobPonteiro = null;
+    pintarFerramentasDaFigura();
+    var alvo = depois || antes;
+    if (!alvo) {
+      alvo = document.createElement("p");
+      alvo.innerHTML = "<br>";
+      arquivoCorpo.appendChild(alvo);
+    }
+    arquivoCorpo.focus();
+    porCursorEm(alvo, alvo === antes);
+    salvarTexto();
+  }
+
+  arquivoCorpo.addEventListener("mouseover", function (e) {
+    var fig = e.target.closest && e.target.closest(".figura");
+    if (fig && !imagemDa(fig)) fig = null;
+    if (fig === figuraSobPonteiro) return;
+    figuraSobPonteiro = fig;
+    pintarFerramentasDaFigura();
+  });
+  /* Sair da imagem esconde o botão, menos quando é para ir até ele. */
+  arquivoCorpo.addEventListener("mouseout", function (e) {
+    if (!figuraSobPonteiro) return;
+    var para = e.relatedTarget;
+    if (para && (para === botaoExcluirFigura || botaoExcluirFigura.contains(para))) return;
+    if (para && figuraSobPonteiro.contains(para)) return;
+    figuraSobPonteiro = null;
+    pintarFerramentasDaFigura();
+  });
+  botaoExcluirFigura.addEventListener("mouseleave", function (e) {
+    var para = e.relatedTarget;
+    if (para && figuraSobPonteiro && figuraSobPonteiro.contains(para)) return;
+    figuraSobPonteiro = null;
+    pintarFerramentasDaFigura();
+  });
+  botaoExcluirFigura.addEventListener("mousedown", function (e) { e.preventDefault(); });
+  botaoExcluirFigura.addEventListener("click", function () {
+    pedirExcluirFigura(figuraMarcada || figuraSobPonteiro);
+  });
+
+  /* A imagem fica marcada enquanto a pergunta está na tela: é o jeito de
+     mostrar qual delas vai sumir. No "não", a marca sai. */
+  function pedirExcluirFigura(fig) {
+    if (!fig || !fig.isConnected) return;
+    marcarFigura(fig);
+    var img = imagemDa(fig);
+    var nome = img && img.getAttribute("alt");
+    confirmarExclusao({
+      coisa: "imagem",
+      nome: nome && nome !== "Imagem do arquivo" ? nome : "",
+      alvo: "esta imagem",
+      onConfirmar: function () { excluirFigura(fig); },
+      onCancelar: function () { figuraMarcada = null; pintarFerramentasDaFigura(); }
+    });
+  }
+
+  /* A figura encostada no cursor, do lado para onde a tecla apaga. */
+  function figuraEncostada(paraTras) {
+    var sel = window.getSelection();
+    if (!sel || !sel.rangeCount || !sel.isCollapsed) return null;
+    var bloco = blocoDoCursor();
+    if (!bloco) return null;
+    var vizinho = paraTras ? bloco.previousElementSibling : bloco.nextElementSibling;
+    if (!vizinho || !vizinho.classList.contains("figura") || !imagemDa(vizinho)) return null;
+    var r = document.createRange();
+    r.selectNodeContents(bloco);
+    if (paraTras) r.setEnd(sel.anchorNode, sel.anchorOffset);
+    else r.setStart(sel.anchorNode, sel.anchorOffset);
+    return r.toString() === "" ? vizinho : null;
+  }
+
+  arquivoCorpo.addEventListener("keydown", function (e) {
+    if (e.defaultPrevented) return;
+    var apaga = e.key === "Backspace" || e.key === "Delete";
+    if (figuraMarcada) {
+      figuraMarcada = null;
+      pintarFerramentasDaFigura();
+    }
+    if (!apaga || e.ctrlKey || e.metaKey || e.altKey) return;
+    var fig = figuraEncostada(e.key === "Backspace");
+    if (!fig) return;
+    e.preventDefault();
+    pedirExcluirFigura(fig);
+  });
+  arquivoCorpo.addEventListener("mousedown", function () {
+    if (!figuraMarcada) return;
+    figuraMarcada = null;
+    pintarFerramentasDaFigura();
+  });
+
+  /* Tudo o que flutua sobre o texto some quando ele sai da tela ou perde o
+     foco; rolar só reposiciona. */
+  function esconderFerramentasDoTexto() {
+    figuraMarcada = null;
+    figuraSobPonteiro = null;
+    pintarFerramentasDaFigura();
+    celulaDaBarra = null;
+    mesaBarra.hidden = true;
+    guiaColuna.hidden = true;
+    tabelaSobPonteiro = null;
+    pintarMais();
+  }
+  arquivoCorpo.addEventListener("focusout", function () {
+    celulaDaBarra = null;
+    mesaBarra.hidden = true;
+    /* A pergunta de exclusão tira o foco daqui, e a marca tem de continuar
+       mostrando qual imagem ela é. */
+    if (figuraMarcada && dialogoOverlay.hidden) { figuraMarcada = null; pintarFerramentasDaFigura(); }
+  });
+  document.addEventListener("scroll", function () {
+    if (figuraMarcada || figuraSobPonteiro) pintarFerramentasDaFigura();
+  }, true);
+
   /* ═══ Links do texto ═════════════════════════════════════════════════ */
   /* Endereço sem esquema não é endereço para o navegador: "sinapse.app" vira
      caminho relativo e leva a uma página que não existe. O que não for http,
@@ -6497,6 +7746,1396 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     salvarTexto();
   });
 
+  /* ═══ Barra de formatação ════════════════════════════════════════════
+     A barra do Google Docs, na mesma ordem. O que o navegador já sabe fazer
+     bem — negrito, itálico, fonte, cor — passa pelo `execCommand`, que também
+     entra no desfazer. Listas, recuo, estilo de parágrafo e tamanho são feitos
+     à mão: o comando nativo de lista, por exemplo, deixa um <ul> dentro de um
+     <p>, e o de tamanho só conhece sete degraus. Link, nota, imagem e destaque
+     não são reimplementados: a barra chama os mesmos caminhos do balão. */
+  var barraEdicao = $("barraEdicao"), barraMenu = $("barraMenu");
+  var campoMenus = $("beMenus"), campoTamanho = $("beTamanho");
+  /* Os blocos em que um formato de parágrafo pode morar. */
+  var FOLHAS = "p,h1,h2,h3,li,summary,td,th";
+  var CHAVE_ZOOM = "editor.zoom", CHAVE_ORTOGRAFIA = "editor.ortografia";
+
+  var ESTILOS = [
+    { tag: "p", nome: "Texto normal", atalho: "Ctrl+Alt+0", previa: "" },
+    { tag: "h1", nome: "Título 1", atalho: "Ctrl+Alt+1", previa: "font-size:18px;font-weight:800" },
+    { tag: "h2", nome: "Título 2", atalho: "Ctrl+Alt+2", previa: "font-size:15px;font-weight:800" },
+    { tag: "h3", nome: "Título 3", atalho: "Ctrl+Alt+3", previa: "font-weight:700;color:var(--gray)" }
+  ];
+  var FONTES = ["Manrope", "Arial", "Verdana", "Trebuchet MS", "Georgia", "Times New Roman", "Garamond", "Courier New", "Comic Sans MS"];
+  var TAMANHOS = [6, 7, 8, 9, 10, 11, 12, 14, 18, 24, 30, 36, 48, 60, 72, 96];
+  var ZOOMS = [50, 75, 90, 100, 125, 150, 200];
+  /* Tons do meio: a folha escurece no tema escuro, e uma cor escolhida no
+     claro não pode sumir quando o tema vira. Por isso não há preto nem branco
+     aqui — o "Automático" é quem devolve a cor do tema. */
+  var CORES_TEXTO = [
+    ["Vermelho", "#D93025"], ["Laranja", "#E8710A"], ["Mostarda", "#B58300"], ["Verde", "#1E8A3E"], ["Verde-água", "#12867A"],
+    ["Azul", "#1A73E8"], ["Roxo", "#7B3FD1"], ["Rosa", "#D0417E"], ["Marrom", "#8D5B3A"], ["Cinza", "#80868B"]
+  ];
+  var CORES_GRIFO = [["Rosa", "rosa"], ["Verde", "verde"], ["Azul", "azul"], ["Amarelo", "amarelo"],
+    ["Laranja", "laranja"], ["Roxo", "roxo"], ["Vermelho", "vermelho"]];
+  var ALINHAMENTOS = [
+    { v: "left", nome: "Alinhar à esquerda", atalho: "Ctrl+Shift+L", ico: "M3 6h18M3 12h12M3 18h16" },
+    { v: "center", nome: "Centralizar", atalho: "Ctrl+Shift+E", ico: "M3 6h18M6 12h12M4 18h16" },
+    { v: "right", nome: "Alinhar à direita", atalho: "Ctrl+Shift+R", ico: "M3 6h18M9 12h12M5 18h16" },
+    { v: "justify", nome: "Justificar", atalho: "Ctrl+Shift+J", ico: "M3 6h18M3 12h18M3 18h18" }
+  ];
+  /* O vazio é o do próprio texto (1,5): é ele que devolve a linha ao normal. */
+  var ESPACOS = [["Simples", "1.2"], ["1,15", "1.35"], ["Padrão", ""], ["1,5", "1.8"], ["Duplo", "2.3"]];
+  var MARCADORES = [["●  Disco", "disco"], ["○  Círculo", "circulo"], ["■  Quadrado", "quadrado"]];
+  var NUMERACOES = [["1.  2.  3.", "decimal"], ["a.  b.  c.", "alfa"], ["A.  B.  C.", "alfa-maiusc"],
+    ["i.  ii.  iii.", "romano"], ["I.  II.  III.", "romano-maiusc"]];
+  var TIPO_LISTA = { marcadores: "UL", numeros: "OL", tarefas: "UL" };
+  var PASSO_RECUO = 36, TETO_RECUO = 36 * 8;
+
+  var zoomAtual = 100, corEscolhida = CORES_TEXTO[0][1], tamanhoPendente = null, pincel = null;
+
+  /* ── A seleção ──────────────────────────────────────────────────────
+     Clicar na busca dos menus ou no campo de tamanho tira o foco do texto, e a
+     seleção vai junto. Esta é a última que esteve dentro dele: é sobre ela que
+     o comando age quando volta. */
+  var alcanceSalvo = null;
+
+  function selecaoNoTexto() {
+    var sel = window.getSelection();
+    return !!(sel && sel.rangeCount && arquivoCorpo.contains(sel.getRangeAt(0).commonAncestorContainer));
+  }
+
+  /* Devolve o foco e a seleção ao texto. O foco conta: o `execCommand` age no
+     que está focado, e com o foco num campo da barra ele formataria o campo. */
+  function voltarAoTexto() {
+    var sel = window.getSelection();
+    var dentro = selecaoNoTexto();
+    if (dentro && document.activeElement === arquivoCorpo) return true;
+    var guardado = dentro ? sel.getRangeAt(0).cloneRange() : alcanceSalvo;
+    arquivoCorpo.focus({ preventScroll: true });
+    if (guardado && arquivoCorpo.contains(guardado.commonAncestorContainer)) {
+      sel.removeAllRanges();
+      sel.addRange(guardado);
+    } else if (arquivoCorpo.lastElementChild) {
+      porCursorEm(arquivoCorpo.lastElementChild, true);
+    } else {
+      return false;
+    }
+    return true;
+  }
+
+  /* As pontas da seleção, para repor depois de mexer na árvore. Trocar a
+     etiqueta de um bloco move os nós de texto para o bloco novo, e o navegador
+     recolhe a seleção quando o pai dela sai da página. Os nós de texto são os
+     mesmos; o que muda é o elemento, e `trocas` diz qual virou qual. */
+  function guardarPontas() {
+    if (!selecaoNoTexto()) return null;
+    var r = window.getSelection().getRangeAt(0);
+    return { sc: r.startContainer, so: r.startOffset, ec: r.endContainer, eo: r.endOffset };
+  }
+  function reporPontas(p, trocas) {
+    if (!p) return;
+    function ponto(no, off) {
+      if (trocas && trocas.get(no)) no = trocas.get(no);
+      if (!arquivoCorpo.contains(no)) return null;
+      return [no, Math.min(off, no.nodeType === 3 ? no.data.length : no.childNodes.length)];
+    }
+    var a = ponto(p.sc, p.so), b = ponto(p.ec, p.eo) || a;
+    if (!a) return;
+    var r = document.createRange();
+    try { r.setStart(a[0], a[1]); r.setEnd(b[0], b[1]); } catch (e) { return; }
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(r);
+  }
+
+  function trocarEtiqueta(el, tag, trocas) {
+    var novo = document.createElement(tag);
+    Array.prototype.forEach.call(el.attributes, function (a) { novo.setAttribute(a.name, a.value); });
+    while (el.firstChild) novo.appendChild(el.firstChild);
+    el.replaceWith(novo);
+    if (trocas) trocas.set(el, novo);
+    return novo;
+  }
+
+  function semEstiloVazio(el) {
+    if (el.getAttribute("style") === "") el.removeAttribute("style");
+  }
+
+  /* Os blocos que a seleção pega de verdade. Selecionar uma linha inteira com
+     três cliques termina no começo da linha de baixo, e ela não pode entrar só
+     por encostar. Bloco que contém outro da lista sai: o item de fora de uma
+     lista aninhada não é o que se quis formatar. */
+  function folhasDaSelecao() {
+    if (!voltarAoTexto()) return [];
+    var r = window.getSelection().getRangeAt(0);
+    var achadas = Array.prototype.filter.call(arquivoCorpo.querySelectorAll(FOLHAS), function (el) {
+      if (!r.intersectsNode(el)) return false;
+      if (r.collapsed) return true;
+      var dentro = document.createRange();
+      dentro.selectNodeContents(el);
+      if (r.compareBoundaryPoints(Range.START_TO_START, dentro) > 0) dentro.setStart(r.startContainer, r.startOffset);
+      if (r.compareBoundaryPoints(Range.END_TO_END, dentro) < 0) dentro.setEnd(r.endContainer, r.endOffset);
+      return !dentro.collapsed;
+    });
+    return achadas.filter(function (el) {
+      return !achadas.some(function (outro) { return outro !== el && el.contains(outro); });
+    });
+  }
+
+  function depoisDeMexer() {
+    salvarTexto();
+    pintarBarra();
+  }
+
+  function comando(nome, valor, css) {
+    if (!voltarAoTexto()) return;
+    document.execCommand("styleWithCSS", false, !!css);
+    document.execCommand(nome, false, valor == null ? null : valor);
+    depoisDeMexer();
+  }
+
+  function pedirTrecho(oQue) {
+    avisar("info", "Selecione um trecho", oQue);
+  }
+
+  /* ── Desfazer, imprimir, ortografia, zoom ───────────────────────────── */
+  function desfazer(qual) {
+    if (!voltarAoTexto()) return;
+    document.execCommand(qual);
+    depoisDeMexer();
+  }
+
+  /* Imprime só o texto, num quadro à parte com o CSS da página: imprimir a
+     tela inteira levaria o menu, o trilho e a barra, e a folha rola dentro de
+     uma caixa que a impressão cortaria na primeira página. Sai sempre no tema
+     claro, que é o que o papel tem. */
+  function imprimir() {
+    var quadro = document.createElement("iframe");
+    quadro.setAttribute("aria-hidden", "true");
+    quadro.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0";
+    document.body.appendChild(quadro);
+    var estilos = Array.prototype.map.call(document.querySelectorAll('style, link[rel="stylesheet"]'),
+      function (n) { return n.outerHTML; }).join("");
+    var doc = quadro.contentDocument;
+    doc.open();
+    doc.write('<!doctype html><html lang="pt-BR" data-theme="light"><head><meta charset="utf-8"><title></title>' +
+      estilos + '<style>html,body{height:auto!important;overflow:visible!important;background:#fff!important}' +
+      'body{margin:0!important;padding:0!important}.arquivo-corpo{max-width:none!important}' +
+      '.arquivo-corpo .figura img{max-height:none;border:none}@page{size:A4;margin:' + margemCm() + 'cm}</style></head>' +
+      '<body><div class="arquivo-corpo"></div></body></html>');
+    doc.close();
+    doc.title = (arquivoAberto && arquivoAberto.nome) || "Arquivo";
+    doc.querySelector(".arquivo-corpo").innerHTML = arquivoCorpo.innerHTML;
+    var esperas = Array.prototype.map.call(doc.images, function (img) {
+      return img.complete ? null : new Promise(function (ok) { img.onload = img.onerror = ok; });
+    });
+    Promise.all(esperas).then(function () {
+      var janela = quadro.contentWindow;
+      /* O quadro só sai depois que a janela de impressão fecha: tirado antes,
+         a prévia do navegador ficava em branco. */
+      var tirar = function () { if (quadro.isConnected) quadro.remove(); };
+      janela.addEventListener("afterprint", function () { setTimeout(tirar, 0); });
+      setTimeout(tirar, 60000);
+      janela.focus();
+      janela.print();
+    });
+  }
+
+  function ligarOrtografia(sim) {
+    arquivoCorpo.spellcheck = sim;
+    botaoCmd("ortografia").setAttribute("aria-pressed", String(sim));
+    try { localStorage.setItem(CHAVE_ORTOGRAFIA, sim ? "1" : "0"); } catch (e) { /* sem armazenamento */ }
+  }
+
+  /* O zoom é de quem lê, e não do arquivo: vale para todos e não vai ao banco. */
+  function aplicarZoom(z) {
+    zoomAtual = z;
+    $("beZoom").textContent = z + "%";
+    try { localStorage.setItem(CHAVE_ZOOM, String(z)); } catch (e) { /* sem armazenamento */ }
+    /* Com páginas o zoom é da folha inteira, e sem elas é só do texto: quem
+       decide onde ele vai é o layout. */
+    aplicarLayout();
+  }
+
+  /* ── Estilo de parágrafo ────────────────────────────────────────────── */
+  function aplicarEstilo(tag) {
+    var folhas = folhasDaSelecao();
+    var p = guardarPontas(), trocas = new Map();
+    var titulo = arquivoCorpo.firstElementChild, recusa = "";
+    folhas.forEach(function (el) {
+      var atual = el.tagName.toLowerCase();
+      if (atual === tag) return;
+      /* A primeira linha é o nome do arquivo, e não muda de tipo — a mesma
+         regra da barra "/" e do atalho de marcação. */
+      if (el === titulo) { recusa = "titulo"; return; }
+      if (!/^(p|h[123])$/.test(atual)) { recusa = "bloco"; return; }
+      var novo = trocarEtiqueta(el, tag, trocas);
+      if (tag === "p") novo.removeAttribute("id");
+    });
+    if (folhas.length === 1 && recusa === "titulo") {
+      avisar("info", "A primeira linha é o título", "É dela que sai o nome do arquivo, então ela fica como Título 1.");
+    } else if (folhas.length === 1 && recusa === "bloco") {
+      avisar("info", "Esse bloco não muda de estilo", "Itens de lista, células e cabeçalhos recolhíveis ficam como estão.");
+    }
+    reporPontas(p, trocas);
+    depoisDeMexer();
+  }
+
+  /* ── Tamanho da fonte ───────────────────────────────────────────────
+     Em pontos, como no Docs: o corpo de 15px dá os mesmos 11 de lá. O comando
+     nativo só tem sete degraus, então ele entra com o 7 como marca e a marca
+     vira o tamanho pedido logo depois. */
+  function ptDe(el) {
+    var v = parseFloat(getComputedStyle(el).fontSize) * 0.75;
+    var inteiro = Math.round(v);
+    return Math.abs(v - inteiro) < 0.3 ? inteiro : Math.round(v * 10) / 10;
+  }
+  function numeroBr(n) { return String(n).replace(".", ","); }
+
+  function aplicarTamanho(pt) {
+    pt = Math.round(Math.max(1, Math.min(400, pt)) * 10) / 10;
+    if (!pt || !voltarAoTexto()) return;
+    tamanhoPendente = pt;
+    document.execCommand("styleWithCSS", false, false);
+    document.execCommand("fontSize", false, "7");
+    campoTamanho.value = numeroBr(pt);
+    /* Sem trecho, o tamanho vale para o que se digitar a seguir: o navegador
+       guarda a intenção e cria a marca na primeira letra, e quem a converte é
+       o `input`. */
+    if (window.getSelection().isCollapsed) return;
+    converterFontes();
+    salvarTexto();
+  }
+
+  function converterFontes() {
+    var marcas = arquivoCorpo.querySelectorAll('font[size="7"]');
+    if (!marcas.length || tamanhoPendente == null) return false;
+    var p = guardarPontas(), trocas = new Map();
+    Array.prototype.forEach.call(marcas, function (f) {
+      var s = trocarEtiqueta(f, "span", trocas);
+      ["size", "color", "face"].forEach(function (a) { s.removeAttribute(a); });
+      if (f.getAttribute("color")) s.style.color = f.getAttribute("color");
+      if (f.getAttribute("face")) s.style.fontFamily = f.getAttribute("face");
+      /* O que já tinha tamanho por dentro perde o seu: senão o pedido valeria
+         só para o que não tinha. */
+      Array.prototype.forEach.call(s.querySelectorAll("[style]"), function (d) {
+        d.style.fontSize = "";
+        semEstiloVazio(d);
+      });
+      s.style.fontSize = tamanhoPendente + "pt";
+    });
+    reporPontas(p, trocas);
+    return true;
+  }
+
+  function passoTamanho(dir) {
+    var atual = parseFloat(campoTamanho.value.replace(",", ".")) || 11;
+    var alvo = dir > 0
+      ? TAMANHOS.filter(function (t) { return t > atual; })[0] || atual + 12
+      : TAMANHOS.filter(function (t) { return t < atual; }).pop() || Math.max(1, atual - 1);
+    aplicarTamanho(alvo);
+  }
+
+  /* ── Cor e destaque ─────────────────────────────────────────────────── */
+  function aplicarCor(hex) {
+    corEscolhida = hex;
+    $("beCorBarra").style.background = hex;
+    if (!voltarAoTexto()) return;
+    if (window.getSelection().isCollapsed) { pedirTrecho("A cor vale para o texto selecionado."); return; }
+    comando("foreColor", hex, true);
+  }
+
+  /* "Automático": pinta com uma cor-sentinela que ninguém escolheria e depois
+     apaga a cor de tudo que a recebeu. É o jeito de o navegador dizer onde o
+     trecho começa e termina, inclusive quando ele corta marcas pela metade. */
+  function tirarCor() {
+    if (!voltarAoTexto()) return;
+    if (window.getSelection().isCollapsed) { pedirTrecho("A cor sai do texto selecionado."); return; }
+    document.execCommand("styleWithCSS", false, true);
+    document.execCommand("foreColor", false, "#010203");
+    var p = guardarPontas();
+    Array.prototype.forEach.call(arquivoCorpo.querySelectorAll("[style]"), function (el) {
+      if (el.style.color.replace(/\s/g, "") !== "rgb(1,2,3)") return;
+      Array.prototype.forEach.call(el.querySelectorAll("[style], font[color]"), function (d) {
+        d.style.color = "";
+        d.removeAttribute("color");
+        semEstiloVazio(d);
+      });
+      el.style.color = "";
+      semEstiloVazio(el);
+      if (el.tagName === "SPAN" && !el.attributes.length) desembrulhar(el, false);
+    });
+    reporPontas(p);
+    depoisDeMexer();
+  }
+
+  function aplicarGrifo(cor) {
+    if (!voltarAoTexto()) return;
+    if (window.getSelection().isCollapsed) { pedirTrecho("O destaque vale para o trecho selecionado."); return; }
+    grifarCom(cor);
+    pintarBarra();
+  }
+  function tirarGrifo() {
+    if (!voltarAoTexto()) return;
+    var marcas = grifosNaSelecao();
+    if (!marcas.length) { avisar("info", "Nada para tirar", "Selecione um trecho destacado."); return; }
+    var p = guardarPontas();
+    var pais = tirarGrifos(marcas);
+    reporPontas(p);
+    juntarTexto(pais);
+    depoisDeMexer();
+  }
+
+  /* ── Alinhamento, espaçamento e recuo ─────────────────────────────── */
+  function alinhar(v) {
+    folhasDaSelecao().forEach(function (el) {
+      el.style.textAlign = v === "left" ? "" : v;
+      semEstiloVazio(el);
+    });
+    depoisDeMexer();
+  }
+
+  function espacar(v) {
+    folhasDaSelecao().forEach(function (el) {
+      el.style.lineHeight = v;
+      semEstiloVazio(el);
+    });
+    depoisDeMexer();
+  }
+
+  /* Parágrafo ganha margem; item de lista desce um nível, dentro do item de
+     cima, que é o aninhamento que o HTML reconhece. */
+  function recuar(dir) {
+    var folhas = folhasDaSelecao();
+    if (!folhas.length) return;
+    var p = guardarPontas(), trocas = new Map();
+    var titulo = arquivoCorpo.firstElementChild;
+    folhas.forEach(function (el) {
+      if (el === titulo) return;
+      if (el.tagName === "LI") { recuarItem(el, dir, trocas); return; }
+      var atual = parseFloat(el.style.marginLeft) || 0;
+      var novo = Math.max(0, Math.min(TETO_RECUO, atual + dir * PASSO_RECUO));
+      el.style.marginLeft = novo ? novo + "px" : "";
+      semEstiloVazio(el);
+    });
+    reporPontas(p, trocas);
+    depoisDeMexer();
+  }
+
+  function copiarVestes(de, para) {
+    ["class", "data-marcador", "data-numero", "data-riscar"].forEach(function (a) {
+      if (de.hasAttribute(a)) para.setAttribute(a, de.getAttribute(a));
+    });
+  }
+
+  function recuarItem(li, dir, trocas) {
+    var lista = li.parentElement;
+    if (dir > 0) {
+      /* O primeiro item não tem sob quem entrar. */
+      var antes = li.previousElementSibling;
+      if (!antes) return;
+      var sub = antes.lastElementChild;
+      if (!sub || sub.tagName !== lista.tagName) {
+        sub = document.createElement(lista.tagName);
+        if (lista.classList.contains("lista-tarefas")) sub.className = "lista-tarefas";
+        antes.appendChild(sub);
+      }
+      sub.appendChild(li);
+      return;
+    }
+    var seguintes = [], n = li.nextElementSibling;
+    while (n) { seguintes.push(n); n = n.nextElementSibling; }
+    var pai = lista.parentElement;
+    if (pai && pai.tagName === "LI") {
+      /* Os irmãos de baixo vão junto, pendurados no item que subiu: senão eles
+         ficariam acima dele na leitura. */
+      if (seguintes.length) {
+        var resto = document.createElement(lista.tagName);
+        copiarVestes(lista, resto);
+        seguintes.forEach(function (s) { resto.appendChild(s); });
+        li.appendChild(resto);
+      }
+      pai.after(li);
+      if (!lista.children.length) lista.remove();
+      return;
+    }
+    /* No primeiro nível, diminuir o recuo tira o item da lista, como o
+       Backspace no começo dele. */
+    var par = document.createElement("p");
+    var filhas = [];
+    Array.prototype.slice.call(li.childNodes).forEach(function (no) {
+      if (no.nodeType === 1 && /^(UL|OL)$/.test(no.tagName)) filhas.push(no);
+      else par.appendChild(no);
+    });
+    if (!par.firstChild) par.innerHTML = "<br>";
+    lista.after(par);
+    var depois = par;
+    filhas.forEach(function (f) { depois.after(f); depois = f; });
+    if (seguintes.length) {
+      var cauda = document.createElement(lista.tagName);
+      copiarVestes(lista, cauda);
+      seguintes.forEach(function (s) { cauda.appendChild(s); });
+      depois.after(cauda);
+    }
+    li.remove();
+    if (!lista.children.length) lista.remove();
+    trocas.set(li, par);
+  }
+
+  /* ── Listas ─────────────────────────────────────────────────────────── */
+  function listaEhDoTipo(lista, tipo) {
+    if (lista.tagName !== TIPO_LISTA[tipo]) return false;
+    return (tipo === "tarefas") === lista.classList.contains("lista-tarefas");
+  }
+
+  function vestirLista(lista, tipo, variante, molde) {
+    if (molde && molde.tagName === lista.tagName && !variante) copiarVestes(molde, lista);
+    lista.classList.toggle("lista-tarefas", tipo === "tarefas");
+    if (!lista.classList.length) lista.removeAttribute("class");
+    if (!variante) return;
+    var attr = { marcadores: "data-marcador", numeros: "data-numero", tarefas: "data-riscar" }[tipo];
+    if (/^(disco|decimal|sim)$/.test(variante)) lista.removeAttribute(attr);
+    else lista.setAttribute(attr, variante);
+  }
+
+  /* O botão alterna: se tudo o que está selecionado já é lista daquele tipo,
+     ela vira parágrafos; senão, os blocos viram itens — e listas de outro tipo
+     trocam de tipo, levando os itens junto. Com uma variante (o menu da seta)
+     ele nunca tira: escolher o estilo do marcador é pedir lista. */
+  function alternarLista(tipo, variante) {
+    var titulo = arquivoCorpo.firstElementChild;
+    var alvos = [];
+    folhasDaSelecao().forEach(function (f) {
+      var alvo = f;
+      if (f.tagName === "LI") {
+        alvo = f.parentElement;
+        while (alvo.parentElement && alvo.parentElement.tagName === "LI") alvo = alvo.parentElement.parentElement;
+      } else if (!/^(P|H[123])$/.test(f.tagName)) {
+        return;
+      }
+      if (alvo !== titulo && alvos.indexOf(alvo) < 0) alvos.push(alvo);
+    });
+    if (!alvos.length) {
+      avisar("info", "Aqui não vira lista", "O título do arquivo, as tabelas e os cabeçalhos recolhíveis ficam como estão.");
+      return;
+    }
+    var p = guardarPontas(), trocas = new Map();
+    var tirar = !variante && alvos.every(function (a) {
+      return /^(UL|OL)$/.test(a.tagName) && listaEhDoTipo(a, tipo);
+    });
+
+    if (tirar) {
+      alvos.forEach(function (lista) {
+        var pedacos = document.createDocumentFragment();
+        Array.prototype.slice.call(lista.querySelectorAll("li")).forEach(function (li) {
+          var par = document.createElement("p");
+          Array.prototype.slice.call(li.childNodes).forEach(function (no) {
+            if (!(no.nodeType === 1 && /^(UL|OL)$/.test(no.tagName))) par.appendChild(no);
+          });
+          if (!par.firstChild) par.innerHTML = "<br>";
+          trocas.set(li, par);
+          pedacos.appendChild(par);
+        });
+        lista.replaceWith(pedacos);
+      });
+    } else {
+      /* Blocos vizinhos viram uma lista só; um bloco solto no meio começa
+         outra, para a lista não engolir o que está entre eles. */
+      var grupos = [];
+      alvos.forEach(function (a) {
+        var g = grupos[grupos.length - 1];
+        if (g && g[g.length - 1].nextElementSibling === a) g.push(a);
+        else grupos.push([a]);
+      });
+      grupos.forEach(function (g) {
+        var lista = document.createElement(TIPO_LISTA[tipo]);
+        var molde = g.filter(function (a) { return /^(UL|OL)$/.test(a.tagName); })[0];
+        g[0].before(lista);
+        g.forEach(function (a) {
+          if (/^(UL|OL)$/.test(a.tagName)) {
+            while (a.firstChild) lista.appendChild(a.firstChild);
+          } else {
+            var li = document.createElement("li");
+            while (a.firstChild) li.appendChild(a.firstChild);
+            if (!li.firstChild) li.innerHTML = "<br>";
+            trocas.set(a, li);
+            lista.appendChild(li);
+          }
+          a.remove();
+        });
+        vestirLista(lista, tipo, variante, molde);
+      });
+    }
+    reporPontas(p, trocas);
+    depoisDeMexer();
+  }
+
+  /* A caixinha da lista de verificação: o clique é medido pela posição, como
+     a seta do bloco recolhível. */
+  arquivoCorpo.addEventListener("click", function (e) {
+    var li = e.target.closest && e.target.closest("li");
+    if (!li || !arquivoCorpo.contains(li) || !li.parentElement.classList.contains("lista-tarefas")) return;
+    var r = li.getBoundingClientRect();
+    if (e.clientX - r.left > 24 || e.clientY - r.top > 28) return;
+    e.preventDefault();
+    if (li.hasAttribute("data-feito")) li.removeAttribute("data-feito");
+    else li.setAttribute("data-feito", "");
+    salvarTexto();
+  });
+
+  /* ── Limpar e pintar formatação ─────────────────────────────────────── */
+  /* O `removeFormat` do navegador tira negrito, fonte, cor e tamanho, e deixa
+     em paz o que não é formatação: link, nota e grifo são marcas com classe. O
+     grifo sai à parte, porque no Docs o destaque também é formatação. */
+  function limparFormatacao(calado) {
+    if (!voltarAoTexto()) return false;
+    if (window.getSelection().isCollapsed) {
+      if (!calado) pedirTrecho("A formatação sai do texto selecionado.");
+      return false;
+    }
+    document.execCommand("removeFormat");
+    var marcas = grifosNaSelecao();
+    if (marcas.length) {
+      var p = guardarPontas();
+      var pais = tirarGrifos(marcas);
+      reporPontas(p);
+      juntarTexto(pais);
+    }
+    if (!calado) depoisDeMexer();
+    return true;
+  }
+
+  function estiloProprio(el, prop) {
+    while (el && el !== arquivoCorpo) {
+      if (el.style && el.style[prop]) return el.style[prop];
+      el = el.parentElement;
+    }
+    return "";
+  }
+
+  function lerFormato() {
+    var no = window.getSelection().anchorNode;
+    var el = no.nodeType === 3 ? no.parentElement : no;
+    var grifo = marcaEmVolta(no, "mark.grifo");
+    return {
+      negrito: document.queryCommandState("bold"),
+      italico: document.queryCommandState("italic"),
+      sublinhado: document.queryCommandState("underline"),
+      tachado: document.queryCommandState("strikeThrough"),
+      cor: estiloProprio(el, "color"),
+      fonte: estiloProprio(el, "fontFamily"),
+      tamanho: estiloProprio(el, "fontSize") ? ptDe(el) : null,
+      grifo: grifo ? grifo.dataset.cor : ""
+    };
+  }
+
+  function aplicarFormato(f) {
+    if (!limparFormatacao(true)) return;
+    document.execCommand("styleWithCSS", false, false);
+    [["bold", "negrito"], ["italic", "italico"], ["underline", "sublinhado"], ["strikeThrough", "tachado"]].forEach(function (par) {
+      if (document.queryCommandState(par[0]) !== f[par[1]]) document.execCommand(par[0]);
+    });
+    document.execCommand("styleWithCSS", false, true);
+    if (f.fonte) document.execCommand("fontName", false, f.fonte);
+    if (f.cor) document.execCommand("foreColor", false, f.cor);
+    if (f.tamanho) aplicarTamanho(f.tamanho);
+    /* O grifo por último: ele desfaz a seleção ao terminar. */
+    if (f.grifo) grifarCom(f.grifo);
+    depoisDeMexer();
+  }
+
+  /* Um clique pinta o próximo trecho e desliga; dois cliques deixam ligado até
+     o Esc ou um novo clique no pincel, como no Docs. */
+  function ligarPincel(fixo) {
+    if (!voltarAoTexto()) return;
+    pincel = { formato: lerFormato(), fixo: fixo };
+    arquivoCorpo.classList.add("pincel-ativo");
+    botaoCmd("pincel").setAttribute("aria-pressed", "true");
+  }
+  function desligarPincel() {
+    pincel = null;
+    arquivoCorpo.classList.remove("pincel-ativo");
+    botaoCmd("pincel").setAttribute("aria-pressed", "false");
+  }
+  document.addEventListener("mouseup", function (e) {
+    if (!pincel || !arquivoCorpo.contains(e.target)) return;
+    /* Depois do `mouseup` a seleção já está completa. */
+    setTimeout(function () {
+      if (!pincel || !selecaoNoTexto() || window.getSelection().isCollapsed) return;
+      var f = pincel.formato;
+      if (!pincel.fixo) desligarPincel();
+      aplicarFormato(f);
+    }, 0);
+  });
+
+  /* ── Ações dos botões ───────────────────────────────────────────────── */
+  function acaoLink() {
+    if (!voltarAoTexto()) return;
+    var sel = window.getSelection();
+    if (sel.isCollapsed && !linkEmVolta(sel.anchorNode)) { pedirTrecho("O link se prende ao texto selecionado."); return; }
+    abrirCampoLink();
+  }
+  function acaoComentar() {
+    if (!voltarAoTexto()) return;
+    if (!window.getSelection().toString().trim()) { pedirTrecho("A nota fica presa ao trecho selecionado."); return; }
+    $("btnComentar").click();
+  }
+
+  var ACOES = {
+    desfazer: function () { desfazer("undo"); },
+    refazer: function () { desfazer("redo"); },
+    imprimir: imprimir,
+    ortografia: function () { ligarOrtografia(!arquivoCorpo.spellcheck); },
+    pincel: function () { if (pincel) desligarPincel(); else ligarPincel(false); },
+    menor: function () { passoTamanho(-1); },
+    maior: function () { passoTamanho(1); },
+    negrito: function () { comando("bold"); },
+    italico: function () { comando("italic"); },
+    sublinhado: function () { comando("underline"); },
+    link: acaoLink,
+    comentar: acaoComentar,
+    imagem: function () { if (voltarAoTexto()) escolherImagem(blocoParaMidia()); },
+    tarefas: function () { alternarLista("tarefas"); },
+    marcadores: function () { alternarLista("marcadores"); },
+    numeros: function () { alternarLista("numeros"); },
+    recuar: function () { recuar(1); },
+    desrecuar: function () { recuar(-1); },
+    limpar: function () { limparFormatacao(false); }
+  };
+
+  function botaoCmd(nome) { return barraEdicao.querySelector('[data-cmd="' + nome + '"]'); }
+
+  /* ── O menu das setas ───────────────────────────────────────────────── */
+  var menuAberto = null;
+
+  function fecharMenuBarra() {
+    if (!menuAberto) return;
+    barraMenu.hidden = true;
+    menuAberto.botao.setAttribute("aria-expanded", "false");
+    menuAberto = null;
+    document.removeEventListener("mousedown", foraDoMenuBarra, true);
+  }
+  function foraDoMenuBarra(e) {
+    if (barraMenu.contains(e.target)) return;
+    /* O botão que abriu cuida de si: o clique dele fecha. */
+    if (menuAberto && menuAberto.botao.contains(e.target)) return;
+    fecharMenuBarra();
+  }
+
+  function abrirMenuBarra(nome, botao, montar) {
+    var mesmo = menuAberto && menuAberto.nome === nome && menuAberto.botao === botao;
+    fecharMenuBarra();
+    if (mesmo) return;
+    barraMenu.innerHTML = "";
+    montar(barraMenu);
+    barraMenu.hidden = false;
+    barraMenu.scrollTop = 0;
+    botao.setAttribute("aria-expanded", "true");
+    menuAberto = { nome: nome, botao: botao };
+    var r = botao.getBoundingClientRect();
+    barraMenu.style.top = (r.bottom + 6) + "px";
+    barraMenu.style.left = Math.max(8, Math.min(r.left, window.innerWidth - barraMenu.offsetWidth - 8)) + "px";
+    document.addEventListener("mousedown", foraDoMenuBarra, true);
+  }
+
+  var ICO_MARCA = '<svg class="be-opcao-marca" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
+
+  function opcaoMenu(caixa, rotulo, fazer, o) {
+    o = o || {};
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "filter-dropdown-option" + (o.ativa ? " active" : "");
+    b.setAttribute("role", "menuitem");
+    b.innerHTML = (o.icone
+      ? '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="' + o.icone + '"/></svg>'
+      : ICO_MARCA) + '<span class="be-opcao-texto"></span>';
+    var texto = b.querySelector(".be-opcao-texto");
+    texto.textContent = rotulo;
+    if (o.estilo) texto.setAttribute("style", o.estilo);
+    if (o.atalho) {
+      var at = document.createElement("span");
+      at.className = "be-opcao-atalho";
+      at.textContent = o.atalho;
+      b.appendChild(at);
+    }
+    b.addEventListener("click", function () { fecharMenuBarra(); fazer(); });
+    caixa.appendChild(b);
+    return b;
+  }
+
+  function tituloMenu(caixa, texto) {
+    var t = document.createElement("p");
+    t.className = "be-menu-titulo";
+    t.textContent = texto;
+    caixa.appendChild(t);
+  }
+
+  function paleta(caixa, cores, fazer, ativa) {
+    var grade = document.createElement("div");
+    grade.className = "be-paleta";
+    cores.forEach(function (c) { grade.appendChild(fazer(c, c[1] === ativa)); });
+    caixa.appendChild(grade);
+  }
+
+  /* O bloco em que o cursor está, para as marcas de "atual" nos menus. */
+  function folhaDoCursor() {
+    if (!alcanceSalvo) return null;
+    var no = alcanceSalvo.startContainer;
+    var el = no.nodeType === 3 ? no.parentElement : no;
+    var f = el && el.closest(FOLHAS);
+    return f && arquivoCorpo.contains(f) ? f : null;
+  }
+
+  var MENUS = {
+    zoom: function (c) {
+      ZOOMS.forEach(function (z) {
+        opcaoMenu(c, z + "%", function () { aplicarZoom(z); }, { ativa: z === zoomAtual });
+      });
+      /* No Docs isto mora em Arquivo > Configuração da página. Aqui não há
+         menu Arquivo, e o zoom é a outra escolha de como a folha aparece. */
+      tituloMenu(c, "Layout");
+      opcaoMenu(c, "Páginas A4", function () { ligarPaginas(true); }, { ativa: comPaginas });
+      opcaoMenu(c, "Sem páginas", function () { ligarPaginas(false); }, { ativa: !comPaginas });
+    },
+    margem: function (c) {
+      var atual = margemCm();
+      MARGENS.forEach(function (m) {
+        opcaoMenu(c, m[0], function () { definirMargem(m[1]); },
+          { ativa: m[1] === atual, atalho: numeroBr(m[1]) + " cm" });
+      });
+      /* A medida à mão, para o que não é nenhum dos quatro. */
+      var linha = document.createElement("label");
+      linha.className = "be-margem-livre";
+      linha.innerHTML = '<span>Personalizada</span><input type="text" inputmode="decimal" aria-label="Margem em centímetros"><span>cm</span>';
+      var campo = linha.querySelector("input");
+      campo.value = numeroBr(atual);
+      campo.addEventListener("keydown", function (e) {
+        if (e.key !== "Enter") return;
+        e.preventDefault();
+        var v = parseFloat(campo.value.replace(",", "."));
+        fecharMenuBarra();
+        if (v > 0) definirMargem(v);
+        voltarAoTexto();
+      });
+      /* O menu barra o `mousedown` para não roubar a seleção do texto; o campo
+         precisa dele para receber o foco. */
+      campo.addEventListener("mousedown", function (e) { e.stopPropagation(); });
+      c.appendChild(linha);
+    },
+    estilo: function (c) {
+      var atual = $("beEstilo").textContent;
+      ESTILOS.forEach(function (e) {
+        opcaoMenu(c, e.nome, function () { aplicarEstilo(e.tag); },
+          { ativa: e.nome === atual, atalho: e.atalho, estilo: e.previa });
+      });
+    },
+    fonte: function (c) {
+      var atual = $("beFonte").textContent;
+      FONTES.forEach(function (f) {
+        opcaoMenu(c, f, function () { comando("fontName", f, true); },
+          { ativa: f === atual, estilo: "font-family:'" + f + "'" });
+      });
+    },
+    cor: function (c) {
+      opcaoMenu(c, "Automático", tirarCor);
+      tituloMenu(c, "Cor do texto");
+      paleta(c, CORES_TEXTO, function (cor, ativa) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "be-amostra" + (ativa ? " active" : "");
+        b.style.background = cor[1];
+        b.title = cor[0];
+        b.setAttribute("aria-label", "Texto em " + cor[0].toLowerCase());
+        b.addEventListener("click", function () { fecharMenuBarra(); aplicarCor(cor[1]); });
+        return b;
+      }, corEscolhida);
+    },
+    grifo: function (c) {
+      opcaoMenu(c, "Nenhum", tirarGrifo);
+      tituloMenu(c, "Destaque");
+      paleta(c, CORES_GRIFO, function (cor) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "grifo-cor";
+        b.dataset.cor = cor[1];
+        b.title = cor[0];
+        b.setAttribute("aria-label", "Destacar em " + cor[0].toLowerCase());
+        b.addEventListener("click", function () { fecharMenuBarra(); aplicarGrifo(cor[1]); });
+        return b;
+      });
+    },
+    alinhar: function (c) {
+      var f = folhaDoCursor();
+      var atual = f ? getComputedStyle(f).textAlign : "left";
+      ALINHAMENTOS.forEach(function (a) {
+        opcaoMenu(c, a.nome, function () { alinhar(a.v); },
+          { icone: a.ico, atalho: a.atalho, ativa: a.v === atual || (a.v === "left" && atual === "start") });
+      });
+    },
+    espaco: function (c) {
+      var f = folhaDoCursor();
+      var atual = f ? f.style.lineHeight : "";
+      ESPACOS.forEach(function (e) {
+        opcaoMenu(c, e[0], function () { espacar(e[1]); }, { ativa: e[1] === atual });
+      });
+    },
+    tarefas: function (c) {
+      opcaoMenu(c, "Riscar os itens marcados", function () { alternarLista("tarefas", "sim"); });
+      opcaoMenu(c, "Não riscar", function () { alternarLista("tarefas", "nao"); });
+    },
+    marcadores: function (c) {
+      MARCADORES.forEach(function (m) {
+        opcaoMenu(c, m[0], function () { alternarLista("marcadores", m[1]); });
+      });
+    },
+    numeros: function (c) {
+      NUMERACOES.forEach(function (m) {
+        opcaoMenu(c, m[0], function () { alternarLista("numeros", m[1]); });
+      });
+    },
+    /* A grade do Docs: o ponteiro acende o retângulo a partir do canto, e o
+       clique insere aquela medida. A primeira linha é o cabeçalho. */
+    tabela: function (c) {
+      var grade = document.createElement("div");
+      grade.className = "be-tabela-grade";
+      var legenda = document.createElement("p");
+      legenda.className = "be-tabela-legenda";
+      legenda.textContent = "Inserir tabela";
+      var casas = [];
+      for (var l = 1; l <= TABELA_MAX; l++) {
+        for (var k = 1; k <= TABELA_MAX; k++) {
+          var casa = document.createElement("button");
+          casa.type = "button";
+          casa.className = "be-tabela-casa";
+          casa.dataset.l = l;
+          casa.dataset.c = k;
+          casa.setAttribute("aria-label", l + " × " + k);
+          grade.appendChild(casa);
+          casas.push(casa);
+        }
+      }
+      grade.addEventListener("mouseover", function (e) {
+        var alvo = e.target.closest(".be-tabela-casa");
+        if (!alvo) return;
+        var ml = Number(alvo.dataset.l), mc = Number(alvo.dataset.c);
+        casas.forEach(function (x) {
+          x.classList.toggle("acesa", Number(x.dataset.l) <= ml && Number(x.dataset.c) <= mc);
+        });
+        legenda.textContent = mc + " × " + ml;
+      });
+      grade.addEventListener("click", function (e) {
+        var alvo = e.target.closest(".be-tabela-casa");
+        if (!alvo) return;
+        fecharMenuBarra();
+        inserirTabela(Number(alvo.dataset.c), Number(alvo.dataset.l));
+      });
+      c.appendChild(grade);
+      c.appendChild(legenda);
+    }
+  };
+
+  var TABELA_MAX = 8;
+
+  /* A tabela entra depois do bloco do cursor; numa linha vazia ela toma o
+     lugar dela, que é o que se quer ao abrir uma linha nova para a tabela. Um
+     parágrafo vem junto quando ela fica no fim, senão não haveria onde
+     continuar escrevendo — a mesma regra da barra "/". */
+  function inserirTabela(colunas, linhas) {
+    if (!voltarAoTexto()) return;
+    var bloco = blocoDoCursor() || arquivoCorpo.lastElementChild;
+    var tabela = montarTabela(colunas, linhas - 1);
+    var vazio = bloco && !ehTitulo(bloco) && bloco.tagName === "P" && !bloco.textContent.trim()
+      && !bloco.querySelector("img");
+    if (vazio) bloco.replaceWith(tabela);
+    else if (bloco) bloco.after(tabela);
+    else arquivoCorpo.appendChild(tabela);
+    if (!tabela.nextElementSibling) {
+      var depois = document.createElement("p");
+      depois.innerHTML = "<br>";
+      tabela.after(depois);
+    }
+    porCursorEm(tabela.querySelector("th"));
+    depoisDeMexer();
+  }
+
+  /* ── A busca dos menus ──────────────────────────────────────────────
+     Todo comando da barra, com o nome escrito por extenso: quem não acha o
+     ícone acha a palavra. Inclui o que não tem botão, como tachado e
+     sobrescrito, que no Docs moram no menu Formatar. */
+  var COMANDOS = (function () {
+    var l = [
+      ["Desfazer", "Ctrl+Z", ACOES.desfazer], ["Refazer", "Ctrl+Y", ACOES.refazer],
+      ["Imprimir", "Ctrl+P", imprimir], ["Verificação ortográfica", "", ACOES.ortografia],
+      ["Pintar formatação", "", ACOES.pincel],
+      ["Negrito", "Ctrl+B", ACOES.negrito], ["Itálico", "Ctrl+I", ACOES.italico],
+      ["Sublinhado", "Ctrl+U", ACOES.sublinhado],
+      ["Tachado", "Alt+Shift+5", function () { comando("strikeThrough"); }],
+      ["Sobrescrito", "Ctrl+.", function () { comando("superscript"); }],
+      ["Subscrito", "Ctrl+,", function () { comando("subscript"); }],
+      ["Aumentar tamanho da fonte", "Ctrl+Shift+.", ACOES.maior],
+      ["Diminuir tamanho da fonte", "Ctrl+Shift+,", ACOES.menor],
+      ["Inserir link", "Ctrl+K", acaoLink], ["Adicionar nota", "", acaoComentar],
+      ["Inserir imagem", "", ACOES.imagem],
+      ["Layout: páginas A4", "", function () { ligarPaginas(true); }],
+      ["Layout: sem páginas", "", function () { ligarPaginas(false); }],
+      ["Margens: normal (2,54 cm)", "", function () { definirMargem(2.54); }],
+      ["Margens: estreita (1,27 cm)", "", function () { definirMargem(1.27); }],
+      ["Margens: moderada (1,91 cm)", "", function () { definirMargem(1.91); }],
+      ["Margens: larga (5,08 cm)", "", function () { definirMargem(5.08); }],
+      ["Inserir tabela (3 × 3)", "", function () { inserirTabela(3, 3); }],
+      ["Lista de verificação", "Ctrl+Shift+9", ACOES.tarefas],
+      ["Lista com marcadores", "Ctrl+Shift+8", ACOES.marcadores],
+      ["Lista numerada", "Ctrl+Shift+7", ACOES.numeros],
+      ["Aumentar recuo", "Ctrl+]", ACOES.recuar], ["Diminuir recuo", "Ctrl+[", ACOES.desrecuar],
+      ["Limpar formatação", "Ctrl+\\", ACOES.limpar],
+      ["Cor do texto: automático", "", tirarCor], ["Destaque: nenhum", "", tirarGrifo]
+    ];
+    ESTILOS.forEach(function (e) { l.push(["Estilo: " + e.nome, e.atalho, function () { aplicarEstilo(e.tag); }]); });
+    FONTES.forEach(function (f) { l.push(["Fonte: " + f, "", function () { comando("fontName", f, true); }]); });
+    ALINHAMENTOS.forEach(function (a) { l.push([a.nome, a.atalho, function () { alinhar(a.v); }]); });
+    ESPACOS.forEach(function (e) { l.push(["Espaçamento entre linhas: " + e[0], "", function () { espacar(e[1]); }]); });
+    CORES_TEXTO.forEach(function (c) { l.push(["Cor do texto: " + c[0], "", function () { aplicarCor(c[1]); }]); });
+    CORES_GRIFO.forEach(function (c) { l.push(["Destaque: " + c[0], "", function () { aplicarGrifo(c[1]); }]); });
+    MARCADORES.forEach(function (m) { l.push(["Marcador: " + m[0].replace(/^\S+\s+/, ""), "", function () { alternarLista("marcadores", m[1]); }]); });
+    NUMERACOES.forEach(function (m) { l.push(["Numeração: " + m[0].replace(/\s+/g, " "), "", function () { alternarLista("numeros", m[1]); }]); });
+    ZOOMS.forEach(function (z) { l.push(["Zoom: " + z + "%", "", function () { aplicarZoom(z); }]); });
+    return l.map(function (c) { return { nome: c[0], atalho: c[1], fazer: c[2] }; });
+  })();
+
+  var achadosMenus = [], escolhaMenus = 0;
+
+  function pintarBuscaMenus() {
+    var termo = semAcento(campoMenus.value.trim());
+    achadosMenus = COMANDOS.filter(function (c) { return !termo || semAcento(c.nome).indexOf(termo) >= 0; });
+    escolhaMenus = 0;
+    var botao = campoMenus.parentElement;
+    if (!menuAberto || menuAberto.nome !== "busca") {
+      abrirMenuBarra("busca", botao, function () {});
+    }
+    barraMenu.innerHTML = "";
+    if (!achadosMenus.length) {
+      var vazio = document.createElement("p");
+      vazio.className = "filter-dropdown-vazio";
+      vazio.textContent = "Nenhum comando com esse nome.";
+      barraMenu.appendChild(vazio);
+      return;
+    }
+    achadosMenus.forEach(function (c, i) {
+      var b = opcaoMenu(barraMenu, c.nome, function () { rodarDaBusca(c); }, { atalho: c.atalho });
+      if (i === 0) b.classList.add("sob-teclado");
+    });
+    barraMenu.scrollTop = 0;
+  }
+
+  function marcarBusca(i) {
+    var itens = barraMenu.querySelectorAll(".filter-dropdown-option");
+    if (!itens.length) return;
+    escolhaMenus = Math.max(0, Math.min(i, itens.length - 1));
+    Array.prototype.forEach.call(itens, function (b, j) { b.classList.toggle("sob-teclado", j === escolhaMenus); });
+    itens[escolhaMenus].scrollIntoView({ block: "nearest" });
+  }
+
+  function rodarDaBusca(c) {
+    campoMenus.value = "";
+    fecharMenuBarra();
+    campoMenus.blur();
+    if (c) c.fazer();
+  }
+
+  campoMenus.addEventListener("focus", pintarBuscaMenus);
+  campoMenus.addEventListener("input", pintarBuscaMenus);
+  campoMenus.addEventListener("keydown", function (e) {
+    if (e.key === "ArrowDown") { e.preventDefault(); marcarBusca(escolhaMenus + 1); }
+    else if (e.key === "ArrowUp") { e.preventDefault(); marcarBusca(escolhaMenus - 1); }
+    else if (e.key === "Enter") { e.preventDefault(); rodarDaBusca(achadosMenus[escolhaMenus]); }
+    else if (e.key === "Escape") { e.preventDefault(); rodarDaBusca(null); voltarAoTexto(); }
+  });
+  campoMenus.addEventListener("blur", function () {
+    campoMenus.value = "";
+    if (menuAberto && menuAberto.nome === "busca") fecharMenuBarra();
+  });
+
+  /* ── O campo de tamanho ── */
+  campoTamanho.addEventListener("focus", function () { campoTamanho.select(); });
+  campoTamanho.addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      var v = parseFloat(campoTamanho.value.replace(",", "."));
+      if (v > 0) aplicarTamanho(v);
+      else { voltarAoTexto(); pintarBarra(); }
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      voltarAoTexto();
+      pintarBarra();
+    } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+      e.preventDefault();
+      passoTamanho(e.key === "ArrowUp" ? 1 : -1);
+    }
+  });
+
+  /* ── Os cliques da barra ── */
+  /* Barrar o `mousedown` é o que mantém a seleção no texto: sem isto o botão
+     tomaria o foco e o comando não teria sobre o que agir. Os campos ficam de
+     fora, porque neles o foco é o ponto. */
+  barraEdicao.addEventListener("mousedown", function (e) {
+    if (e.target.closest("input")) return;
+    e.preventDefault();
+  });
+  barraMenu.addEventListener("mousedown", function (e) { e.preventDefault(); });
+  barraEdicao.addEventListener("click", function (e) {
+    var b = e.target.closest("button");
+    if (!b || !barraEdicao.contains(b)) return;
+    if (b.dataset.menu) { abrirMenuBarra(b.dataset.menu, b, MENUS[b.dataset.menu]); return; }
+    var fazer = ACOES[b.dataset.cmd];
+    if (fazer) fazer();
+  });
+  botaoCmd("pincel").addEventListener("dblclick", function () { ligarPincel(true); });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+      if (menuAberto) { fecharMenuBarra(); voltarAoTexto(); }
+      if (pincel) desligarPincel();
+    }
+    /* Alt+/ leva à busca dos menus, como no Docs — só com o arquivo na tela. */
+    if (e.altKey && !e.ctrlKey && e.key === "/" && barraEdicao.offsetParent) {
+      e.preventDefault();
+      campoMenus.focus();
+    }
+  });
+  window.addEventListener("resize", fecharMenuBarra);
+
+  /* ── Atalhos do Docs ──────────────────────────────────────────────────
+     Negrito, itálico, sublinhado e desfazer já são do navegador. Ctrl+Alt com
+     número é pulado quando vem do AltGr: no teclado brasileiro é assim que se
+     digita ¹, ² e ³. */
+  arquivoCorpo.addEventListener("keydown", function (e) {
+    var k = e.code, feito = true;
+    if (!e.ctrlKey && !e.metaKey) {
+      if (e.altKey && e.shiftKey && k === "Digit5") { e.preventDefault(); comando("strikeThrough"); }
+      return;
+    }
+    if (e.getModifierState && e.getModifierState("AltGraph")) return;
+    if (e.shiftKey && !e.altKey) {
+      if (k === "Digit7") alternarLista("numeros");
+      else if (k === "Digit8") alternarLista("marcadores");
+      else if (k === "Digit9") alternarLista("tarefas");
+      else if (k === "KeyL") alinhar("left");
+      else if (k === "KeyE") alinhar("center");
+      else if (k === "KeyR") alinhar("right");
+      else if (k === "KeyJ") alinhar("justify");
+      else if (k === "Period") passoTamanho(1);
+      else if (k === "Comma") passoTamanho(-1);
+      else feito = false;
+    } else if (e.altKey && !e.shiftKey && /^Digit[0-3]$/.test(k)) {
+      aplicarEstilo(ESTILOS[Number(k.slice(-1))].tag);
+    } else if (!e.shiftKey && !e.altKey) {
+      if (k === "Backslash" || k === "IntlBackslash") limparFormatacao(false);
+      else if (k === "BracketRight") recuar(1);
+      else if (k === "BracketLeft") recuar(-1);
+      else if (k === "KeyP") imprimir();
+      else if (k === "Period") comando("superscript");
+      else if (k === "Comma") comando("subscript");
+      else feito = false;
+    } else {
+      feito = false;
+    }
+    if (feito) e.preventDefault();
+  });
+
+  /* ── O estado da barra ──────────────────────────────────────────────
+     Os botões mostram o que vale onde o cursor está: negrito aceso dentro de
+     um negrito, a fonte e o tamanho do trecho, o alinhamento do parágrafo. */
+  function pintarBarra() {
+    if (!selecaoNoTexto()) return;
+    var no = window.getSelection().anchorNode;
+    var el = no.nodeType === 3 ? no.parentElement : no;
+    if (!el) return;
+    [["negrito", "bold"], ["italico", "italic"], ["sublinhado", "underline"]].forEach(function (p) {
+      botaoCmd(p[0]).setAttribute("aria-pressed", String(document.queryCommandState(p[1])));
+    });
+    var folha = el.closest(FOLHAS);
+    if (folha && !arquivoCorpo.contains(folha)) folha = null;
+    var tag = folha ? folha.tagName.toLowerCase() : "p";
+    var estilo = ESTILOS.filter(function (s) { return s.tag === tag; })[0];
+    $("beEstilo").textContent = estilo ? estilo.nome : "Texto normal";
+    $("beFonte").textContent = getComputedStyle(el).fontFamily.split(",")[0].replace(/["']/g, "").trim();
+    if (document.activeElement !== campoTamanho) campoTamanho.value = numeroBr(ptDe(el));
+    var alinhado = getComputedStyle(folha || el).textAlign;
+    var a = ALINHAMENTOS.filter(function (x) { return x.v === alinhado; })[0] || ALINHAMENTOS[0];
+    $("beAlinharIco").setAttribute("d", a.ico);
+    var lista = el.closest("ul,ol");
+    if (lista && !arquivoCorpo.contains(lista)) lista = null;
+    ["tarefas", "marcadores", "numeros"].forEach(function (t) {
+      botaoCmd(t).setAttribute("aria-pressed", String(!!lista && listaEhDoTipo(lista, t)));
+    });
+  }
+
+  var quadroBarra = 0;
+  function agendarPintarBarra() {
+    if (quadroBarra) return;
+    quadroBarra = requestAnimationFrame(function () { quadroBarra = 0; pintarBarra(); });
+  }
+
+  document.addEventListener("selectionchange", function () {
+    if (!selecaoNoTexto()) return;
+    alcanceSalvo = window.getSelection().getRangeAt(0).cloneRange();
+    agendarPintarBarra();
+  });
+  arquivoCorpo.addEventListener("keyup", agendarPintarBarra);
+
+  arquivoCorpo.addEventListener("input", function (e) {
+    /* A primeira letra depois de escolher um tamanho sem trecho. */
+    if (tamanhoPendente != null && converterFontes()) salvarTexto();
+    /* Enter num item marcado não pode nascer marcado. */
+    if (e.inputType === "insertParagraph") {
+      var li = itemDeLista(window.getSelection().anchorNode);
+      if (li && li.hasAttribute("data-feito") && !li.textContent.trim()) {
+        li.removeAttribute("data-feito");
+        salvarTexto();
+      }
+    }
+    agendarPintarBarra();
+  });
+
+  /* Arquivo novo na tela: nada do anterior vale — nem a seleção guardada, nem
+     o pincel carregado com a formatação de lá. */
+  function reiniciarBarra() {
+    alcanceSalvo = null;
+    tamanhoPendente = null;
+    desligarPincel();
+    fecharMenuBarra();
+    ["negrito", "italico", "sublinhado", "tarefas", "marcadores", "numeros"].forEach(function (n) {
+      botaoCmd(n).setAttribute("aria-pressed", "false");
+    });
+    $("beEstilo").textContent = "Texto normal";
+    $("beFonte").textContent = "Manrope";
+    campoTamanho.value = numeroBr(ptDe(arquivoCorpo));
+    $("beAlinharIco").setAttribute("d", ALINHAMENTOS[0].ico);
+    /* Tabelas medidas em pixels antes de as colunas virarem porcentagem. */
+    Array.prototype.forEach.call(arquivoCorpo.querySelectorAll("table.tabela-texto.medida"), normalizarMedida);
+    aplicarMargem();
+  }
+
+  /* ── Páginas A4 ─────────────────────────────────────────────────────
+     A folha vira uma pilha de folhas A4, com as medidas do Docs: 21 × 29,7 cm
+     e margem de 2,54 cm, a 96 pontos por polegada. O texto continua sendo um
+     campo só — partir o conteúdo em várias caixas editáveis quebraria o
+     cursor, a seleção e o desfazer entre uma página e outra. O que se faz é
+     desenhar as folhas por trás e empurrar para a folha seguinte o bloco que
+     não cabe no fim da atual.
+
+     O empurrão não entra no texto: ele mora numa folha de estilo à parte,
+     apontando para os blocos pela posição. Assim o que vai para o banco é o
+     mesmo com ou sem páginas, e mudar a largura da tela não suja o arquivo. */
+  var A4 = { largura: 794, altura: 1123, margem: 96, vao: 20 };
+  /* As margens em centímetros, com os nomes e as medidas do Word e do Docs.
+     A folha tem 21 cm de largura, e o teto deixa ao menos 8 cm de texto. */
+  var MARGEM_PADRAO = 2.54, MARGEM_TETO = 6.5;
+  var MARGENS = [["Normal", 2.54], ["Estreita", 1.27], ["Moderada", 1.91], ["Larga", 5.08]];
+  function margemCm() { return (arquivoAberto && arquivoAberto.margem) || MARGEM_PADRAO; }
+  function cmEmPx(cm) { return Math.round(cm * 96 / 2.54); }
+
+  function aplicarMargem() {
+    A4.margem = cmEmPx(margemCm());
+    folhaDoTexto.style.setProperty("--margem-folha", A4.margem + "px");
+    agendarPaginar();
+  }
+
+  function definirMargem(cm) {
+    cm = Math.round(Math.max(0.5, Math.min(MARGEM_TETO, cm)) * 100) / 100;
+    if (!arquivoAberto || !cm) return;
+    arquivoAberto.margem = cm;
+    aplicarMargem();
+    if (!paginasNaTela) {
+      avisar("info", "Margem de " + numeroBr(cm) + " cm", "Ela aparece com as páginas A4 ligadas e na impressão.");
+    }
+    agendarGravarArquivo();
+  }
+  var CHAVE_PAGINAS = "editor.paginas";
+  var folhaDoTexto = arquivoCorpo.closest(".folha");
+  var camadaFolhas = document.createElement("div");
+  camadaFolhas.className = "folhas-a4";
+  camadaFolhas.setAttribute("aria-hidden", "true");
+  folhaDoTexto.insertBefore(camadaFolhas, folhaDoTexto.firstChild);
+  var regrasPaginas = document.createElement("style");
+  document.head.appendChild(regrasPaginas);
+  var comPaginas = true, paginasNaTela = false;
+
+  /* Em tela estreita a folha inteira não cabe: ela encolhe até caber, como
+     no Docs. Abaixo de 85% o texto ficaria pequeno demais para ler, e aí a
+     página some e o texto volta a correr solto na largura que houver. */
+  function aplicarLayout() {
+    var coluna = folhaDoTexto.parentElement;
+    if (!coluna.clientWidth) return;
+    var cabe = coluna.clientWidth / A4.largura;
+    paginasNaTela = comPaginas && cabe >= 0.85;
+    folhaDoTexto.classList.toggle("folha-a4", paginasNaTela);
+    camadaFolhas.hidden = !paginasNaTela;
+    retratoPaginas = null;
+    if (paginasNaTela) {
+      var z = Math.min(1, cabe) * zoomAtual / 100;
+      folhaDoTexto.style.zoom = z === 1 ? "" : String(z);
+      arquivoCorpo.style.zoom = "";
+    } else {
+      folhaDoTexto.style.zoom = "";
+      arquivoCorpo.style.zoom = zoomAtual === 100 ? "" : String(zoomAtual / 100);
+      regrasPaginas.textContent = "";
+      arquivoCorpo.style.minHeight = "";
+    }
+    paginar();
+  }
+
+  function ligarPaginas(sim) {
+    comPaginas = sim;
+    try { localStorage.setItem(CHAVE_PAGINAS, sim ? "1" : "0"); } catch (e) { /* sem armazenamento */ }
+    aplicarLayout();
+  }
+
+  /* Os pedaços que podem mudar de folha: os blocos do texto, e os itens de
+     lista um a um — uma lista comprida é comum, e empurrá-la inteira deixaria
+     meia folha em branco. */
+  function unidadesDoTexto() {
+    var u = [];
+    Array.prototype.forEach.call(arquivoCorpo.children, function (b, i) {
+      var seletor = "#arquivoCorpo > :nth-child(" + (i + 1) + ")";
+      if (/^(UL|OL)$/.test(b.tagName) && b.children.length > 1) {
+        Array.prototype.forEach.call(b.children, function (li, j) {
+          u.push({ el: li, sel: seletor + " > :nth-child(" + (j + 1) + ")" });
+        });
+      } else {
+        u.push({ el: b, sel: seletor });
+      }
+    });
+    return u;
+  }
+
+  /* A altura dentro da folha, em pixels da própria folha: o zoom dela não
+     entra na conta, então as medidas do A4 valem em qualquer zoom. */
+  function alturaNaFolha(el) {
+    var y = 0;
+    while (el && el !== folhaDoTexto) { y += el.offsetTop; el = el.offsetParent; }
+    return y;
+  }
+
+  /* O retrato da última paginação: que blocos havia e a altura de cada um.
+     A altura de um bloco não depende do empurrão (ele é margem, fica fora),
+     então enquanto nenhum bloco muda de altura nem de lugar na lista, os
+     empurrões de antes continuam certos — e é esse o caso de quase toda
+     tecla, que não quebra linha. */
+  var retratoPaginas = null;
+
+  function mesmoRetrato(unidades, altos) {
+    var r = retratoPaginas;
+    if (!r || r.margem !== A4.margem || r.els.length !== unidades.length) return false;
+    for (var i = 0; i < unidades.length; i++) {
+      if (r.els[i] !== unidades[i].el || r.altos[i] !== altos[i]) return false;
+    }
+    return true;
+  }
+
+  function paginar() {
+    if (!paginasNaTela || !folhaDoTexto.offsetParent) return;
+    var passo = A4.altura + A4.vao, util = A4.altura - 2 * A4.margem;
+    var unidades = unidadesDoTexto();
+    /* Esta leitura sai de graça: o navegador ia montar a página para pintar
+       de qualquer jeito, e ler a altura só antecipa a mesma conta. */
+    var altos = unidades.map(function (u) { return u.el.offsetHeight; });
+    if (mesmoRetrato(unidades, altos)) return;
+    retratoPaginas = { margem: A4.margem, els: unidades.map(function (u) { return u.el; }), altos: altos };
+
+    /* Uma medida só, sem empurrão nenhum, e o resto é conta. Antes cada bloco
+       empurrado pedia uma medida nova da página inteira, e um texto de 25
+       folhas travava a digitação por quase um décimo de segundo a cada tecla.
+       A altura mínima fica onde estava enquanto se mede: tirar os empurrões
+       encolhe o texto por um instante, e a rolagem pularia para cima junto. */
+    regrasPaginas.textContent = "";
+    var topos = unidades.map(function (u) { return alturaNaFolha(u.el); });
+    var regras = [], desvio = 0, fundo = A4.margem;
+    unidades.forEach(function (u, k) {
+      var topo = topos[k] + desvio, alto = altos[k];
+      /* Bloco maior que uma folha não tem para onde ir: ele atravessa a
+         quebra, como uma tabela comprida no Docs. */
+      if (alto && alto <= util) {
+        var pagina = Math.floor(topo / passo);
+        var inicio = pagina * passo + A4.margem, limite = pagina * passo + A4.altura - A4.margem;
+        var empurra = 0;
+        if (topo < inicio) empurra = inicio - topo;
+        else if (topo + alto > limite) empurra = (pagina + 1) * passo + A4.margem - topo;
+        if (empurra) {
+          /* Margens de blocos vizinhos se sobrepõem em vez de somar: o vão é
+             a maior das duas. A margem nova conta com isso para andar
+             exatamente o empurrão. Item de lista mora numa coluna flex, onde
+             nada se sobrepõe, e aí é só somar. */
+          var mt = parseFloat(getComputedStyle(u.el).marginTop) || 0, nova = mt + empurra;
+          if (u.el.tagName !== "LI") {
+            var antes = u.el.previousElementSibling;
+            var mb = antes ? parseFloat(getComputedStyle(antes).marginBottom) || 0 : 0;
+            nova = Math.max(mb, mt) + empurra;
+          }
+          regras.push(u.sel + "{margin-top:" + nova + "px!important}");
+          desvio += empurra;
+          topo += empurra;
+        }
+      }
+      fundo = Math.max(fundo, topo + alto);
+    });
+    regrasPaginas.textContent = regras.join("\n");
+    var folhas = Math.max(1, Math.ceil((fundo + A4.margem + A4.vao) / passo));
+    arquivoCorpo.style.minHeight = (folhas * passo - A4.vao) + "px";
+    while (camadaFolhas.children.length > folhas) camadaFolhas.lastChild.remove();
+    while (camadaFolhas.children.length < folhas) {
+      var f = document.createElement("div");
+      f.className = "folha-a4-pagina";
+      f.style.top = camadaFolhas.children.length * passo + "px";
+      f.appendChild(document.createElement("span"));
+      camadaFolhas.appendChild(f);
+    }
+    Array.prototype.forEach.call(camadaFolhas.children, function (f, i) {
+      f.firstChild.textContent = (i + 1) + " de " + folhas;
+    });
+    /* Os balões da tabela são fixos na tela: se o empurrão moveu a tabela, eles
+       vão junto. */
+    if (tabelaSobPonteiro) pintarMais();
+    if (!mesaBarra.hidden) posicionarMesaBarra();
+  }
+
+  var quadroPaginas = 0;
+  function agendarPaginar() {
+    if (!paginasNaTela || quadroPaginas) return;
+    quadroPaginas = requestAnimationFrame(function () { quadroPaginas = 0; paginar(); });
+  }
+
+  /* Tudo o que muda a altura do texto: digitar, virar bloco, colar, abrir ou
+     fechar um recolhível, uma imagem que termina de chegar, a fonte que
+     carrega depois do texto, e a coluna que muda de largura quando o índice
+     ou o trilho abrem e fecham. */
+  /* A classe e o estilo do próprio corpo são do editor (o cursor de puxar
+     coluna, o pincel, a altura mínima que a paginação põe), não do texto: eles
+     não mudam a altura de nada, e a altura mínima repaginaria a si mesma. */
+  new MutationObserver(function (mudancas) {
+    for (var i = 0; i < mudancas.length; i++) {
+      if (mudancas[i].type !== "attributes" || mudancas[i].target !== arquivoCorpo) { agendarPaginar(); return; }
+    }
+  }).observe(arquivoCorpo, {
+    childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["open", "style", "class"]
+  });
+  arquivoCorpo.addEventListener("load", agendarPaginar, true);
+  if (window.ResizeObserver) new ResizeObserver(aplicarLayout).observe(folhaDoTexto.parentElement);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(agendarPaginar);
+
+  (function () {
+    var z = 100, orto = true;
+    try {
+      z = Number(localStorage.getItem(CHAVE_ZOOM)) || 100;
+      orto = localStorage.getItem(CHAVE_ORTOGRAFIA) !== "0";
+      comPaginas = localStorage.getItem(CHAVE_PAGINAS) !== "0";
+    } catch (e) { /* sem armazenamento */ }
+    if (ZOOMS.indexOf(z) < 0) z = 100;
+    aplicarZoom(z);
+    ligarOrtografia(orto);
+    $("beCorBarra").style.background = corEscolhida;
+  })();
+
   /* ── As notas ── */
   var comentarioPendente = null, comentarioAtivo = null;
 
@@ -6543,10 +9182,8 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       cartao.querySelector(".comentario-texto").textContent = c.texto;
       cartao.querySelector('[data-acao="apagar"]').addEventListener("click", function (e) {
         e.stopPropagation();
-        perguntar({
-          titulo: "Apagar nota",
-          descricao: ['Tem certeza que deseja apagar a nota sobre "', { forte: c.trecho }, '"? Esta ação não pode ser desfeita.'],
-          rotuloOk: "Apagar",
+        confirmarExclusao({
+          coisa: "nota", verbo: "apagar", antes: "a nota sobre", nome: c.trecho,
           onConfirmar: function () { apagarComentario(c.id); }
         });
       });
@@ -6917,10 +9554,9 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
         e.stopPropagation();
         /* Rascunho descartado não volta: ele ainda não foi para o banco, e não
            há de onde recuperá-lo. Por isso pergunta, como toda exclusão daqui. */
-        perguntar({
-          titulo: "Descartar rascunho",
-          descricao: ['Tem certeza que deseja descartar "', { forte: d.frente }, '"? Ele ainda não foi salvo em nenhum deck.'],
-          rotuloOk: "Descartar",
+        confirmarExclusao({
+          coisa: "rascunho", verbo: "descartar", nome: d.frente,
+          aviso: "Ele ainda não foi salvo em nenhum deck.",
           onConfirmar: function () {
             rascunhos = rascunhos.filter(function (x) { return x.id !== d.id; });
             desenhar();
@@ -7726,49 +10362,103 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     });
   }
 
-  var DURACOES = [
-    { nome: "Foco de 25 minutos", nota: "o ciclo padrão", min: 25 },
-    { nome: "Pausa de 5 minutos", nota: "entre dois ciclos", min: 5 },
-    { nome: "Pausa longa de 15 minutos", nota: "a cada quatro ciclos", min: 15 }
+  /* Duas listas, porque agora são duas escolhas. Antes era uma só, misturando
+     foco e pausa nas mesmas opções — escolher "Pausa de 5 minutos" como a
+     duração de um "novo ciclo de foco" nunca fez sentido. */
+  var FOCOS = [
+    { nome: "15 minutos", nota: "ciclo curto", min: 15 },
+    { nome: "25 minutos", nota: "o ciclo padrão", min: 25 },
+    { nome: "30 minutos", nota: "um pouco mais longo", min: 30 },
+    { nome: "45 minutos", nota: "para assunto denso", min: 45 },
+    { nome: "50 minutos", nota: "ciclo longo", min: 50 }
   ];
-  function minutosDe(nome) {
-    for (var i = 0; i < DURACOES.length; i++) if (DURACOES[i].nome === nome) return DURACOES[i].min;
+  var PAUSAS = [
+    { nome: "5 minutos", nota: "entre dois ciclos", min: 5 },
+    { nome: "10 minutos", nota: "para levantar", min: 10 },
+    { nome: "15 minutos", nota: "a cada quatro ciclos", min: 15 },
+    { nome: "20 minutos", nota: "pausa longa", min: 20 }
+  ];
+  var DURACOES = FOCOS.concat(PAUSAS);
+  /* Os nomes agora são só "25 minutos", e o mesmo texto aparece nas duas listas
+     — "15 minutos" é foco curto e também pausa longa. Por isso a busca é na
+     lista de onde a escolha saiu, e não numa lista só: procurando nas duas
+     juntas, "15 minutos" escolhido como pausa devolveria o foco de 15. */
+  function minutosDe(nome, lista) {
+    var onde = lista || DURACOES;
+    for (var i = 0; i < onde.length; i++) if (onde[i].nome === nome) return onde[i].min;
     return 25;
   }
 
+  /* O ciclo não tem nome para dar, então a gaveta não pede um: ela define o
+     foco, a pausa que vem depois dele e o que acontece enquanto isso.
+
+     O campo de título saiu. Ele existia para batizar o ciclo, mas quem lê um
+     arquivo já tem o assunto pronto — é o nome do arquivo — e quem não está
+     lendo nada estava sendo obrigado a inventar um "Sem título" para poder
+     apertar Começar. O assunto continua vindo do arquivo aberto, calado. */
   function gavetaNovoCiclo() {
-    /* Lendo um arquivo, o ciclo já nasce com o nome dele: é quase sempre o que
-       se vai estudar, e poupa digitar o óbvio. O nome vem do arquivo aberto —
-       antes era um texto cravado aqui, de quando só existia um arquivo. */
     var lendo = paginaAtual === "pastas" && vistaAtual === "arquivo" && arquivoAberto;
-    var estado = { duracao: DURACOES[0].nome, silencio: true };
+    var estado = {
+      foco: nomeDeMinutos(FOCOS, total / 60) || FOCOS[1].nome,
+      pausa: nomeDeMinutos(PAUSAS, minutosPausa) || PAUSAS[0].nome,
+      silencio: silenciarNoFoco,
+      auto: pausaAutomatica,
+      som: somAoFim
+    };
     abrirPainel({
       nome: "ciclo",
-      rotulo: "Novo ciclo",
-      titulo: lendo ? arquivoAberto.nome : TITULO_PADRAO,
-      dica: "O que você vai estudar",
-      rotuloTitulo: "O que você vai estudar neste ciclo",
+      rotulo: "Pomodoro",
+      tituloEstatico: "Novo ciclo",
       acao: "Começar",
+      /* Sem campo de título não há o que segurar o botão: tudo tem padrão, e
+         começar um ciclo é sempre uma escolha válida. */
+      podeGravar: function () { return true; },
       montar: function (corpo) {
-        corpo.appendChild(grupo("Duração", campoSelect(estado.duracao, DURACOES, function (v) { estado.duracao = v; })));
-        corpo.appendChild(grupo("Durante o ciclo", campoInterruptor(
-          "Silenciar avisos", estado.silencio, function (v) { estado.silencio = v; })));
+        corpo.appendChild(grupo("Duração do foco",
+          campoSelect(estado.foco, FOCOS, function (v) { estado.foco = v; })));
+        corpo.appendChild(grupo("Pausa depois dele",
+          campoSelect(estado.pausa, PAUSAS, function (v) { estado.pausa = v; })));
+        corpo.appendChild(grupo("Durante o ciclo", caixaDeChaves([
+          ["Silenciar avisos", estado.silencio, function (v) { estado.silencio = v; }],
+          ["Iniciar a pausa sozinha", estado.auto, function (v) { estado.auto = v; }],
+          ["Tocar som ao terminar", estado.som, function (v) { estado.som = v; }]
+        ])));
+        /* Lendo um arquivo, o ciclo herda o assunto — e a gaveta diz isso em
+           vez de deixar a pessoa descobrir depois, no balão. */
+        if (lendo) corpo.appendChild(grupo("Assunto", blocoLeitura(arquivoAberto.nome)));
       },
-      gravar: function (titulo) {
-        var min = minutosDe(estado.duracao);
-        parar();
-        marcarModo(min);
-        total = resta = min * 60;
-        rotulo = min === 25 ? "Foco" : "Pausa";
-        assuntoDoCiclo = titulo;
-        /* A chave da gaveta era enfeite: o que ela promete agora vale. */
+      gravar: function () {
+        var min = minutosDe(estado.foco, FOCOS);
+        minutosPausa = minutosDe(estado.pausa, PAUSAS);
         marcarSilencio(estado.silencio);
-        pintar();
+        marcarPausaAuto(estado.auto);
+        marcarSom(estado.som);
+        assuntoDoCiclo = lendo ? arquivoAberto.nome : "";
+        irParaModo(min, "Foco");
         tocar();
         mostrarFerramenta("pomodoro");
-        avisar("success", "Ciclo em andamento", min + " minutos em " + titulo + ".", true);
+        avisar("success", "Ciclo em andamento",
+          min + " minutos de foco" + (assuntoDoCiclo ? " em " + assuntoDoCiclo : "") +
+          ", com pausa de " + minutosPausa + ".", true);
       }
     });
+  }
+
+  /* O nome da opção que vale tantos minutos, para a gaveta abrir já marcando o
+     que está valendo em vez de sempre recomeçar no padrão. */
+  function nomeDeMinutos(lista, min) {
+    for (var i = 0; i < lista.length; i++) if (lista[i].min === min) return lista[i].nome;
+    return "";
+  }
+
+  /* Três chaves empilhadas, com um fio entre elas: soltas, elas ficavam com o
+     mesmo respiro que separa um grupo do outro, e as três liam como três
+     grupos de um item. */
+  function caixaDeChaves(linhas) {
+    var caixa = document.createElement("div");
+    caixa.className = "pilha-chaves";
+    linhas.forEach(function (l) { caixa.appendChild(campoInterruptor(l[0], l[1], l[2])); });
+    return caixa;
   }
 
   /* Editar um card existente usa a mesma gaveta, com o trecho de origem à
@@ -7888,11 +10578,18 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
      Não é só de exclusão: a mesma caixa serve qualquer pergunta fechada. Por
      isso o texto e o rótulo vêm de fora, e o vermelho é escolha, não regra. */
   var dialogoOverlay = $("dialogoOverlay"), dialogoDepois = null, dialogoMeioDepois = null, dialogoVeioDe = null;
+  /* Quem perguntou às vezes precisa saber que a resposta foi "não" — para
+     tirar a marca do que ia sumir, por exemplo. Os dois botões de ação zeram
+     isto antes de fechar; qualquer outra saída (Cancelar, Escape, clique
+     fora) é desistência e chama. */
+  var dialogoDesistiu = null;
 
   function fecharDialogo(aoTerminar) {
     if (dialogoOverlay.hidden) return;
     dialogoDepois = null;
     dialogoMeioDepois = null;
+    var desistiu = dialogoDesistiu;
+    dialogoDesistiu = null;
     dialogoOverlay.classList.add("saindo");
     var volta = dialogoVeioDe;
     dialogoVeioDe = null;
@@ -7903,6 +10600,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
          página: quem cancelou continua de onde estava. */
       if (volta && document.contains(volta)) volta.focus();
       if (aoTerminar) aoTerminar();
+      if (desistiu) desistiu();
     }, 180);
   }
 
@@ -7942,6 +10640,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     $("dialogoCaixa").classList.toggle("tres", temMeio);
 
     dialogoDepois = o.onConfirmar || null;
+    dialogoDesistiu = o.onCancelar || null;
     dialogoVeioDe = document.activeElement;
     dialogoOverlay.hidden = false;
     $("dialogoOk").focus();
@@ -7950,12 +10649,53 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   $("dialogoCancelar").addEventListener("click", function () { fecharDialogo(); });
   $("dialogoMeio").addEventListener("click", function () {
     var depois = dialogoMeioDepois;
+    dialogoDesistiu = null;
     fecharDialogo(depois);
   });
   $("dialogoOk").addEventListener("click", function () {
     var depois = dialogoDepois;
+    dialogoDesistiu = null;
     fecharDialogo(depois);
   });
+
+  /* ── A confirmação de exclusão ───────────────────────────────────────
+     Regra da casa: nada some sem perguntar antes, e a pergunta é sempre a
+     mesma — "Excluir <coisa>" no título, o nome do que vai sumir em negrito,
+     o aviso de que não tem volta, e o botão vermelho com o verbo. Quem exclui
+     diz só o que é; a frase sai daqui, e por isso não varia de tela para tela.
+
+       coisa        o tipo, para o título: "imagem", "flashcard"
+       nome         o que vai sumir, em negrito (opcional)
+       alvo         a frase quando não há nome: "esta imagem"
+       antes        o que vem entre o verbo e o nome: "a nota sobre"
+       extra        pedaços a mais entre a pergunta e o aviso
+       verbo        "excluir" por padrão; "apagar", "descartar" quando couber
+       aviso        o fecho; por padrão, que a ação não pode ser desfeita
+       onConfirmar  o que fazer no sim
+       onCancelar   o que fazer no não (opcional)
+
+     A caixa em si continua sendo `perguntar`: a exclusão é um jeito de usá-la,
+     e não uma segunda caixa. As exclusões com três saídas (pasta e deck, que
+     oferecem mover antes de apagar) falam com `perguntar` direto. */
+  function confirmarExclusao(o) {
+    var verbo = o.verbo || "excluir";
+    var Verbo = verbo.charAt(0).toUpperCase() + verbo.slice(1);
+    var inicio = "Tem certeza que deseja " + verbo + " " + (o.antes ? o.antes + " " : "");
+    var frase = o.nome
+      ? [inicio + '"', { forte: o.nome }, '"?']
+      : [inicio + (o.alvo || "este item") + "?"];
+    (o.extra || []).forEach(function (p) { frase.push(p); });
+    var aviso = o.aviso === undefined ? "Esta ação não pode ser desfeita." : o.aviso;
+    if (aviso) frase.push(" " + aviso);
+    perguntar({
+      titulo: o.titulo || (Verbo + " " + o.coisa),
+      descricao: frase,
+      rotuloOk: o.rotuloOk || Verbo,
+      perigo: true,
+      onConfirmar: o.onConfirmar,
+      onCancelar: o.onCancelar
+    });
+  }
   dialogoOverlay.addEventListener("mousedown", function (e) {
     if (e.target === dialogoOverlay) fecharDialogo();
   });
@@ -8047,6 +10787,25 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     });
   });
   marcarSilencio($("switchSilencio") ? $("switchSilencio").checked : true);
+
+  /* As outras duas chaves do ciclo, pelo mesmo caminho do silêncio: elas
+     aparecem na tela do Pomodoro e na gaveta de novo ciclo, e marcar uma sem
+     marcar a outra deixaria as duas telas discordando. Antes nenhuma das duas
+     era lida por linha nenhuma — a tela prometia e não fazia. */
+  function marcarPausaAuto(v) {
+    pausaAutomatica = v;
+    var e = $("swAuto"); if (e) e.checked = v;
+  }
+  function marcarSom(v) {
+    somAoFim = v;
+    var e = $("swSom"); if (e) e.checked = v;
+  }
+  [["swAuto", marcarPausaAuto], ["swSom", marcarSom]].forEach(function (par) {
+    var chave = $(par[0]);
+    if (!chave) return;
+    chave.addEventListener("change", function () { par[1](chave.checked); });
+    par[1](chave.checked);
+  });
 
   /* ═══ Abas ═══════════════════════════════════════════════════════════ */
   var ABAS = {
@@ -8147,6 +10906,14 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 
   /* ═══ Pomodoro ═══════════════════════════════════════════════════════ */
   var VOLTA = 326.73, total = 25 * 60, resta = 25 * 60, rodando = false, relogioCiclo = null, rotulo = "Foco";
+  /* O ciclo de foco e a pausa que vem depois dele são um par, e o timer só sabe
+     contar um de cada vez. `minutosPausa` é o que ele precisa lembrar para
+     emendar um no outro quando o foco acaba.
+
+     `pausaAutomatica` e `somAoFim` eram duas chaves escritas no HTML da tela do
+     Pomodoro que nenhuma linha de código lia — prometiam e não faziam. Agora
+     valem, e por isso também aparecem na gaveta de novo ciclo. */
+  var minutosPausa = 5, pausaAutomatica = true, somAoFim = false;
 
   function formatar(s) {
     var m = Math.floor(s / 60), r = s % 60;
@@ -8199,12 +10966,72 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       if (resta <= 0) {
         resta = 0;
         parar();
-        avisar("success", "Ciclo concluído", "Cinco minutos de pausa antes do próximo.", true);
+        terminarCiclo();
         return;
       }
       pintar();
     }, 1000);
   }
+  /* O fim do ciclo. O aviso dizia "Cinco minutos de pausa antes do próximo"
+     com o número cravado no texto, fosse qual fosse a pausa escolhida — e nada
+     começava pausa nenhuma. Agora ele conta o que vai realmente acontecer.
+
+     A emenda só vale saindo do foco: encadear pausa depois de pausa deixaria o
+     relógio girando sozinho para sempre. */
+  function terminarCiclo() {
+    var eraFoco = rotulo === "Foco";
+    tocarSino();
+    if (eraFoco && pausaAutomatica) {
+      assuntoDoCiclo = "";
+      irParaModo(minutosPausa, "Pausa");
+      avisar("success", "Foco concluído", "Pausa de " + minutosPausa + " minutos começando agora.", true);
+      tocar();
+      return;
+    }
+    avisar("success", eraFoco ? "Foco concluído" : "Pausa concluída",
+      eraFoco ? "Uma pausa de " + minutosPausa + " minutos cai bem agora."
+        : "Pronto para o próximo ciclo de foco.", true);
+  }
+
+  /* Trocar a duração do ciclo em curso: um lugar só, porque os botões de modo,
+     a gaveta e a emenda automática faziam os mesmos quatro passos cada um a seu
+     jeito — e quem esquecesse o `marcarModo` deixava a tela do Pomodoro
+     marcando o modo anterior. */
+  function irParaModo(min, nome) {
+    parar();
+    marcarModo(min);
+    total = resta = min * 60;
+    /* O rótulo vem de quem chama, e não deduzido da duração: com foco de 15 e
+       pausa de 15 — combinação legítima — não há como saber pelo número qual
+       dos dois está começando. */
+    rotulo = nome;
+    cicloDispensado = false;
+    pintar();
+  }
+
+  /* Um sino curto, feito na hora: um arquivo de áudio para dois décimos de
+     segundo não paga o download. Falha em silêncio — navegador que barra áudio
+     sem gesto do usuário não pode derrubar o fim do ciclo junto. */
+  function tocarSino() {
+    if (!somAoFim) return;
+    try {
+      var Audio = window.AudioContext || window.webkitAudioContext;
+      if (!Audio) return;
+      var ctx = new Audio();
+      var osc = ctx.createOscillator(), vol = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(587.33, ctx.currentTime + 0.18);
+      vol.gain.setValueAtTime(0.0001, ctx.currentTime);
+      vol.gain.exponentialRampToValueAtTime(0.22, ctx.currentTime + 0.02);
+      vol.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.5);
+      osc.connect(vol); vol.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.52);
+      osc.onended = function () { ctx.close(); };
+    } catch (e) { /* sem som, o ciclo acaba igual */ }
+  }
+
   /* O ciclo tem duas faces, a do trilho de estudo e a da tela do Pomodoro, e
      nem sempre as duas estão na página: tirar uma delas da marcação não pode
      derrubar o resto do script. Por isso a amarração pula o que não existe, do
@@ -8215,9 +11042,28 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       if (e) e.addEventListener(evento, acao);
     });
   }
+  /* Reiniciar tem nome porque agora tem três chamadores: os dois botões da tela
+     do Pomodoro e o do balão. Escrito inline, o terceiro teria de repetir os
+     quatro passos — e esquecer `cicloDispensado` faria o balão do ciclo
+     concluído nunca mais voltar. */
+  function zerarCiclo() {
+    parar();
+    resta = total;
+    cicloDispensado = false;
+    pintar();
+  }
   ligar(["btnPlay", "pgPlay"], "click", tocar);
-  ligar(["btnZerar", "pgZerar"], "click", function () { parar(); resta = total; cicloDispensado = false; pintar(); });
-  ligar(["btnPular", "pgPular"], "click", function () { parar(); resta = 0; pintar(); });
+  ligar(["btnZerar", "pgZerar"], "click", zerarCiclo);
+  /* Pular termina o ciclo, e terminar é terminar: o mesmo caminho de quando o
+     relógio chega ao zero sozinho. Antes ele só zerava e parava, então a pausa
+     não emendava — o fim do foco tinha dois desfechos diferentes conforme
+     alguém tivesse apertado o botão ou esperado. */
+  ligar(["btnPular", "pgPular"], "click", function () {
+    parar();
+    resta = 0;
+    pintar();
+    terminarCiclo();
+  });
   /* Os dois grupos de modo apontam para o mesmo ciclo: marcar um sem marcar o
      outro deixaria as duas telas discordando sobre a duração. A gaveta de ciclo
      chama isto também. */
@@ -8229,14 +11075,12 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   Array.prototype.forEach.call(document.querySelectorAll(".modo"), function (m) {
     m.addEventListener("click", function () {
       var min = parseInt(m.dataset.min, 10);
-      marcarModo(min);
-      parar();
-      total = resta = min * 60;
-      rotulo = min === 25 ? "Foco" : "Pausa";
-      /* Trocar de modo é trocar de ciclo: o assunto do anterior não vem junto. */
+      /* Trocar de modo é trocar de ciclo: o assunto do anterior não vem junto.
+         O resto dos passos é o mesmo de sempre, e mora em `irParaModo` — aqui
+         eles estavam repetidos, e a cópia daqui esquecia de parar antes de
+         marcar. */
       assuntoDoCiclo = "";
-      cicloDispensado = false;
-      pintar();
+      irParaModo(min, m.dataset.tipo === "pausa" ? "Pausa" : "Foco");
     });
   });
 
@@ -8253,6 +11097,13 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
      meio da tela é ruído. A exceção é o fim — concluído, ele aparece de todo
      jeito e fica até alguém fechar. Sumindo sozinho, obrigaria a pessoa a
      estar olhando no segundo certo. */
+  /* Play e pausa são a mesma chave em dois estados, então moram juntos. O
+     triângulo é cheio, e não traçado: em 14px um contorno de play some. */
+  var ICO_TOCAR = {
+    play: '<svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.2v13.6a.6.6 0 0 0 .92.5l10.7-6.8a.6.6 0 0 0 0-1l-10.7-6.8a.6.6 0 0 0-.92.5Z" fill="currentColor"/></svg>',
+    pausa: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9.5 5v14M14.5 5v14"/></svg>'
+  };
+  var ICO_ZERAR = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"/><path d="M3 4v4h4"/></svg>';
   var ICO_CICLO = {
     rodando: '<span class="pulso" style="background:var(--yellow)"></span>',
     pausada: '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5v14M15 5v14"/></svg>',
@@ -8287,11 +11138,20 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
           '<span class="atividade-trilho" aria-hidden="true"><span class="atividade-tinta"></span></span>' +
         '</span>' +
       '</button>' +
+      '<span class="atividade-acoes">' +
+        '<button type="button" class="atividade-acao tocar" data-acao="tocar"></button>' +
+        '<button type="button" class="atividade-acao" data-acao="zerar">' + ICO_ZERAR + '</button>' +
+      '</span>' +
       '<button type="button" class="atividade-fechar">' +
         '<svg width="9" height="9" viewBox="0 0 9 9" fill="none" aria-hidden="true"><path d="M1 1l7 7M8 1L1 8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>' +
       '</button>';
     balaoCiclo.querySelector(".atividade-abre")
       .addEventListener("click", function () { mostrarFerramenta("pomodoro"); });
+    /* As mesmas funções da tela do Pomodoro, e não cópias delas: o ciclo é um
+       só, e pausar aqui tem de ser pausar lá. Quem repinta as duas faces é o
+       próprio `pintar`. */
+    balaoCiclo.querySelector('[data-acao="tocar"]').addEventListener("click", tocar);
+    balaoCiclo.querySelector('[data-acao="zerar"]').addEventListener("click", zerarCiclo);
     /* Correndo ou pausado, o x encerra — e pergunta antes, porque o tempo que
        já correu não volta. Concluído, ele só fecha: não há mais o que interromper. */
     balaoCiclo.querySelector(".atividade-fechar").addEventListener("click", function () {
@@ -8372,6 +11232,24 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     trilho.hidden = estado === "pronta";
     balaoCiclo.querySelector(".atividade-tinta").style.width =
       Math.round((1 - resta / total) * 100) + "%";
+    /* A chave troca de cara com o ciclo: correndo ela pausa, parada ela retoma,
+       e no fim ela começa outro — `tocar` já zera o contador quando `resta`
+       chegou a zero, então o botão não precisa saber disso. */
+    var play = balaoCiclo.querySelector('[data-acao="tocar"]');
+    var nomePlay = estado === "rodando" ? "Pausar o ciclo"
+      : estado === "pronta" ? "Começar outro ciclo" : "Retomar o ciclo";
+    play.innerHTML = ICO_TOCAR[estado === "rodando" ? "pausa" : "play"];
+    play.title = nomePlay;
+    play.setAttribute("aria-label", nomePlay);
+
+    /* Reiniciar some no fim: o ciclo já está no zero, e "voltar ao começo" ali
+       é exatamente o que o play faz. Dois botões para o mesmo gesto obrigam a
+       escolher entre eles sem ter por quê. */
+    var zerar = balaoCiclo.querySelector('[data-acao="zerar"]');
+    zerar.hidden = estado === "pronta";
+    zerar.title = "Reiniciar o ciclo";
+    zerar.setAttribute("aria-label", "Reiniciar o ciclo");
+
     var x = balaoCiclo.querySelector(".atividade-fechar");
     x.setAttribute("aria-label", estado === "pronta" ? "Fechar o aviso do ciclo" : "Encerrar o ciclo");
     x.title = estado === "pronta" ? "Fechar" : "Encerrar";
@@ -8660,10 +11538,8 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       tr.addEventListener("click", function () { abrirGaveta(c); });
       tr.querySelector(".linha-acao").addEventListener("click", function (e) {
         e.stopPropagation();
-        perguntar({
-          titulo: "Excluir flashcard",
-          descricao: ['Tem certeza que deseja excluir "', { forte: c.frente }, '"? Esta ação não pode ser desfeita.'],
-          rotuloOk: "Excluir",
+        confirmarExclusao({
+          coisa: "flashcard", nome: c.frente,
           onConfirmar: function () { excluirCard(c); }
         });
       });
@@ -9344,6 +12220,30 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   /* ═══ Tela: Meus decks ═══════════════════════════════════════════════ */
   /* O cartão de deck é um botão: a peça inteira abre o deck. Serve à tela de
      Decks e ao bloco de desempenho dos Relatórios, com o mesmo desenho. */
+  /* Os dois ícones que faltavam. O de revisar é o mesmo dos botões "Revisar de
+     hoje"; o de novo é a faísca que o sistema já usa para dizer "ainda não
+     tocado". Ficam aqui, ao lado de quem os usa, como os outros ICO_ da casa. */
+  var ICO_REVISAR = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"/><path d="M3 4v4h4"/></svg>';
+  var ICO_NOVO = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 13.9 9l5.6 1.9-5.6 1.9L12 18.4l-1.9-5.6L4.5 11l5.6-1.9Z"/></svg>';
+
+  /* Um contador do rodapé: ícone, número e o nome só onde não ocupa espaço. O
+     singular e o plural vêm separados porque "1 cards no deck" é o tipo de
+     detalhe que denuncia texto montado por concatenação. */
+  function selo_num(ico, n, um, varios) {
+    var nome = n + " " + (n === 1 ? um : varios);
+    return '<span class="conta-selo" title="' + nome + '" aria-label="' + nome + '">' +
+      ico + '<b>' + n + '</b></span>';
+  }
+
+  /* Nunca estudado é o que o banco chama de `novo`: zero repetições. Sai do
+     acervo na hora, como todo número de deck — guardado ao lado, ele
+     envelheceria na primeira revisão. */
+  function novosDoDeck(nome) {
+    return ACERVO_CARDS.filter(function (c) {
+      return c.deck === nome && c.estado === "novo";
+    }).length;
+  }
+
   function cartaoDeDeck(d) {
     var el = document.createElement("article");
     el.className = "deck-card";
@@ -9363,10 +12263,16 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
           '<button type="button" class="deck-acao perigo" data-acao="excluir">' + ICO_LIXEIRA + '</button>' +
         '</div>' +
       '</div>' +
+      /* Ícone e número, como no cartão de pasta: o rótulo por extenso ocupava
+         uma segunda linha para dizer o que o desenho diz de relance. O nome vai
+         no `title` e no `aria-label`, para quem não vê o ícone.
+
+         O terceiro número era `Math.round(d.conta * 0.18)` — 18% do total,
+         inventado. Agora são os cards que nunca foram estudados de verdade. */
       '<div class="deck-numeros">' +
-        '<span class="deck-num"><b>' + d.conta + '</b><span>cards</span></span>' +
-        '<span class="deck-num"><b>' + d.hoje + '</b><span>hoje</span></span>' +
-        '<span class="deck-num"><b>' + Math.round(d.conta * 0.18) + '</b><span>novos</span></span>' +
+        selo_num(ICO_FLASHCARD, d.conta, "card no deck", "cards no deck") +
+        selo_num(ICO_REVISAR, d.hoje, "na fila de hoje", "na fila de hoje") +
+        selo_num(ICO_NOVO, novosDoDeck(d.nome), "nunca estudado", "nunca estudados") +
       '</div>' +
       '<div class="medidor">' +
         '<div class="medidor-topo"><span>Acerto em 30 dias</span><b>' + d.retencao + '%</b></div>' +
@@ -9858,11 +12764,19 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
      esquerda. */
   var VISTA_FUNDURA = { lista: 0, pasta: 1, arquivo: 2, "deck-lista": 0, "deck-cards": 1 };
   var vistaAtual = "lista";
+  var listaArquivosVelha = false;
+
   function irVista(nome, imediato) {
     if (nome === vistaAtual) return;
+    if (vistaAtual === "arquivo") gravarArquivoAgora();
+    if (nome === "pasta" && listaArquivosVelha) {
+      listaArquivosVelha = false;
+      pintarArquivos();
+    }
     var sai = document.querySelector('[data-vista="' + vistaAtual + '"]');
     var de = vistaAtual;
     vistaAtual = nome;
+    esconderFerramentasDoTexto();
     pintarBalaoCiclo();
     /* Voltar pelo menu remonta a tela fora de vista: animar ali seria gastar
        130ms escondido, e a entrada da página chegaria por cima. */
@@ -10032,10 +12946,8 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
            para dizer o que o desenho diz de relance. O nome vai no `title`, e
            no `aria-label` para quem não vê o ícone. */
         '<div class="pasta-numeros">' +
-          '<span class="pasta-num" title="' + c.lista.length + ' arquivos" aria-label="' + c.lista.length + ' arquivos">' +
-            ICO_ARQUIVO + '<b>' + c.lista.length + '</b></span>' +
-          '<span class="pasta-num" title="' + cardsDaPasta(c) + ' flashcards" aria-label="' + cardsDaPasta(c) + ' flashcards">' +
-            ICO_FLASHCARD + '<b>' + cardsDaPasta(c) + '</b></span>' +
+          selo_num(ICO_ARQUIVO, c.lista.length, "arquivo", "arquivos") +
+          selo_num(ICO_FLASHCARD, cardsDaPasta(c), "flashcard", "flashcards") +
         '</div>';
       el.querySelector(".pasta-nome").textContent = c.nome;
       el.querySelector(".pasta-sub").textContent = c.ultimo;
@@ -10286,21 +13198,25 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     var notas = (d.comentarios || []).length;
     var sobras = [];
     if (notas) sobras.push(notas + (notas === 1 ? " nota" : " notas"));
-    var frase = ['Tem certeza que deseja excluir "', { forte: d.nome }, '"?'];
-    if (sobras.length) frase.push(" O texto e " + sobras.join(" e ") + " vão junto.");
+    var extra = [];
+    if (sobras.length) extra.push(" O texto e " + sobras.join(" e ") + " vão junto.");
     if (cards) {
-      frase.push(cards === 1
+      extra.push(cards === 1
         ? " O flashcard criado a partir dele continua no deck."
         : " Os " + cards + " flashcards criados a partir dele continuam nos decks.");
     }
-    frase.push(" Esta ação não pode ser desfeita.");
-    perguntar({
-      titulo: "Excluir arquivo",
-      descricao: frase,
-      rotuloOk: "Excluir",
+    confirmarExclusao({
+      coisa: "arquivo", nome: d.nome, extra: extra,
       onConfirmar: function () { excluirArquivo(pasta, d); }
     });
   }
+
+  /* A lixeira do cabeçalho do arquivo aberto: a mesma pergunta da lista, e a
+     exclusão já sabe voltar para a pasta quando o arquivo era o aberto. */
+  $("btnExcluirArquivo").addEventListener("click", function () {
+    if (!arquivoAberto) return;
+    perguntarExcluirArquivo(pastaDoArquivo(arquivoAberto) || pastaAberta, arquivoAberto);
+  });
 
   function excluirArquivo(pasta, d) {
     var dona = pasta || pastaDoArquivo(d);
@@ -10483,6 +13399,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     arquivoCorpo.innerHTML = d.corpo;
     editor.scrollTop = 0;
     montarIndice();
+    reiniciarBarra();
     /* As notas são do arquivo, não da sessão: trocar de arquivo troca a lista,
        e um compositor aberto do anterior não sobrevive à mudança. */
     comentarioAtivo = null;
@@ -10513,11 +13430,26 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 
   var CORPO_NOVO = '<h1>@NOME@</h1><p data-dica="Comece a escrever. Selecione um trecho para virar flashcard."><br></p>';
 
+  /* Conta sem montar o texto num elemento. Montar custava caro num arquivo
+     grande, e o navegador ainda baixava as imagens de dentro dele a cada
+     contagem — era isso que travava a tela logo depois de uma pausa na
+     digitação, bem na hora em que se clica. As etiquetas viram espaço e as
+     entidades também: `&nbsp;` separa palavras como qualquer espaço.
+
+     A última resposta de cada texto fica guardada: a lista pede a contagem
+     de todos os arquivos a cada pintura, e só um deles mudou. */
+  var palavrasJaContadas = new Map();
   function palavrasDe(html) {
-    var caixa = document.createElement("div");
-    caixa.innerHTML = html || "";
-    var t = caixa.textContent.replace(/\s+/g, " ").trim();
-    return t ? t.split(" ").length : 0;
+    html = html || "";
+    var guardada = palavrasJaContadas.get(html);
+    if (guardada != null) return guardada;
+    var t = html.replace(/<[^>]*>/g, " ").replace(/&[#\w]+;/g, " ").replace(/\s+/g, " ").trim();
+    var n = t ? t.split(" ").length : 0;
+    /* Cada versão digitada de um texto seria uma entrada nova: sem teto, o
+       mapa guardaria todas. */
+    if (palavrasJaContadas.size > 300) palavrasJaContadas.clear();
+    palavrasJaContadas.set(html, n);
+    return n;
   }
   function cardsDe(nome) {
     return ACERVO_CARDS.filter(function (c) { return c.origem === nome; }).length;
@@ -10553,7 +13485,10 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       garantirTitulo();
       sincronizarTitulo();
       montarIndice();
-      if (barraArquivos) pintarArquivos();
+      /* A lista de arquivos está escondida atrás do texto: refazê-la agora é
+         trabalho que ninguém vê, e ele caía justo na pausa em que se clica.
+         Ela fica marcada, e se refaz quando a vista dela voltar. */
+      if (barraArquivos) listaArquivosVelha = true;
     }, 400);
     agendarGravarArquivo();
   });

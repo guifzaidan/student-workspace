@@ -89,6 +89,7 @@ async function lerTudo() {
       tags: lista(linha.etiquetas),
       corpo: texto(linha.corpo),
       notas: notas(linha.notas),
+      margem: numero(linha.margem, 2.54) || 2.54,
     });
     porPasta.set(texto(linha.pasta_id), arr);
   }
@@ -215,13 +216,14 @@ async function gravar(corpo: Record<string, unknown>) {
     }
     case 'arquivo.salvar':
       await cx.execute(
-        'UPDATE sinapse_arquivos SET nome = ?, descricao = ?, corpo = ?, notas = ?, atualizado_em = ? WHERE id = ?',
+        'UPDATE sinapse_arquivos SET nome = ?, descricao = ?, corpo = ?, notas = ?, margem = ?, atualizado_em = ? WHERE id = ?',
         [
           texto(corpo.nome), texto(corpo.desc), texto(corpo.corpo),
           /* As notas viajam já serializadas: elas se prendem a marcas dentro do
              corpo, então gravar as duas coisas na mesma escrita é o que impede
              uma nota apontar para uma marca que a outra escrita ainda não tem. */
           JSON.stringify(Array.isArray(corpo.notas) ? corpo.notas : []),
+          numero(corpo.margem, 2.54) || 2.54,
           t, texto(corpo.id),
         ],
       );
