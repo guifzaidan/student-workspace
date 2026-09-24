@@ -1936,6 +1936,9 @@ input:checked + .switch::after { transform: translateX(14px); }
 .form-input::placeholder { color: var(--gray2); font-weight: 400; }
 .form-input:focus { border-color: var(--gray2); box-shadow: 0 0 0 3px var(--gray4); }
 textarea.form-input { resize: vertical; min-height: 84px; line-height: 1.55; }
+/* Os campos da gaveta crescem com o texto até um teto, e só dali rolam: com a
+   altura fixa uma resposta de três linhas já aparecia pela metade. */
+#gavetaCorpo textarea.form-input { max-height: 360px; overflow-y: auto; }
 
 /* ─── Campo de etiquetas ─────────────────────────────────────────────── */
 /* Pílula, e não texto separado por vírgula: cada etiqueta é uma coisa que se
@@ -7787,6 +7790,40 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       function (m) { return r.intersectsNode(m); });
   }
 
+  /* O grifo que veio colado de fora não é marca nossa: é um `<span>` com a cor
+     de fundo escrita nele (o Gemini e o Docs mandam o grifo assim, e o texto
+     colado daqui de dentro volta desse jeito também). Para quem lê é o mesmo
+     marca-texto, então tirar o grifo tira esse fundo junto. */
+  function temFundo(el) {
+    var f = el.style.backgroundColor || el.style.background;
+    return !!f && !/^(transparent|initial|inherit|unset|none)$/.test(f.trim()) &&
+      !/rgba\(0, 0, 0, 0\)|\/ 0\)/.test(f);
+  }
+  function fundosNaSelecao() {
+    var sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return [];
+    var r = sel.getRangeAt(0);
+    if (!arquivoCorpo.contains(r.commonAncestorContainer)) return [];
+    var achados = [];
+    /* O que está em volta da seleção inteira também conta: selecionar dentro
+       de um trecho grifado não cruza a borda dele. */
+    var no = r.commonAncestorContainer;
+    for (var el = no.nodeType === 3 ? no.parentElement : no; el && el !== arquivoCorpo; el = el.parentElement) {
+      if (el.hasAttribute("style") && temFundo(el)) achados.push(el);
+    }
+    Array.prototype.forEach.call(arquivoCorpo.querySelectorAll("[style]"), function (el) {
+      if (achados.indexOf(el) < 0 && temFundo(el) && r.intersectsNode(el)) achados.push(el);
+    });
+    return achados.filter(function (el) { return !/^(TD|TH|TABLE|TR)$/.test(el.tagName); });
+  }
+  function tirarFundos(els) {
+    els.forEach(function (el) {
+      el.style.removeProperty("background");
+      el.style.removeProperty("background-color");
+      semEstiloVazio(el);
+    });
+  }
+
   /* Junta os pais no fim, e não a cada marca: `normalize` durante o gesto mata
      a seleção que ainda falta usar. */
   function tirarGrifos(marcas) {
@@ -7804,6 +7841,8 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   function grifarCom(cor) {
     var sel = window.getSelection();
     if (!sel || !sel.rangeCount) return;
+    /* O fundo colado por baixo pintaria por cima da cor escolhida. */
+    tirarFundos(fundosNaSelecao());
     var antigos = grifosNaSelecao();
 
     /* Encostar num grifo é pedir para repintá-lo inteiro. Se a seleção só pegou
@@ -7856,11 +7895,12 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   });
 
   $("btnDesgrifar").addEventListener("click", function () {
-    var marcas = grifosNaSelecao();
-    if (!marcas.length) {
+    var marcas = grifosNaSelecao(), fundos = fundosNaSelecao();
+    if (!marcas.length && !fundos.length) {
       avisar("info", "Nada para tirar", "Selecione um trecho grifado.");
       return;
     }
+    tirarFundos(fundos);
     juntarTexto(tirarGrifos(marcas));
     var sel = window.getSelection();
     if (sel) sel.removeAllRanges();
@@ -8199,9 +8239,10 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   }
   function tirarGrifo() {
     if (!voltarAoTexto()) return;
-    var marcas = grifosNaSelecao();
-    if (!marcas.length) { avisar("info", "Nada para tirar", "Selecione um trecho destacado."); return; }
+    var marcas = grifosNaSelecao(), fundos = fundosNaSelecao();
+    if (!marcas.length && !fundos.length) { avisar("info", "Nada para tirar", "Selecione um trecho destacado."); return; }
     var p = guardarPontas();
+    tirarFundos(fundos);
     var pais = tirarGrifos(marcas);
     reporPontas(p);
     juntarTexto(pais);
@@ -9939,12 +9980,25 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     b.textContent = texto;
     return b;
   }
+  /* A frente do flashcard é uma pergunta, e pergunta de verdade passa de uma
+     linha: no título da gaveta ela ficava espremida numa linha só. Aqui ela é
+     um campo como o verso, e o botão de gravar acompanha: sem frente não há
+     card. */
+  function campoFrente(valor, dica, aoMudar) {
+    return campoArea(valor, dica, function (v) { aoMudar(v); travarGravar(); });
+  }
   function campoArea(valor, dica, aoMudar) {
     var t = document.createElement("textarea");
     t.className = "form-input";
     t.value = valor || "";
     t.placeholder = dica || "";
-    t.addEventListener("input", function () { aoMudar(t.value); });
+    function crescer() {
+      t.style.height = "auto";
+      t.style.height = (t.scrollHeight + t.offsetHeight - t.clientHeight) + "px";
+    }
+    t.addEventListener("input", function () { crescer(); aoMudar(t.value); });
+    /* A medida só existe com o campo na tela, e a gaveta monta antes de abrir. */
+    requestAnimationFrame(crescer);
     return t;
   }
   /* A cor sai do nome: a mesma palavra cai sempre no mesmo matiz, aqui e no
@@ -10516,15 +10570,16 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   }
 
   function gavetaNovoCard() {
-    var estado = { verso: "", deck: deckDoContexto() };
+    var estado = { frente: "", verso: "", deck: deckDoContexto() };
     abrirPainel({
-      nome: "flashcard", rotulo: "Novo flashcard", titulo: TITULO_PADRAO,
-      dica: "Qual o alvo de PAM no choque séptico?", rotuloTitulo: "Frente do flashcard",
+      nome: "flashcard", rotulo: "Flashcards", tituloEstatico: "Novo flashcard", acao: "Criar",
+      podeGravar: function () { return !!estado.frente.trim(); },
       montar: function (corpo) {
+        corpo.appendChild(grupo("Frente", campoFrente("", "Qual o alvo de PAM no choque séptico?", function (v) { estado.frente = v; })));
         corpo.appendChild(grupo("Verso", campoArea("", "A resposta, do jeito que você quer lembrar dela.", function (v) { estado.verso = v; })));
         corpo.appendChild(grupo("Deck", campoSelect(estado.deck, opcoesDeDeck(), function (v) { estado.deck = v; })));
       },
-      gravar: function (titulo) {
+      gravar: function () {
         /* Card sem deck não tem onde morar: a coluna aponta para um deck de
            verdade, e o banco recusa a linha. Sem esta checagem a gaveta fechava
            dizendo "criado" e nada era gravado. */
@@ -10534,7 +10589,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
           return false;
         }
         var cartao = {
-          frente: titulo, verso: estado.verso.trim(), deck: deck.nome,
+          frente: estado.frente.trim(), verso: estado.verso.trim(), deck: deck.nome,
           origem: "Escrito à mão", estado: "novo", quando: "Não estudado",
           acertos: "sem histórico", tentativas: 0
         };
@@ -10653,17 +10708,19 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   function abrirGaveta(d) {
     /* Card já salvo traz o deck dele; rascunho ainda não tem um, e aí vale o
        contexto da tela, como em qualquer outra criação. */
-    var estado = { verso: d.verso, deck: d.deck || deckDoContexto() };
+    var estado = { frente: d.frente, verso: d.verso, deck: d.deck || deckDoContexto() };
     abrirPainel({
-      nome: "flashcard", rotulo: "Flashcard, " + d.origem, titulo: d.frente,
-      acao: "Gravar", rotuloTitulo: "Frente do flashcard",
+      nome: "flashcard", rotulo: "Flashcard, " + d.origem, tituloEstatico: "Editar flashcard",
+      acao: "Gravar",
+      podeGravar: function () { return !!estado.frente.trim(); },
       montar: function (corpo) {
+        corpo.appendChild(grupo("Frente", campoFrente(d.frente, "", function (v) { estado.frente = v; })));
         corpo.appendChild(grupo("Verso", campoArea(d.verso, "", function (v) { estado.verso = v; })));
         if (d.trecho) corpo.appendChild(grupo("Trecho de origem", blocoLeitura(d.trecho)));
         corpo.appendChild(grupo("Deck", campoSelect(estado.deck, opcoesDeDeck(), function (v) { estado.deck = v; })));
       },
-      gravar: function (titulo) {
-        d.frente = titulo;
+      gravar: function () {
+        d.frente = estado.frente.trim();
         d.verso = estado.verso.trim();
         if (rascunhos.indexOf(d) >= 0) { desenhar(); return; }
         /* Rascunho só existe na sessão e é gravado em lote no fim; card que já
