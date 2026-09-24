@@ -6688,8 +6688,50 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     if (blocoCel && blocoCel.a.isConnected) porCursorEm(blocoCel.a);
   }
 
+  function temBloco() {
+    if (blocoCel && !blocoCel.tabela.isConnected) limparBloco();
+    return !!blocoCel;
+  }
+
+  function celulasDoBloco() {
+    return [].concat.apply([], linhasDoBloco());
+  }
+
+  /* A seleção do navegador é um trecho contínuo e não desenha um retângulo de
+     células. Com o bloco aberto, a formatação passa célula por célula, com o
+     conteúdo de cada uma selecionado na sua vez; no fim o cursor volta para a
+     célula de partida e o bloco segue aceso para o próximo formato. */
+  function emCadaCelula(fazer) {
+    var cels = celulasDoBloco();
+    if (!cels.length) return false;
+    arquivoCorpo.focus({ preventScroll: true });
+    var sel = window.getSelection();
+    cels.forEach(function (c) {
+      if (!c.isConnected) return;
+      var r = document.createRange();
+      r.selectNodeContents(c);
+      sel.removeAllRanges();
+      sel.addRange(r);
+      fazer(c);
+    });
+    recolherNoBloco();
+    return true;
+  }
+
+  /* Os atalhos da barra de formatação, que valem para o bloco inteiro. */
+  function atalhoDeFormato(e) {
+    var k = e.code, atalho = e.ctrlKey || e.metaKey;
+    if (!atalho) return e.altKey && e.shiftKey && k === "Digit5";
+    if (e.shiftKey && !e.altKey) return /^(Digit[789]|Key[LERJ]|Period|Comma)$/.test(k);
+    if (e.altKey && !e.shiftKey) return /^Digit[0-3]$/.test(k);
+    if (!e.shiftKey && !e.altKey) return /^(Backslash|IntlBackslash|BracketRight|BracketLeft|Period|Comma)$/.test(k);
+    return false;
+  }
+
   document.addEventListener("pointerdown", function (e) {
     if (e.button !== 0) return;
+    /* A barra de formatação age sobre o bloco: clicar nela não o desfaz. */
+    if (e.target.closest && e.target.closest("#barraEdicao, #barraMenu")) return;
     var cel = celulaEm(e.target);
     if (cel && e.shiftKey && !bordaSob(e)) {
       var ancora = blocoCel ? blocoCel.a : celulaDoCursor();
@@ -6755,6 +6797,16 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       limparBloco();
       return;
     }
+    /* Negrito, itálico e sublinhado são do navegador, que agiria só sobre o
+       cursor recolhido: aqui eles passam pelo bloco. */
+    var alterna = { KeyB: "bold", KeyI: "italic", KeyU: "underline" }[e.code];
+    if (atalho && alterna && !e.shiftKey && !e.altKey) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      comando(alterna);
+      return;
+    }
+    if (atalhoDeFormato(e)) return;
     /* Qualquer outra tecla desfaz o bloco e segue o caminho normal: o que se
        digita cai na célula de onde ele partiu. */
     limparBloco();
@@ -8209,6 +8261,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
      por encostar. Bloco que contém outro da lista sai: o item de fora de uma
      lista aninhada não é o que se quis formatar. */
   function folhasDaSelecao() {
+    if (temBloco()) { arquivoCorpo.focus({ preventScroll: true }); return celulasDoBloco(); }
     if (!voltarAoTexto()) return [];
     var r = window.getSelection().getRangeAt(0);
     var achadas = Array.prototype.filter.call(arquivoCorpo.querySelectorAll(FOLHAS), function (el) {
@@ -8231,9 +8284,31 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   }
 
   function comando(nome, valor, css) {
+    if (temBloco()) { comandoNoBloco(nome, valor, css); return; }
     if (!voltarAoTexto()) return;
     document.execCommand("styleWithCSS", false, !!css);
     document.execCommand(nome, false, valor == null ? null : valor);
+    depoisDeMexer();
+  }
+
+  /* Negrito e companhia alternam, e no bloco a decisão é uma só: se toda
+     célula com texto já tem, sai de todas; senão entra em todas. Inverter cada
+     uma por si deixaria o bloco misturado. Célula vazia não vota. */
+  var ALTERNAM = /^(bold|italic|underline|strikeThrough|superscript|subscript)$/;
+  function comandoNoBloco(nome, valor, css) {
+    var ligar = null;
+    if (ALTERNAM.test(nome)) {
+      ligar = false;
+      emCadaCelula(function (c) {
+        if (c.textContent.trim() && !document.queryCommandState(nome)) ligar = true;
+      });
+    }
+    emCadaCelula(function (c) {
+      if (!c.textContent.trim()) return;
+      if (ligar !== null && document.queryCommandState(nome) === ligar) return;
+      document.execCommand("styleWithCSS", false, !!css);
+      document.execCommand(nome, false, valor == null ? null : valor);
+    });
     depoisDeMexer();
   }
 
@@ -8337,6 +8412,18 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 
   function aplicarTamanho(pt) {
     pt = Math.round(Math.max(1, Math.min(400, pt)) * 10) / 10;
+    if (pt && temBloco()) {
+      tamanhoPendente = pt;
+      campoTamanho.value = numeroBr(pt);
+      emCadaCelula(function (c) {
+        if (!c.textContent.trim()) return;
+        document.execCommand("styleWithCSS", false, false);
+        document.execCommand("fontSize", false, "7");
+      });
+      converterFontes();
+      salvarTexto();
+      return;
+    }
     if (!pt || !voltarAoTexto()) return;
     tamanhoPendente = pt;
     document.execCommand("styleWithCSS", false, false);
@@ -8384,7 +8471,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     corEscolhida = hex;
     $("beCorBarra").style.background = hex;
     if (!voltarAoTexto()) return;
-    if (window.getSelection().isCollapsed) { pedirTrecho("A cor vale para o texto selecionado."); return; }
+    if (!temBloco() && window.getSelection().isCollapsed) { pedirTrecho("A cor vale para o texto selecionado."); return; }
     comando("foreColor", hex, true);
   }
 
@@ -8393,7 +8480,12 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
      trecho começa e termina, inclusive quando ele corta marcas pela metade. */
   function tirarCor() {
     if (!voltarAoTexto()) return;
+    if (temBloco()) { emCadaCelula(tirarCorDoTrecho); depoisDeMexer(); return; }
     if (window.getSelection().isCollapsed) { pedirTrecho("A cor sai do texto selecionado."); return; }
+    tirarCorDoTrecho();
+    depoisDeMexer();
+  }
+  function tirarCorDoTrecho() {
     document.execCommand("styleWithCSS", false, true);
     document.execCommand("foreColor", false, "#010203");
     var p = guardarPontas();
@@ -8409,17 +8501,31 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       if (el.tagName === "SPAN" && !el.attributes.length) desembrulhar(el, false);
     });
     reporPontas(p);
-    depoisDeMexer();
   }
 
   function aplicarGrifo(cor) {
     if (!voltarAoTexto()) return;
+    if (temBloco()) {
+      emCadaCelula(function (c) { if (c.textContent.trim()) grifarCom(cor); });
+      pintarBarra();
+      return;
+    }
     if (window.getSelection().isCollapsed) { pedirTrecho("O destaque vale para o trecho selecionado."); return; }
     grifarCom(cor);
     pintarBarra();
   }
   function tirarGrifo() {
     if (!voltarAoTexto()) return;
+    if (temBloco()) {
+      var tocados = [];
+      emCadaCelula(function () {
+        tirarFundos(fundosNaSelecao());
+        tocados = tocados.concat(tirarGrifos(grifosNaSelecao()));
+      });
+      juntarTexto(tocados);
+      depoisDeMexer();
+      return;
+    }
     var marcas = grifosNaSelecao(), fundos = fundosNaSelecao();
     if (!marcas.length && !fundos.length) { avisar("info", "Nada para tirar", "Selecione um trecho destacado."); return; }
     var p = guardarPontas();
@@ -8633,6 +8739,16 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
      grifo sai à parte, porque no Docs o destaque também é formatação. */
   function limparFormatacao(calado) {
     if (!voltarAoTexto()) return false;
+    if (temBloco()) {
+      var tocados = [];
+      emCadaCelula(function () {
+        document.execCommand("removeFormat");
+        tocados = tocados.concat(tirarGrifos(grifosNaSelecao()));
+      });
+      juntarTexto(tocados);
+      if (!calado) depoisDeMexer();
+      return true;
+    }
     if (window.getSelection().isCollapsed) {
       if (!calado) pedirTrecho("A formatação sai do texto selecionado.");
       return false;
