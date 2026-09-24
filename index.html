@@ -1139,6 +1139,13 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
    ali se arrasta, e não se escreve. */
 .arquivo-corpo.na-borda-coluna,
 .arquivo-corpo.na-borda-coluna * { cursor: col-resize; }
+/* O bloco de células selecionado. Enquanto ele existe o grifo do navegador
+   some da tabela: ele segue a ordem do texto, linha por linha, e mostraria
+   metade da tabela acesa quando só uma coluna foi escolhida. */
+.arquivo-corpo table.tabela-texto th[data-sel],
+.arquivo-corpo table.tabela-texto td[data-sel] { background: var(--yd); }
+.arquivo-corpo.bloco-celulas table.tabela-texto ::selection,
+.arquivo-corpo.bloco-celulas table.tabela-texto::selection { background: transparent; }
 body.puxando-coluna { user-select: none; cursor: col-resize; }
 body.puxando-coluna * { cursor: col-resize !important; }
 /* O fio aceso mostra qual borda vai andar antes do clique, e acompanha o
@@ -3865,6 +3872,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   font-size: 15.5px;
   line-height: 1.6;
   color: var(--gray);
+  white-space: pre-line;
 }
 /* O trecho de origem entra recuado e com a barra do acento, como um callout:
    ele é citação do texto, e não a resposta. */
@@ -3877,6 +3885,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   font-size: 13px;
   line-height: 1.55;
   color: var(--gray);
+  white-space: pre-line;
 }
 
 /* A saída sai para o lado da resposta: errou volta pela esquerda, acertou segue
@@ -4824,7 +4833,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 
           <div class="paineis">
             <section class="painel" id="painelCards" role="tabpanel" aria-labelledby="abaCards">
-              <p class="painel-rotulo"><span>Rascunhos desta sessão</span><b id="contaRascunhos">0</b></p>
+              <p class="painel-rotulo"><span>Rascunhos sem deck</span><b id="contaRascunhos">0</b></p>
 
               <div class="cards-lista" id="listaCards"></div>
 
@@ -5546,6 +5555,26 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       decks.push({ id: dk.id, nome: dk.nome, desc: dk.desc, conta: 0, hoje: 0,
                    retencao: 0, ultimo: "", novosPorDia: dk.novosPorDia || 20 });
     });
+
+    /* Os rascunhos voltam presos ao próprio arquivo, pela referência, como
+       quando nascem: é dela que sai o `arquivoId` na hora de salvar e o "de
+       <arquivo>" das pendências. Arquivo apagado deixa o rascunho sem origem,
+       mas não o apaga. */
+    var arquivoPorId = {};
+    PASTAS.forEach(function (p) { p.lista.forEach(function (a) { arquivoPorId[a.id] = a; }); });
+    rascunhos = (d.rascunhos || []).map(function (r) {
+      return { id: proximoId++, bancoId: r.id, frente: r.frente, verso: r.verso,
+               trecho: r.trecho, origem: r.origem, arquivo: arquivoPorId[r.arquivoId] || null };
+    });
+    /* O destino deles é o deck do arquivo de onde saiu o primeiro, como seria
+       se tivessem acabado de nascer lá. Sem isto o seletor ficava vazio, e abrir
+       um arquivo não o preenche enquanto houver rascunho na mesa. */
+    if (rascunhos.length && !deckAtual) {
+      var deOnde = null;
+      rascunhos.forEach(function (r) { if (!deOnde && r.arquivo) deOnde = r.arquivo; });
+      var suaPasta = deOnde && pastaDoArquivo(deOnde);
+      if (deOnde) deckAtual = (suaPasta ? suaPasta.nome + " · " : "") + deOnde.nome;
+    }
 
     ACERVO_CARDS.length = 0;
     (d.flashcards || []).forEach(function (c) {
@@ -6607,6 +6636,158 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
         : { coisa: "tabela", alvo: "esta tabela inteira", onConfirmar: mexer });
   });
 
+  /* ── Seleção de bloco de células ─────────────────────────────────────
+     A seleção do navegador segue a ordem do texto: arrastar de cima para baixo
+     numa coluna acende todas as células das linhas no caminho, e escolher uma
+     coluna só era impossível. Como no Docs, arrastar de uma célula para outra
+     (ou Shift+clique, ou Shift+seta com o bloco aberto) escolhe o retângulo
+     entre as duas. O bloco se copia, se recorta e se esvazia com Delete.
+
+     A marca é um atributo nas células, tirado de tudo o que se grava. */
+  var blocoCel = null, arrasteCel = null;
+
+  function celulaEm(el) {
+    var cel = el && el.closest && el.closest("table.tabela-texto th, table.tabela-texto td");
+    return cel && arquivoCorpo.contains(cel) ? cel : null;
+  }
+
+  /* As células do bloco, linha por linha. */
+  function linhasDoBloco() {
+    if (!blocoCel) return [];
+    var t = blocoCel.tabela;
+    var ra = blocoCel.a.parentElement.rowIndex, rb = blocoCel.b.parentElement.rowIndex;
+    var ca = blocoCel.a.cellIndex, cb = blocoCel.b.cellIndex;
+    var linhas = [];
+    for (var r = Math.min(ra, rb); r <= Math.max(ra, rb); r++) {
+      var tr = t.rows[r], cels = [];
+      if (!tr) continue;
+      for (var c = Math.min(ca, cb); c <= Math.max(ca, cb); c++) if (tr.cells[c]) cels.push(tr.cells[c]);
+      linhas.push(cels);
+    }
+    return linhas;
+  }
+
+  function pintarBloco() {
+    Array.prototype.forEach.call(arquivoCorpo.querySelectorAll("[data-sel]"), function (c) { c.removeAttribute("data-sel"); });
+    arquivoCorpo.classList.toggle("bloco-celulas", !!blocoCel);
+    linhasDoBloco().forEach(function (l) { l.forEach(function (c) { c.setAttribute("data-sel", ""); }); });
+  }
+
+  function limparBloco() {
+    if (!blocoCel && !arquivoCorpo.classList.contains("bloco-celulas")) return;
+    blocoCel = null;
+    pintarBloco();
+  }
+
+  /* O que se grava sai sem a marca do bloco. */
+  function semBloco(html) { return html.replace(/ data-sel=""/g, ""); }
+
+  /* O cursor volta para a célula de onde o bloco partiu: é ela que a barra da
+     tabela acompanha, e o texto que se digitar depois cai ali. */
+  function recolherNoBloco() {
+    if (blocoCel && blocoCel.a.isConnected) porCursorEm(blocoCel.a);
+  }
+
+  document.addEventListener("pointerdown", function (e) {
+    if (e.button !== 0) return;
+    var cel = celulaEm(e.target);
+    if (cel && e.shiftKey && !bordaSob(e)) {
+      var ancora = blocoCel ? blocoCel.a : celulaDoCursor();
+      if (ancora && ancora !== cel && ancora.closest("table") === cel.closest("table")) {
+        e.preventDefault();
+        blocoCel = { tabela: cel.closest("table"), a: ancora, b: cel };
+        pintarBloco();
+        recolherNoBloco();
+        return;
+      }
+    }
+    limparBloco();
+    arrasteCel = cel && e.pointerType !== "touch" && !bordaSob(e) ? cel : null;
+  });
+
+  document.addEventListener("pointermove", function (e) {
+    if (!arrasteCel || puxando) return;
+    var cel = celulaEm(e.target);
+    /* Fora da tabela o bloco fica como estava, e não se desfaz no primeiro
+       pixel que escapar da borda. */
+    if (!cel || cel.closest("table") !== arrasteCel.closest("table")) return;
+    if (cel === arrasteCel) { limparBloco(); return; }
+    if (blocoCel && blocoCel.b === cel) return;
+    blocoCel = { tabela: cel.closest("table"), a: arrasteCel, b: cel };
+    pintarBloco();
+  });
+
+  /* O navegador passou o arrasto inteiro esticando a seleção dele; no fim ela
+     é recolhida, e sai daqui antes do `mouseup` que abriria o balão de criar
+     flashcard sobre o texto grifado. */
+  document.addEventListener("pointerup", function () {
+    if (arrasteCel && blocoCel) recolherNoBloco();
+    arrasteCel = null;
+  });
+
+  var SETAS = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] };
+  arquivoCorpo.addEventListener("keydown", function (e) {
+    if (!blocoCel) return;
+    if (!blocoCel.tabela.isConnected) { limparBloco(); return; }
+    if (/^(Shift|Control|Meta|Alt)$/.test(e.key)) return;
+    var atalho = e.ctrlKey || e.metaKey;
+    /* Copiar e recortar ficam com os eventos de área de transferência. */
+    if (atalho && /^[cx]$/i.test(e.key)) return;
+
+    if (e.shiftKey && !atalho && SETAS[e.key]) {
+      var d = SETAS[e.key], t = blocoCel.tabela;
+      var r = blocoCel.b.parentElement.rowIndex + d[0], c = blocoCel.b.cellIndex + d[1];
+      var tr = t.rows[r], alvo = tr && tr.cells[c];
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      if (alvo) { blocoCel.b = alvo; pintarBloco(); }
+      return;
+    }
+    if ((e.key === "Delete" || e.key === "Backspace") && !atalho && !e.altKey) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      esvaziarBloco();
+      return;
+    }
+    if (e.key === "Escape") {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      limparBloco();
+      return;
+    }
+    /* Qualquer outra tecla desfaz o bloco e segue o caminho normal: o que se
+       digita cai na célula de onde ele partiu. */
+    limparBloco();
+  }, true);
+
+  function esvaziarBloco() {
+    linhasDoBloco().forEach(function (l) { l.forEach(function (c) { c.innerHTML = "<br>"; }); });
+    salvarTexto();
+  }
+
+  /* Copiado, o bloco vira tabela para quem aceita HTML e colunas separadas por
+     tabulação para quem só aceita texto — é o que as planilhas entendem. */
+  function copiarBloco(e, recortar) {
+    if (!blocoCel || !e.clipboardData) return;
+    if (!blocoCel.tabela.isConnected) { limparBloco(); return; }
+    var linhas = linhasDoBloco();
+    var texto = linhas.map(function (l) {
+      return l.map(function (c) { return c.innerText.replace(/\s+/g, " ").trim(); }).join("\t");
+    }).join("\n");
+    var html = "<table>" + linhas.map(function (l) {
+      return "<tr>" + l.map(function (c) {
+        var tag = c.tagName.toLowerCase();
+        return "<" + tag + ">" + semBloco(c.innerHTML) + "</" + tag + ">";
+      }).join("") + "</tr>";
+    }).join("") + "</table>";
+    e.preventDefault();
+    e.clipboardData.setData("text/plain", texto);
+    e.clipboardData.setData("text/html", html);
+    if (recortar) esvaziarBloco();
+  }
+  document.addEventListener("copy", function (e) { copiarBloco(e, false); });
+  document.addEventListener("cut", function (e) { copiarBloco(e, true); });
+
   /* O nome do arquivo é o primeiro título do texto: quem escreve o título já
      disse como o arquivo se chama, e pedir o mesmo nome duas vezes é o tipo de
      coisa que sai diferente. O cabeçalho e a trilha só repetem o que está no
@@ -6690,7 +6871,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 
   function salvarTexto() {
     if (!arquivoAberto) return;
-    arquivoAberto.corpo = arquivoCorpo.innerHTML;
+    arquivoAberto.corpo = semBloco(arquivoCorpo.innerHTML);
     sincronizarTitulo();
     montarIndice();
     agendarGravarArquivo();
@@ -8087,7 +8268,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       '<body><div class="arquivo-corpo"></div></body></html>');
     doc.close();
     doc.title = (arquivoAberto && arquivoAberto.nome) || "Arquivo";
-    doc.querySelector(".arquivo-corpo").innerHTML = arquivoCorpo.innerHTML;
+    doc.querySelector(".arquivo-corpo").innerHTML = semBloco(arquivoCorpo.innerHTML);
     var esperas = Array.prototype.map.call(doc.images, function (img) {
       return img.complete ? null : new Promise(function (ok) { img.onload = img.onerror = ok; });
     });
@@ -9742,9 +9923,9 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     { rotulo: "deck", aoCriar: criarDeck });
 
   /* ═══ Flashcards ═════════════════════════════════════════════════════ */
-  /* Começa vazio, e é o que o rótulo do painel sempre prometeu: "rascunhos
-     desta sessão". Aqui moravam três de demonstração, escritos no código — eles
-     voltavam a cada carregamento, então descartá-los não adiantava nada. */
+  /* Começa vazio e é preenchido pelo banco na carga: o rascunho fica até ser
+     salvo num deck ou descartado, e recarregar a página não é nenhuma das duas
+     coisas. `id` é o da tela, para a lista; `bancoId` é o da linha gravada. */
   var rascunhos = [];
   var proximoId = 1, assinatura = "", listaCards = $("listaCards");
 
@@ -9780,14 +9961,17 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 
       el.querySelector(".fcard-tirar").addEventListener("click", function (e) {
         e.stopPropagation();
-        /* Rascunho descartado não volta: ele ainda não foi para o banco, e não
-           há de onde recuperá-lo. Por isso pergunta, como toda exclusão daqui. */
+        /* Rascunho descartado não volta: ele ainda não foi para nenhum deck, e
+           não há de onde recuperá-lo. Por isso pergunta, como toda exclusão daqui. */
         confirmarExclusao({
           coisa: "rascunho", verbo: "descartar", nome: d.frente,
           aviso: "Ele ainda não foi salvo em nenhum deck.",
           onConfirmar: function () {
             rascunhos = rascunhos.filter(function (x) { return x.id !== d.id; });
             desenhar();
+            Promise.resolve(d.pronto).then(function () {
+              if (d.bancoId) gravar({ acao: "rascunho.excluir", id: d.bancoId });
+            });
           }
         });
       });
@@ -9812,9 +9996,13 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       : (n === 1 ? "Salvar 1 flashcard" : "Salvar " + n + " flashcards");
   }
 
+  /* O trecho entra inteiro no card. O corte antigo em 240 caracteres fazia o
+     verso terminar em "…" no meio da resposta, e juntar tudo numa linha só
+     emendava os itens de uma lista. Agora só o espaço de sobra sai: as
+     quebras de linha ficam, e mais de uma linha em branco vira uma. */
   function limpar(t) {
-    var s = t.replace(/\s+/g, " ").trim();
-    return s.length > 240 ? s.slice(0, 240).replace(/\S+$/, "") + "…" : s;
+    return t.replace(/\r/g, "").replace(/[^\S\n]+/g, " ").replace(/ ?\n ?/g, "\n")
+      .replace(/\n{3,}/g, "\n\n").trim();
   }
 
   $("btnCriarCard").addEventListener("click", function () {
@@ -9833,6 +10021,13 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       arquivo: arquivoAberto
     };
     rascunhos.unshift(novo);
+    /* Vai para o banco na hora, e não só no salvar: é o que o faz sobreviver a
+       um recarregamento. Arquivo recém-criado ainda pode estar sem id, então
+       espera por ele. */
+    novo.pronto = Promise.resolve(novo.arquivo && novo.arquivo.pronto).then(function () {
+      return gravar({ acao: "rascunho.criar", arquivoId: (novo.arquivo && novo.arquivo.id) || null,
+                      frente: novo.frente, verso: novo.verso, trecho: novo.trecho, origem: novo.origem });
+    }).then(function (r) { if (r && r.id) novo.bancoId = r.id; return novo; });
     escolherAba("cards");
     if (mqTrilho.matches) alternarTrilho(true);
     desenhar();
@@ -9883,9 +10078,11 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     pintarTabela();
     if (barraArquivos) pintarArquivos();
     /* Deck recém-criado ainda não tem id: os cards esperam o banco devolvê-lo,
-       senão saem apontando para lugar nenhum. */
-    Promise.resolve(deck.pronto).then(function () {
-      gravar({ acao: "card.criar", deckId: deck.id, cards: novos });
+       senão saem apontando para lugar nenhum. Os rascunhos também esperam os
+       seus, porque saem do banco na mesma escrita em que os cards entram. */
+    Promise.all([deck.pronto].concat(indo.map(function (d) { return d.pronto; }))).then(function () {
+      var rascunhoIds = indo.map(function (d) { return d.bancoId; }).filter(Boolean);
+      gravar({ acao: "card.criar", deckId: deck.id, cards: novos, rascunhoIds: rascunhoIds });
     });
   });
 
@@ -10722,9 +10919,16 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       gravar: function () {
         d.frente = estado.frente.trim();
         d.verso = estado.verso.trim();
-        if (rascunhos.indexOf(d) >= 0) { desenhar(); return; }
-        /* Rascunho só existe na sessão e é gravado em lote no fim; card que já
-           está no acervo vai para o banco agora, com o deck que foi escolhido. */
+        /* Rascunho grava só frente e verso: o deck dele é escolhido no trilho,
+           na hora de salvar. Card que já está no acervo vai com o deck que foi
+           escolhido aqui. */
+        if (rascunhos.indexOf(d) >= 0) {
+          desenhar();
+          Promise.resolve(d.pronto).then(function () {
+            if (d.bancoId) gravar({ acao: "rascunho.salvar", id: d.bancoId, frente: d.frente, verso: d.verso });
+          });
+          return;
+        }
         d.deck = estado.deck;
         pintarTabela();
         pintarGradeDecks();
@@ -12327,7 +12531,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       itens.push({
         ico: ICO_FLASHCARD, tom: "acento",
         nome: rascunhos.length === 1 ? "1 rascunho de flashcard sem salvar" : rascunhos.length + " rascunhos de flashcard sem salvar",
-        nota: arq ? "de " + arq.nome : "desta sessão",
+        nota: arq ? "de " + arq.nome : "de um arquivo que já foi apagado",
         conta: rascunhos.length, contaAcesa: true,
         aoClicar: function () {
           /* Rascunho vive no trilho do arquivo em que nasceu: levar para lá é o
@@ -13641,6 +13845,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       d.corpo = molde.innerHTML;
     }
     arquivoCorpo.innerHTML = d.corpo;
+    limparBloco();
     editor.scrollTop = 0;
     montarIndice();
     reiniciarBarra();
@@ -13718,7 +13923,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
      refazer os dois a cada tecla é trabalho jogado fora. */
   arquivoCorpo.addEventListener("input", function () {
     if (!arquivoAberto) return;
-    arquivoAberto.corpo = arquivoCorpo.innerHTML;
+    arquivoAberto.corpo = semBloco(arquivoCorpo.innerHTML);
     /* O título acompanha a cada tecla: é o que a pessoa está olhando enquanto
        escreve. O índice e a lista podem esperar os 400ms. */
     sincronizarTitulo();

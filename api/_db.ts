@@ -95,6 +95,22 @@ const SCHEMA = [
   `CREATE INDEX IF NOT EXISTS idx_flashcards_fila ON sinapse_flashcards (proxima_revisao)`,
   `CREATE INDEX IF NOT EXISTS idx_flashcards_arquivo ON sinapse_flashcards (arquivo_id)`,
 
+  /* O rascunho é um card que ainda não escolheu deck. Não cabe na tabela dos
+     cards porque lá o deck é obrigatório, e afrouxar isso deixaria a revisão
+     tropeçar em card sem destino. Ele mora aqui até ser salvo num deck ou
+     descartado — recarregar a página não é nenhuma das duas coisas.
+     O arquivo apagado não leva o rascunho junto: ele continua com o trecho, e
+     só perde o endereço de onde saiu. */
+  `CREATE TABLE IF NOT EXISTS sinapse_rascunhos (
+     id         TEXT PRIMARY KEY,
+     arquivo_id TEXT REFERENCES sinapse_arquivos(id) ON DELETE SET NULL,
+     frente     TEXT NOT NULL DEFAULT '',
+     verso      TEXT NOT NULL DEFAULT '',
+     trecho     TEXT NOT NULL DEFAULT '',
+     origem     TEXT NOT NULL DEFAULT '',
+     criado_em  TEXT NOT NULL
+   )`,
+
   // O histórico é separado porque ele cresce para sempre e não é lido junto com
   // o resto: serve ao gráfico dos últimos dias e ao acerto em 30 dias.
   `CREATE TABLE IF NOT EXISTS sinapse_revisoes (

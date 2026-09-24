@@ -59,11 +59,13 @@ function hoje(): string {
 // ── Leitura ──────────────────────────────────────────────────────────────────
 async function lerTudo() {
   const cx = db();
-  const [pastas, arquivos, decks, cards, revisoes, ciclos] = await Promise.all([
+  const [pastas, arquivos, decks, cards, rascunhos, revisoes, ciclos] = await Promise.all([
     cx.execute('SELECT * FROM sinapse_pastas ORDER BY posicao, criada_em'),
     cx.execute('SELECT * FROM sinapse_arquivos ORDER BY posicao, criado_em'),
     cx.execute('SELECT * FROM sinapse_decks ORDER BY posicao, criado_em'),
     cx.execute('SELECT * FROM sinapse_flashcards ORDER BY criado_em'),
+    // O mais novo primeiro, que é a ordem em que a tela os empilha.
+    cx.execute('SELECT * FROM sinapse_rascunhos ORDER BY criado_em DESC'),
     cx.execute(
       `SELECT substr(revisado_em, 1, 10) AS dia, COUNT(*) AS total,
               SUM(CASE WHEN grau >= 2 THEN 1 ELSE 0 END) AS acertos
@@ -134,6 +136,14 @@ async function lerTudo() {
             : texto(l.proxima_revisao) === dia
               ? 'hoje'
               : 'emdia',
+    })),
+    rascunhos: (rascunhos.rows as unknown as Linha[]).map((l) => ({
+      id: texto(l.id),
+      arquivoId: texto(l.arquivo_id),
+      frente: texto(l.frente),
+      verso: texto(l.verso),
+      trecho: texto(l.trecho),
+      origem: texto(l.origem),
     })),
     revisoesPorDia: (revisoes.rows as unknown as Linha[]).map((l) => ({
       dia: texto(l.dia),
@@ -267,14 +277,14 @@ async function gravar(corpo: Record<string, unknown>) {
       // Vários de uma vez: salvar os rascunhos da sessão é um gesto só.
       const cards = Array.isArray(corpo.cards) ? (corpo.cards as Record<string, unknown>[]) : [corpo];
       const ids: string[] = [];
-      for (const c of cards) {
+      const escritas: { sql: string; args: (string | null)[] }[] = cards.map((c) => {
         const id = novoId('crd');
         ids.push(id);
-        await cx.execute(
-          `INSERT INTO sinapse_flashcards
-             (id, deck_id, arquivo_id, frente, verso, trecho, origem, proxima_revisao, criado_em, atualizado_em)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
+        return {
+          sql: `INSERT INTO sinapse_flashcards
+                  (id, deck_id, arquivo_id, frente, verso, trecho, origem, proxima_revisao, criado_em, atualizado_em)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+          args: [
             id,
             texto(corpo.deckId ?? c.deckId),
             texto(c.arquivoId) || null,
@@ -286,10 +296,37 @@ async function gravar(corpo: Record<string, unknown>) {
             t,
             t,
           ],
-        );
+        };
+      });
+      /* O rascunho sai na mesma transação em que o card entra. Em duas escritas,
+         uma falha no meio deixava o card salvo e o rascunho de volta na tela no
+         próximo carregamento — e salvá-lo de novo duplicava o card. */
+      for (const rid of Array.isArray(corpo.rascunhoIds) ? corpo.rascunhoIds : []) {
+        escritas.push({ sql: 'DELETE FROM sinapse_rascunhos WHERE id = ?', args: [texto(rid)] });
       }
+      await cx.batch(escritas, 'write');
       return { ids };
     }
+
+    case 'rascunho.criar': {
+      const id = novoId('rsc');
+      await cx.execute(
+        `INSERT INTO sinapse_rascunhos (id, arquivo_id, frente, verso, trecho, origem, criado_em)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [id, texto(corpo.arquivoId) || null, texto(corpo.frente), texto(corpo.verso),
+         texto(corpo.trecho), texto(corpo.origem), t],
+      );
+      return { id };
+    }
+    case 'rascunho.salvar':
+      await cx.execute(
+        'UPDATE sinapse_rascunhos SET frente = ?, verso = ? WHERE id = ?',
+        [texto(corpo.frente), texto(corpo.verso), texto(corpo.id)],
+      );
+      return { ok: true };
+    case 'rascunho.excluir':
+      await cx.execute('DELETE FROM sinapse_rascunhos WHERE id = ?', [texto(corpo.id)]);
+      return { ok: true };
     case 'card.salvar':
       await cx.execute(
         'UPDATE sinapse_flashcards SET frente = ?, verso = ?, deck_id = ?, atualizado_em = ? WHERE id = ?',
