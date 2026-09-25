@@ -1123,6 +1123,12 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
 }
 .arquivo-corpo table.tabela-texto th:last-child,
 .arquivo-corpo table.tabela-texto td:last-child { border-right: none; }
+/* Linhas, listas e títulos dentro da célula: o vão entre eles fica, o de
+   baixo da última some, senão a célula ganharia uma sobra no pé. */
+.arquivo-corpo table.tabela-texto :is(th, td) > :last-child { margin-bottom: 0; }
+.arquivo-corpo table.tabela-texto :is(th, td) > :is(h1, h2, h3):first-child { margin-top: 0; }
+.arquivo-corpo table.tabela-texto :is(th, td) ul,
+.arquivo-corpo table.tabela-texto :is(th, td) ol { margin-bottom: 6px; }
 .arquivo-corpo table.tabela-texto tr:last-child td { border-bottom: none; }
 .arquivo-corpo table.tabela-texto th {
   font-weight: 700;
@@ -5967,6 +5973,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     { id: "h3", nome: "Título 3", dica: "### e espaço", marca: "###", sinal: "H3" },
     { id: "ul", nome: "Lista com marcadores", dica: "- e espaço", marca: "-", sinal: "•" },
     { id: "ol", nome: "Lista numerada", dica: "1. e espaço", marca: "1.", sinal: "1." },
+    { id: "tarefas", nome: "Lista de verificação", dica: "[] e espaço", marca: "[]", sinal: "☐" },
     { id: "toggle", nome: "Bloco recolhível", dica: "> e espaço", marca: ">", sinal: "›" },
     { id: "aviso", nome: "Destaque", dica: "! e espaço", marca: "!", sinal: "!" },
     { id: "hr", nome: "Linha divisória", dica: "--- e espaço", marca: "---", sinal: "—" },
@@ -6015,8 +6022,9 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     if (ehTitulo(bloco) && tipo !== "h1") return;
     var html = conteudo || "";
     var novo;
-    if (tipo === "ul" || tipo === "ol") {
-      novo = document.createElement(tipo);
+    if (tipo === "ul" || tipo === "ol" || tipo === "tarefas") {
+      novo = document.createElement(tipo === "ol" ? "ol" : "ul");
+      if (tipo === "tarefas") novo.className = "lista-tarefas";
       var item = document.createElement("li");
       item.innerHTML = html || "<br>";
       novo.appendChild(item);
@@ -6093,6 +6101,90 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       no = no.parentNode;
     }
     return null;
+  }
+
+  /* ── Linhas dentro da célula ──────────────────────────────────────────
+     A célula nasce com texto solto e <br> entre as linhas. Para uma linha
+     virar item de lista ou título ela precisa ser um bloco, e é isso que se
+     faz aqui: o texto solto vira parágrafos, partidos nos <br>, e o que já é
+     bloco fica como está. A seleção acompanha — ela pode estar presa na
+     própria célula, pela posição entre os filhos, e essa posição muda. */
+  var BLOCO_NA_CELULA = /^(P|H[123]|UL|OL|DIV|BLOCKQUOTE|DETAILS|TABLE|HR|FIGURE)$/;
+  /* O que o "/" e a marcação de teclado podem pôr dentro de uma célula. */
+  var CABE_NA_CELULA = /^(p|h[123]|ul|ol|tarefas)$/;
+
+  function paragrafarCelula(cel) {
+    var filhos = Array.prototype.slice.call(cel.childNodes);
+    var solto = filhos.some(function (n) {
+      return n.nodeType === 3 ? /\S/.test(n.nodeValue) : n.nodeType === 1 && !BLOCO_NA_CELULA.test(n.tagName);
+    });
+    if (!solto) {
+      if (Array.prototype.some.call(cel.children, function (el) { return BLOCO_NA_CELULA.test(el.tagName); })) return;
+      /* Célula sem nada: nasce a primeira linha, com o cursor nela. */
+      cel.innerHTML = "<p><br></p>";
+      porCursorEm(cel.firstChild);
+      return;
+    }
+    var sel = window.getSelection();
+    var r = sel && sel.rangeCount ? sel.getRangeAt(0) : null;
+    var pontas = r ? [[r.startContainer, r.startOffset], [r.endContainer, r.endOffset]] : null;
+    var ref = pontas && pontas.map(function (p) { return p[0] === cel ? filhos[p[1]] || "fim" : null; });
+
+    var linha = null, destino = new Map(), ultima = null;
+    filhos.forEach(function (n) {
+      if (n.nodeType === 1 && BLOCO_NA_CELULA.test(n.tagName)) { linha = null; return; }
+      /* Espaço entre blocos é só a indentação do HTML. */
+      if (!linha && n.nodeType === 3 && !/\S/.test(n.nodeValue)) { n.remove(); return; }
+      if (!linha) { linha = document.createElement("p"); cel.insertBefore(linha, n); }
+      destino.set(n, [linha, linha.childNodes.length]);
+      linha.appendChild(n);
+      ultima = linha;
+      if (n.nodeName === "BR") linha = null;
+    });
+
+    if (!pontas || !(ref[0] || ref[1])) return;
+    var pos = pontas.map(function (p, i) {
+      if (!ref[i]) return p;
+      if (ref[i] === "fim") return ultima && ultima === cel.lastChild ? [ultima, ultima.childNodes.length] : [cel, cel.childNodes.length];
+      var d = destino.get(ref[i]);
+      return d || [cel, Array.prototype.indexOf.call(cel.childNodes, ref[i])];
+    });
+    var novo = document.createRange();
+    try { novo.setStart(pos[0][0], pos[0][1]); novo.setEnd(pos[1][0], pos[1][1]); } catch (e) { return; }
+    sel.removeAllRanges();
+    sel.addRange(novo);
+  }
+
+  /* A linha da célula em que está o cursor: o filho da célula que o contém. */
+  function linhaDaCelula(cel) {
+    var sel = window.getSelection();
+    var no = sel.anchorNode;
+    if (no === cel) no = cel.childNodes[Math.min(sel.anchorOffset, cel.childNodes.length - 1)];
+    while (no && no.parentNode !== cel) no = no.parentNode;
+    return no && no.nodeType === 1 && BLOCO_NA_CELULA.test(no.tagName) ? no : null;
+  }
+
+  /* As linhas da célula que a seleção pega — todas, com o bloco de células
+     aberto ou com a célula inteira escolhida. Saem já como blocos. */
+  function linhasDaCelula(cel, todas) {
+    paragrafarCelula(cel);
+    var linhas = Array.prototype.filter.call(cel.children, function (el) { return /^(P|H[123]|UL|OL)$/.test(el.tagName); });
+    if (todas) return linhas;
+    var sel = window.getSelection();
+    if (!sel || !sel.rangeCount) return linhas;
+    var r = sel.getRangeAt(0);
+    var pegas = linhas.filter(function (el) {
+      if (!r.intersectsNode(el)) return false;
+      if (r.collapsed) return true;
+      var dentro = document.createRange();
+      dentro.selectNodeContents(el);
+      if (r.compareBoundaryPoints(Range.START_TO_START, dentro) > 0) dentro.setStart(r.startContainer, r.startOffset);
+      if (r.compareBoundaryPoints(Range.END_TO_END, dentro) < 0) dentro.setEnd(r.endContainer, r.endOffset);
+      return !dentro.collapsed;
+    });
+    if (pegas.length) return pegas;
+    var aqui = linhaDaCelula(cel);
+    return aqui ? [aqui] : linhas.slice(-1);
   }
   arquivoCorpo.addEventListener("keydown", function (e) {
     if (e.key !== "Tab") return;
@@ -6688,7 +6780,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     if (blocoCel && blocoCel.a.isConnected) porCursorEm(blocoCel.a);
   }
 
-  function temBloco() {
+  function temBlocoDeCelulas() {
     if (blocoCel && !blocoCel.tabela.isConnected) limparBloco();
     return !!blocoCel;
   }
@@ -6990,9 +7082,36 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     soltarItem(item);
   });
 
+  /* Na célula a marcação vale para a linha, e só para o que cabe numa célula:
+     a transformação agiria sobre a tabela inteira, que é o bloco do corpo. A
+     linha é o texto entre dois <br>, ou o parágrafo em que o cursor está. */
+  function marcaNaCelula(e, cel) {
+    var sel = window.getSelection();
+    if (!sel.isCollapsed) return;
+    var linha = linhaDaCelula(cel), texto = "";
+    if (linha) {
+      if (/^(UL|OL)$/.test(linha.tagName)) return;
+      texto = linha.textContent;
+    } else {
+      var no = sel.anchorNode === cel ? cel.childNodes[sel.anchorOffset - 1] : sel.anchorNode;
+      while (no && no.parentNode !== cel) no = no.parentNode;
+      if (!no) return;
+      for (var a = no; a && a.nodeName !== "BR" && !(a.nodeType === 1 && BLOCO_NA_CELULA.test(a.tagName)); a = a.previousSibling) texto = a.textContent + texto;
+      for (var d = no.nextSibling; d && d.nodeName !== "BR" && !(d.nodeType === 1 && BLOCO_NA_CELULA.test(d.tagName)); d = d.nextSibling) texto += d.textContent;
+    }
+    var marca = texto.trim(), tipo = POR_MARCA[marca];
+    if (!tipo || !CABE_NA_CELULA.test(tipo) || texto.length > marca.length) return;
+    e.preventDefault();
+    paragrafarCelula(cel);
+    linha = linhaDaCelula(cel);
+    if (linha) virarBloco(linha, tipo, "");
+  }
+
   /* ── O atalho de marcação ── */
   arquivoCorpo.addEventListener("keydown", function (e) {
     if (e.key === " ") {
+      var cel = celulaDoCursor();
+      if (cel) { marcaNaCelula(e, cel); return; }
       var bloco = blocoDoCursor();
       if (!bloco || bloco.tagName === "UL" || bloco.tagName === "OL") return;
       var marca = bloco.textContent.trim();
@@ -7008,7 +7127,8 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     /* Enter no fim de um título volta para texto: o parágrafo seguinte quase
        nunca é outro título, e o navegador repetiria a tag. */
     if (e.key === "Enter" && !e.shiftKey) {
-      var b = blocoDoCursor();
+      var celEnter = celulaDoCursor();
+      var b = celEnter ? linhaDaCelula(celEnter) : blocoDoCursor();
       if (!b || !/^H[123]$/.test(b.tagName)) return;
       e.preventDefault();
       var novo = document.createElement("p");
@@ -7067,7 +7187,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     return noBarra.textContent.slice(posBarra + 1, sel.anchorOffset);
   }
 
-  function pintarBarra() {
+  function pintarMenuBlocos() {
     menuBlocos.innerHTML = "";
     if (!visiveisBarra.length) {
       var vazio = document.createElement("p");
@@ -7116,13 +7236,19 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     if (q === null || /\s/.test(q)) { fecharBarra(); return; }
     var termo = semAcento(q.trim());
     visiveisBarra = termo
-      ? BLOCOS.filter(function (b) { return semAcento(b.nome + " " + b.dica).indexOf(termo) >= 0; })
-      : BLOCOS.slice();
+      ? blocosDaBarra().filter(function (b) { return semAcento(b.nome + " " + b.dica).indexOf(termo) >= 0; })
+      : blocosDaBarra();
     if (escolhaBarra >= visiveisBarra.length) escolhaBarra = 0;
     ponteiroMexeu = false;
-    pintarBarra();
+    pintarMenuBlocos();
     menuBlocos.scrollTop = 0;
     posicionarBarra();
+  }
+
+  /* Numa célula só entra o que cabe numa célula: texto, títulos e listas. */
+  function blocosDaBarra() {
+    if (!celulaDoCursor()) return BLOCOS.slice();
+    return BLOCOS.filter(function (b) { return CABE_NA_CELULA.test(b.id); });
   }
 
   function abrirBarra(no, pos) {
@@ -7130,8 +7256,8 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     posBarra = pos;
     escolhaBarra = 0;
     ponteiroMexeu = false;
-    visiveisBarra = BLOCOS.slice();
-    pintarBarra();
+    visiveisBarra = blocosDaBarra();
+    pintarMenuBlocos();
     menuBlocos.hidden = false;
     posicionarBarra();
     setTimeout(function () { document.addEventListener("mousedown", foraDaBarra); }, 0);
@@ -7139,7 +7265,8 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 
   function aplicarDaBarra(b) {
     if (!b) return;
-    var alvo = blocoDoCursor();
+    var cel = celulaDoCursor();
+    var alvo = cel || blocoDoCursor();
     var q = consultaDaBarra();
     var no = noBarra, pos = posBarra;
     fecharBarra();
@@ -7149,6 +7276,13 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     corte.setStart(no, pos);
     corte.setEnd(no, Math.min(pos + 1 + (q || "").length, no.textContent.length));
     corte.deleteContents();
+    /* Na célula, quem se transforma é a linha, e não a tabela. */
+    if (cel) {
+      if (!CABE_NA_CELULA.test(b.id)) return;
+      paragrafarCelula(cel);
+      alvo = linhaDaCelula(cel);
+      if (!alvo) return;
+    }
     var resto = alvo.innerHTML.trim();
     if (resto === "<br>") resto = "";
     virarBloco(alvo, b.id, resto);
@@ -8261,7 +8395,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
      por encostar. Bloco que contém outro da lista sai: o item de fora de uma
      lista aninhada não é o que se quis formatar. */
   function folhasDaSelecao() {
-    if (temBloco()) { arquivoCorpo.focus({ preventScroll: true }); return celulasDoBloco(); }
+    if (temBlocoDeCelulas()) { arquivoCorpo.focus({ preventScroll: true }); return celulasDoBloco(); }
     if (!voltarAoTexto()) return [];
     var r = window.getSelection().getRangeAt(0);
     var achadas = Array.prototype.filter.call(arquivoCorpo.querySelectorAll(FOLHAS), function (el) {
@@ -8284,7 +8418,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   }
 
   function comando(nome, valor, css) {
-    if (temBloco()) { comandoNoBloco(nome, valor, css); return; }
+    if (temBlocoDeCelulas()) { comandoNoBloco(nome, valor, css); return; }
     if (!voltarAoTexto()) return;
     document.execCommand("styleWithCSS", false, !!css);
     document.execCommand(nome, false, valor == null ? null : valor);
@@ -8377,7 +8511,13 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 
   /* ── Estilo de parágrafo ────────────────────────────────────────────── */
   function aplicarEstilo(tag) {
-    var folhas = folhasDaSelecao();
+    var bloco = temBlocoDeCelulas();
+    var folhas = [];
+    folhasDaSelecao().forEach(function (f) {
+      /* Na célula o estilo vale para as linhas dela, e a célula fica. */
+      if (f.tagName === "TD" || f.tagName === "TH") folhas = folhas.concat(linhasDaCelula(f, bloco));
+      else folhas.push(f);
+    });
     var p = guardarPontas(), trocas = new Map();
     var titulo = arquivoCorpo.firstElementChild, recusa = "";
     folhas.forEach(function (el) {
@@ -8412,7 +8552,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 
   function aplicarTamanho(pt) {
     pt = Math.round(Math.max(1, Math.min(400, pt)) * 10) / 10;
-    if (pt && temBloco()) {
+    if (pt && temBlocoDeCelulas()) {
       tamanhoPendente = pt;
       campoTamanho.value = numeroBr(pt);
       emCadaCelula(function (c) {
@@ -8471,7 +8611,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     corEscolhida = hex;
     $("beCorBarra").style.background = hex;
     if (!voltarAoTexto()) return;
-    if (!temBloco() && window.getSelection().isCollapsed) { pedirTrecho("A cor vale para o texto selecionado."); return; }
+    if (!temBlocoDeCelulas() && window.getSelection().isCollapsed) { pedirTrecho("A cor vale para o texto selecionado."); return; }
     comando("foreColor", hex, true);
   }
 
@@ -8480,7 +8620,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
      trecho começa e termina, inclusive quando ele corta marcas pela metade. */
   function tirarCor() {
     if (!voltarAoTexto()) return;
-    if (temBloco()) { emCadaCelula(tirarCorDoTrecho); depoisDeMexer(); return; }
+    if (temBlocoDeCelulas()) { emCadaCelula(tirarCorDoTrecho); depoisDeMexer(); return; }
     if (window.getSelection().isCollapsed) { pedirTrecho("A cor sai do texto selecionado."); return; }
     tirarCorDoTrecho();
     depoisDeMexer();
@@ -8505,7 +8645,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 
   function aplicarGrifo(cor) {
     if (!voltarAoTexto()) return;
-    if (temBloco()) {
+    if (temBlocoDeCelulas()) {
       emCadaCelula(function (c) { if (c.textContent.trim()) grifarCom(cor); });
       pintarBarra();
       return;
@@ -8516,7 +8656,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   }
   function tirarGrifo() {
     if (!voltarAoTexto()) return;
-    if (temBloco()) {
+    if (temBlocoDeCelulas()) {
       var tocados = [];
       emCadaCelula(function () {
         tirarFundos(fundosNaSelecao());
@@ -8654,9 +8794,14 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
      ele nunca tira: escolher o estilo do marcador é pedir lista. */
   function alternarLista(tipo, variante) {
     var titulo = arquivoCorpo.firstElementChild;
-    var alvos = [];
+    var alvos = [], bloco = temBlocoDeCelulas();
     folhasDaSelecao().forEach(function (f) {
       var alvo = f;
+      /* Na célula, as linhas dela viram os itens; a célula fica. */
+      if (f.tagName === "TD" || f.tagName === "TH") {
+        linhasDaCelula(f, bloco).forEach(function (l) { if (alvos.indexOf(l) < 0) alvos.push(l); });
+        return;
+      }
       if (f.tagName === "LI") {
         alvo = f.parentElement;
         while (alvo.parentElement && alvo.parentElement.tagName === "LI") alvo = alvo.parentElement.parentElement;
@@ -8666,7 +8811,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       if (alvo !== titulo && alvos.indexOf(alvo) < 0) alvos.push(alvo);
     });
     if (!alvos.length) {
-      avisar("info", "Aqui não vira lista", "O título do arquivo, as tabelas e os cabeçalhos recolhíveis ficam como estão.");
+      avisar("info", "Aqui não vira lista", "O título do arquivo e os cabeçalhos recolhíveis ficam como estão.");
       return;
     }
     var p = guardarPontas(), trocas = new Map();
@@ -8739,7 +8884,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
      grifo sai à parte, porque no Docs o destaque também é formatação. */
   function limparFormatacao(calado) {
     if (!voltarAoTexto()) return false;
-    if (temBloco()) {
+    if (temBlocoDeCelulas()) {
       var tocados = [];
       emCadaCelula(function () {
         document.execCommand("removeFormat");
