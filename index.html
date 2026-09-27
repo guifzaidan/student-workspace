@@ -942,8 +942,21 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
   position: relative;
   display: flex;
   flex-direction: column;
+  /* A imagem fica do tamanho dela, e não esticada até a margem: é a caixa
+     dela que a alça de tamanho e o botão de excluir acompanham. */
+  align-items: flex-start;
   gap: 6px;
   max-width: 100%;
+}
+.arquivo-corpo .figura > .figura-subindo { align-self: stretch; }
+.arquivo-corpo .figura.figura-meio { align-items: center; }
+.arquivo-corpo .figura.figura-direita { align-items: flex-end; }
+/* Imagem com tamanho escolhido: a largura vem escrita nela em porcentagem da
+   coluna de texto, e a altura acompanha. O teto de altura das outras sai,
+   senão ele cortaria justamente o que se pediu maior. */
+.arquivo-corpo .figura img.figura-medida {
+  height: auto;
+  max-height: none;
 }
 .arquivo-corpo .figura img {
   display: block;
@@ -972,12 +985,17 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
   pointer-events: none;
   z-index: 250;
 }
-.figura-excluir {
+/* As ferramentas que aparecem sobre a imagem no hover (posição, excluir,
+   tamanho) têm a mesma caixa: mesma altura, canto, borda e sombra. Por dentro
+   também falam igual: cinza no hover, amarelo no que está ligado. Só o
+   excluir foge disso, e fica vermelho, porque apaga. */
+.figura-excluir,
+.figura-alca,
+.figura-barra {
   position: fixed;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
   height: 30px;
   padding: 0;
   border: 1px solid var(--gray3);
@@ -985,10 +1003,13 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
   background: var(--white);
   color: var(--gray);
   box-shadow: var(--shadow-card);
-  cursor: pointer;
+  overflow: hidden;
   z-index: 251;
   transition: background var(--transition), color var(--transition), border-color var(--transition);
 }
+.figura-excluir,
+.figura-alca { width: 30px; }
+.figura-excluir { cursor: pointer; }
 .figura-excluir:hover,
 .figura-excluir:focus-visible {
   outline: none;
@@ -996,7 +1017,48 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
   border-color: color-mix(in srgb, var(--red) 40%, var(--gray3));
   background: color-mix(in srgb, var(--red) 8%, var(--white));
 }
-.figura-moldura[hidden], .figura-excluir[hidden], .guia-coluna[hidden] { display: none; }
+/* A alça de tamanho, no canto de baixo da imagem. Duplo clique devolve o
+   tamanho automático. */
+.figura-alca {
+  cursor: nwse-resize;
+  touch-action: none;
+}
+.figura-alca:hover { background: var(--gray4); color: var(--black); }
+body.puxando-imagem .figura-alca { background: var(--yd); color: var(--black); }
+body.puxando-imagem,
+body.puxando-imagem * { cursor: nwse-resize !important; user-select: none; }
+.figura-moldura[data-medida]::after {
+  content: attr(data-medida);
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: var(--black);
+  color: var(--white);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+/* Posição da imagem na linha: esquerda, meio, direita. Os segmentos ocupam a
+   altura toda, e acendem como o botão sozinho acende. */
+.figura-barra button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 100%;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+.figura-barra button + button { border-left: 1px solid var(--gray3); }
+.figura-barra button:hover,
+.figura-barra button:focus-visible { outline: none; background: var(--gray4); color: var(--black); }
+.figura-barra button[aria-pressed="true"] { background: var(--yd); color: var(--black); }
+.figura-moldura[hidden], .figura-excluir[hidden], .figura-barra[hidden], .figura-alca[hidden], .guia-coluna[hidden] { display: none; }
 /* Enquanto a imagem sobe, o lugar dela já existe: sem isto o texto dá um salto
    quando ela chega, e quem colou não sabe se alguma coisa aconteceu. */
 .arquivo-corpo .figura-subindo {
@@ -7793,11 +7855,70 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   botaoExcluirFigura.hidden = true;
   botaoExcluirFigura.innerHTML =
     '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+  var alcaFigura = document.createElement("div");
+  alcaFigura.className = "figura-alca";
+  alcaFigura.hidden = true;
+  alcaFigura.title = "Arraste para mudar o tamanho (duplo clique volta ao automático)";
+  alcaFigura.innerHTML =
+    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21h6v-6"/><path d="M9 3H3v6"/><path d="M21 21l-7-7"/><path d="M3 3l7 7"/></svg>';
+  /* Onde a imagem fica na linha. Esquerda é o natural e não deixa marca; as
+     outras duas ficam como classe na figura, e viajam com o texto. */
+  var POSICOES_FIGURA = [
+    { classe: "", nome: "Alinhar à esquerda",
+      svg: '<path d="M4 4v16"/><rect x="7" y="8" width="9" height="8" rx="1.5"/>' },
+    { classe: "figura-meio", nome: "Centralizar",
+      svg: '<path d="M12 3v3M12 18v3"/><rect x="6" y="8" width="12" height="8" rx="1.5"/>' },
+    { classe: "figura-direita", nome: "Alinhar à direita",
+      svg: '<path d="M20 4v16"/><rect x="8" y="8" width="9" height="8" rx="1.5"/>' }
+  ];
+  var barraFigura = document.createElement("div");
+  barraFigura.className = "figura-barra";
+  barraFigura.hidden = true;
+  barraFigura.setAttribute("role", "group");
+  barraFigura.setAttribute("aria-label", "Posição da imagem");
+  POSICOES_FIGURA.forEach(function (p) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.dataset.posicao = p.classe;
+    b.title = p.nome;
+    b.setAttribute("aria-label", p.nome);
+    b.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' + p.svg + '</svg>';
+    barraFigura.appendChild(b);
+  });
   document.body.appendChild(molduraFigura);
+  document.body.appendChild(barraFigura);
   document.body.appendChild(botaoExcluirFigura);
-  var figuraSobPonteiro = null, figuraMarcada = null;
+  document.body.appendChild(alcaFigura);
+  var figuraSobPonteiro = null, figuraMarcada = null, puxandoImagem = null;
 
   function imagemDa(fig) { return fig && fig.isConnected ? fig.querySelector("img") : null; }
+
+  /* O que flutua sobre a imagem é parte dela para o hover: ir até lá não
+     conta como sair. */
+  function ehFerramentaDaFigura(el) {
+    return !!el && (el === botaoExcluirFigura || botaoExcluirFigura.contains(el) ||
+      barraFigura.contains(el) || el === alcaFigura);
+  }
+
+  function posicaoDaFigura(fig) {
+    for (var i = 1; i < POSICOES_FIGURA.length; i++) {
+      if (fig.classList.contains(POSICOES_FIGURA[i].classe)) return POSICOES_FIGURA[i].classe;
+    }
+    return "";
+  }
+
+  barraFigura.addEventListener("mousedown", function (e) { e.preventDefault(); });
+  barraFigura.addEventListener("click", function (e) {
+    var b = e.target.closest && e.target.closest("button[data-posicao]");
+    var fig = figuraMarcada || figuraSobPonteiro;
+    if (!b || !fig || !fig.isConnected) return;
+    var nova = b.dataset.posicao;
+    if (nova === posicaoDaFigura(fig)) return;
+    POSICOES_FIGURA.forEach(function (p) { if (p.classe) fig.classList.remove(p.classe); });
+    if (nova) fig.classList.add(nova);
+    pintarFerramentasDaFigura();
+    salvarTexto();
+  });
 
   function pintarFerramentasDaFigura() {
     var fig = figuraMarcada || figuraSobPonteiro;
@@ -7806,6 +7927,8 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     if (!r || !r.width) {
       molduraFigura.hidden = true;
       botaoExcluirFigura.hidden = true;
+      barraFigura.hidden = true;
+      alcaFigura.hidden = true;
       return;
     }
     botaoExcluirFigura.hidden = false;
@@ -7814,6 +7937,22 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     var w = botaoExcluirFigura.offsetWidth;
     botaoExcluirFigura.style.top = (r.top + 8) + "px";
     botaoExcluirFigura.style.left = (r.right - w - 8) + "px";
+    barraFigura.hidden = false;
+    var atual = posicaoDaFigura(fig);
+    Array.prototype.forEach.call(barraFigura.children, function (b) {
+      b.setAttribute("aria-pressed", b.dataset.posicao === atual ? "true" : "false");
+    });
+    /* Numa imagem estreita a barra não cabe ao lado do botão de excluir, e
+       sobe para cima dela em vez de cobri-lo. Encostada na borda, sem vão:
+       o ponteiro vai da imagem à barra sem passar pelo texto de cima. */
+    var bw = barraFigura.offsetWidth, bh = barraFigura.offsetHeight;
+    var cabe = r.width >= bw + w + 24;
+    barraFigura.style.top = (cabe ? r.top + 8 : r.top - bh + 2) + "px";
+    barraFigura.style.left = (cabe ? r.left + 8 : r.left) + "px";
+    alcaFigura.hidden = false;
+    var a = alcaFigura.offsetWidth;
+    alcaFigura.style.top = (r.bottom - a - 8) + "px";
+    alcaFigura.style.left = (r.right - a - 8) + "px";
     molduraFigura.hidden = !figuraMarcada;
     if (figuraMarcada) {
       molduraFigura.style.top = (r.top - 2) + "px";
@@ -7853,6 +7992,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   }
 
   arquivoCorpo.addEventListener("mouseover", function (e) {
+    if (puxandoImagem) return;
     var fig = e.target.closest && e.target.closest(".figura");
     if (fig && !imagemDa(fig)) fig = null;
     if (fig === figuraSobPonteiro) return;
@@ -7861,18 +8001,86 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   });
   /* Sair da imagem esconde o botão, menos quando é para ir até ele. */
   arquivoCorpo.addEventListener("mouseout", function (e) {
-    if (!figuraSobPonteiro) return;
+    if (!figuraSobPonteiro || puxandoImagem) return;
     var para = e.relatedTarget;
-    if (para && (para === botaoExcluirFigura || botaoExcluirFigura.contains(para))) return;
+    if (ehFerramentaDaFigura(para)) return;
     if (para && figuraSobPonteiro.contains(para)) return;
     figuraSobPonteiro = null;
     pintarFerramentasDaFigura();
   });
-  botaoExcluirFigura.addEventListener("mouseleave", function (e) {
+  function saiuDaFerramenta(e) {
+    if (puxandoImagem) return;
     var para = e.relatedTarget;
+    if (ehFerramentaDaFigura(para)) return;
     if (para && figuraSobPonteiro && figuraSobPonteiro.contains(para)) return;
     figuraSobPonteiro = null;
     pintarFerramentasDaFigura();
+  }
+  botaoExcluirFigura.addEventListener("mouseleave", saiuDaFerramenta);
+  barraFigura.addEventListener("mouseleave", saiuDaFerramenta);
+  alcaFigura.addEventListener("mouseleave", saiuDaFerramenta);
+
+  /* ── Tamanho da imagem ───────────────────────────────────────────────
+     Arrastar a alça do canto muda a largura, e a altura vem junto na mesma
+     proporção. A medida fica escrita na própria imagem em porcentagem da
+     coluna de texto, como a largura das colunas da tabela: viaja com o texto e
+     acompanha qualquer margem ou tela. Duplo clique na alça devolve o tamanho
+     automático. */
+  var IMAGEM_MINIMA = 60;
+
+  alcaFigura.addEventListener("pointerdown", function (e) {
+    if (e.button !== 0) return;
+    var fig = figuraSobPonteiro || figuraMarcada;
+    var img = imagemDa(fig);
+    if (!img) return;
+    e.preventDefault();
+    var coluna = fig.getBoundingClientRect().width;
+    if (!coluna) return;
+    puxandoImagem = {
+      fig: fig, img: img, x: e.clientX, coluna: coluna,
+      largura: img.getBoundingClientRect().width,
+      antes: img.getAttribute("style"), mudou: false
+    };
+    try { alcaFigura.setPointerCapture(e.pointerId); } catch (erro) { /* sem captura, o document ainda ouve */ }
+    document.body.classList.add("puxando-imagem");
+    marcarFigura(fig);
+  });
+
+  document.addEventListener("pointermove", function (e) {
+    var p = puxandoImagem;
+    if (!p) return;
+    var px = Math.max(Math.min(IMAGEM_MINIMA, p.coluna), Math.min(p.coluna, p.largura + e.clientX - p.x));
+    var pct = Math.round(px / p.coluna * 1000) / 10;
+    p.img.classList.add("figura-medida");
+    p.img.style.width = pct + "%";
+    p.mudou = true;
+    molduraFigura.dataset.medida = Math.round(pct) + "%";
+    pintarFerramentasDaFigura();
+  });
+
+  function fimDoPuxaoDaImagem() {
+    var p = puxandoImagem;
+    if (!p) return;
+    puxandoImagem = null;
+    document.body.classList.remove("puxando-imagem");
+    delete molduraFigura.dataset.medida;
+    figuraMarcada = null;
+    pintarFerramentasDaFigura();
+    if (p.mudou && p.img.getAttribute("style") !== p.antes) salvarTexto();
+  }
+  document.addEventListener("pointerup", fimDoPuxaoDaImagem);
+  document.addEventListener("pointercancel", fimDoPuxaoDaImagem);
+
+  alcaFigura.addEventListener("dblclick", function (e) {
+    e.preventDefault();
+    var img = imagemDa(figuraSobPonteiro || figuraMarcada);
+    if (!img || !img.classList.contains("figura-medida")) return;
+    img.classList.remove("figura-medida");
+    if (!img.className) img.removeAttribute("class");
+    img.style.removeProperty("width");
+    semEstiloVazio(img);
+    pintarFerramentasDaFigura();
+    salvarTexto();
   });
   botaoExcluirFigura.addEventListener("mousedown", function (e) { e.preventDefault(); });
   botaoExcluirFigura.addEventListener("click", function () {
