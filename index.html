@@ -951,6 +951,16 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
 .arquivo-corpo .figura > .figura-subindo { align-self: stretch; }
 .arquivo-corpo .figura.figura-meio { align-items: center; }
 .arquivo-corpo .figura.figura-direita { align-items: flex-end; }
+/* Imagem com texto ao lado: ela flutua num canto e as linhas seguintes a
+   contornam. Quem quer o texto embaixo dá Enter até passar da imagem. A
+   largura vem escrita na figura, na mesma porcentagem da imagem: flutuando, a
+   figura teria o tamanho da imagem e a imagem o da figura, e a conta não fecha.
+   O corpo contém a flutuação, senão uma imagem no fim vazaria para fora dele. */
+.arquivo-corpo { display: flow-root; }
+.arquivo-corpo .figura.figura-flutua-esquerda { float: left; margin: 4px 20px 10px 0; }
+.arquivo-corpo .figura.figura-flutua-direita { float: right; margin: 4px 0 10px 20px; align-items: flex-end; }
+.arquivo-corpo .figura.figura-flutua-esquerda img,
+.arquivo-corpo .figura.figura-flutua-direita img { width: 100% !important; }
 /* Imagem com tamanho escolhido: a largura vem escrita nela em porcentagem da
    coluna de texto, e a altura acompanha. O teto de altura das outras sai,
    senão ele cortaria justamente o que se pediu maior. */
@@ -7869,8 +7879,15 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     { classe: "figura-meio", nome: "Centralizar",
       svg: '<path d="M12 3v3M12 18v3"/><rect x="6" y="8" width="12" height="8" rx="1.5"/>' },
     { classe: "figura-direita", nome: "Alinhar à direita",
-      svg: '<path d="M20 4v16"/><rect x="8" y="8" width="9" height="8" rx="1.5"/>' }
+      svg: '<path d="M20 4v16"/><rect x="8" y="8" width="9" height="8" rx="1.5"/>' },
+    { classe: "figura-flutua-esquerda", nome: "Imagem à esquerda, texto à direita", flutua: true,
+      svg: '<rect x="3" y="5" width="8" height="8" rx="1.5"/><path d="M14 6h7M14 10h7M14 14h7M3 18h18"/>' },
+    { classe: "figura-flutua-direita", nome: "Imagem à direita, texto à esquerda", flutua: true,
+      svg: '<rect x="13" y="5" width="8" height="8" rx="1.5"/><path d="M3 6h7M3 10h7M3 14h7M3 18h18"/>' }
   ];
+  /* Flutuando, a imagem nasce com 40% da coluna se ainda não tinha tamanho:
+     no automático ela ocuparia a linha inteira e não sobraria lado. */
+  var FLUTUANTE_INICIAL = 40;
   var barraFigura = document.createElement("div");
   barraFigura.className = "figura-barra";
   barraFigura.hidden = true;
@@ -7907,6 +7924,37 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     return "";
   }
 
+  function figuraFlutua(fig) {
+    var atual = posicaoDaFigura(fig);
+    return POSICOES_FIGURA.some(function (p) { return p.flutua && p.classe === atual; });
+  }
+
+  /* A largura da coluna de texto onde a figura mora. Medida no pai, e não na
+     figura: flutuando, a figura tem só a largura da imagem. */
+  function larguraDaColuna(fig) {
+    var pai = fig.parentElement;
+    if (!pai) return 0;
+    var cs = getComputedStyle(pai);
+    return pai.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
+  }
+
+  /* Flutuando, a figura carrega a mesma largura da imagem; fora disso, não
+     carrega nenhuma. A imagem guarda a dela nos dois casos, e voltar para a
+     linha devolve o tamanho que ela tinha. */
+  function acertarLarguraDaFigura(fig) {
+    var img = imagemDa(fig);
+    if (img && figuraFlutua(fig)) {
+      if (!img.classList.contains("figura-medida")) {
+        img.classList.add("figura-medida");
+        img.style.width = FLUTUANTE_INICIAL + "%";
+      }
+      fig.style.width = img.style.width;
+    } else {
+      fig.style.removeProperty("width");
+      semEstiloVazio(fig);
+    }
+  }
+
   barraFigura.addEventListener("mousedown", function (e) { e.preventDefault(); });
   barraFigura.addEventListener("click", function (e) {
     var b = e.target.closest && e.target.closest("button[data-posicao]");
@@ -7916,6 +7964,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     if (nova === posicaoDaFigura(fig)) return;
     POSICOES_FIGURA.forEach(function (p) { if (p.classe) fig.classList.remove(p.classe); });
     if (nova) fig.classList.add(nova);
+    acertarLarguraDaFigura(fig);
     pintarFerramentasDaFigura();
     salvarTexto();
   });
@@ -8034,10 +8083,17 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     var img = imagemDa(fig);
     if (!img) return;
     e.preventDefault();
-    var coluna = fig.getBoundingClientRect().width;
+    var coluna = larguraDaColuna(fig);
     if (!coluna) return;
+    /* A alça fica no canto direito, mas a imagem cresce para o lado oposto
+       ao que a prende: presa à direita, puxar para a esquerda é que aumenta;
+       no meio, ela cresce para os dois lados e anda o dobro. */
+    var atual = posicaoDaFigura(fig);
+    var sentido = atual === "figura-direita" || atual === "figura-flutua-direita" ? -1 :
+      atual === "figura-meio" ? 2 : 1;
     puxandoImagem = {
-      fig: fig, img: img, x: e.clientX, coluna: coluna,
+      fig: fig, img: img, x: e.clientX, coluna: coluna, sentido: sentido,
+      antesFig: fig.getAttribute("style"),
       largura: img.getBoundingClientRect().width,
       antes: img.getAttribute("style"), mudou: false
     };
@@ -8049,10 +8105,11 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   document.addEventListener("pointermove", function (e) {
     var p = puxandoImagem;
     if (!p) return;
-    var px = Math.max(Math.min(IMAGEM_MINIMA, p.coluna), Math.min(p.coluna, p.largura + e.clientX - p.x));
+    var px = Math.max(Math.min(IMAGEM_MINIMA, p.coluna), Math.min(p.coluna, p.largura + p.sentido * (e.clientX - p.x)));
     var pct = Math.round(px / p.coluna * 1000) / 10;
     p.img.classList.add("figura-medida");
     p.img.style.width = pct + "%";
+    if (figuraFlutua(p.fig)) p.fig.style.width = pct + "%";
     p.mudou = true;
     molduraFigura.dataset.medida = Math.round(pct) + "%";
     pintarFerramentasDaFigura();
@@ -8066,19 +8123,22 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     delete molduraFigura.dataset.medida;
     figuraMarcada = null;
     pintarFerramentasDaFigura();
-    if (p.mudou && p.img.getAttribute("style") !== p.antes) salvarTexto();
+    if (p.mudou && (p.img.getAttribute("style") !== p.antes || p.fig.getAttribute("style") !== p.antesFig)) salvarTexto();
   }
   document.addEventListener("pointerup", fimDoPuxaoDaImagem);
   document.addEventListener("pointercancel", fimDoPuxaoDaImagem);
 
   alcaFigura.addEventListener("dblclick", function (e) {
     e.preventDefault();
-    var img = imagemDa(figuraSobPonteiro || figuraMarcada);
+    var fig = figuraSobPonteiro || figuraMarcada;
+    var img = imagemDa(fig);
     if (!img || !img.classList.contains("figura-medida")) return;
     img.classList.remove("figura-medida");
     if (!img.className) img.removeAttribute("class");
     img.style.removeProperty("width");
     semEstiloVazio(img);
+    /* Flutuando não há automático que caiba: ela volta ao tamanho de nascer. */
+    acertarLarguraDaFigura(fig);
     pintarFerramentasDaFigura();
     salvarTexto();
   });
