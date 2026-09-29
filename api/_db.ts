@@ -161,6 +161,11 @@ const COLUNAS: [string, string, string][] = [
   ['sinapse_arquivos', 'notas', `TEXT NOT NULL DEFAULT ''`],
   // Margem da folha em centímetros; 2,54 é a do Docs e do Word.
   ['sinapse_arquivos', 'margem', `REAL NOT NULL DEFAULT 2.54`],
+  // Uma imagem por lado do card, como endereço da `/api/imagem` (vazio é sem).
+  ['sinapse_flashcards', 'imagem_frente', `TEXT NOT NULL DEFAULT ''`],
+  ['sinapse_flashcards', 'imagem_verso', `TEXT NOT NULL DEFAULT ''`],
+  ['sinapse_rascunhos', 'imagem_frente', `TEXT NOT NULL DEFAULT ''`],
+  ['sinapse_rascunhos', 'imagem_verso', `TEXT NOT NULL DEFAULT ''`],
 ];
 
 async function garantirColunas(cx: ReturnType<typeof db>): Promise<void> {

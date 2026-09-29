@@ -117,6 +117,8 @@ async function lerTudo() {
       arquivoId: texto(l.arquivo_id),
       frente: texto(l.frente),
       verso: texto(l.verso),
+      imagemFrente: texto(l.imagem_frente),
+      imagemVerso: texto(l.imagem_verso),
       trecho: texto(l.trecho),
       origem: texto(l.origem),
       intervalo: numero(l.intervalo_dias),
@@ -142,6 +144,8 @@ async function lerTudo() {
       arquivoId: texto(l.arquivo_id),
       frente: texto(l.frente),
       verso: texto(l.verso),
+      imagemFrente: texto(l.imagem_frente),
+      imagemVerso: texto(l.imagem_verso),
       trecho: texto(l.trecho),
       origem: texto(l.origem),
     })),
@@ -282,14 +286,17 @@ async function gravar(corpo: Record<string, unknown>) {
         ids.push(id);
         return {
           sql: `INSERT INTO sinapse_flashcards
-                  (id, deck_id, arquivo_id, frente, verso, trecho, origem, proxima_revisao, criado_em, atualizado_em)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                  (id, deck_id, arquivo_id, frente, verso, imagem_frente, imagem_verso, trecho, origem,
+                   proxima_revisao, criado_em, atualizado_em)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           args: [
             id,
             texto(corpo.deckId ?? c.deckId),
             texto(c.arquivoId) || null,
             texto(c.frente),
             texto(c.verso),
+            texto(c.imagemFrente),
+            texto(c.imagemVerso),
             texto(c.trecho),
             texto(c.origem),
             hoje(),
@@ -311,17 +318,18 @@ async function gravar(corpo: Record<string, unknown>) {
     case 'rascunho.criar': {
       const id = novoId('rsc');
       await cx.execute(
-        `INSERT INTO sinapse_rascunhos (id, arquivo_id, frente, verso, trecho, origem, criado_em)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO sinapse_rascunhos
+           (id, arquivo_id, frente, verso, imagem_frente, imagem_verso, trecho, origem, criado_em)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [id, texto(corpo.arquivoId) || null, texto(corpo.frente), texto(corpo.verso),
-         texto(corpo.trecho), texto(corpo.origem), t],
+         texto(corpo.imagemFrente), texto(corpo.imagemVerso), texto(corpo.trecho), texto(corpo.origem), t],
       );
       return { id };
     }
     case 'rascunho.salvar':
       await cx.execute(
-        'UPDATE sinapse_rascunhos SET frente = ?, verso = ? WHERE id = ?',
-        [texto(corpo.frente), texto(corpo.verso), texto(corpo.id)],
+        'UPDATE sinapse_rascunhos SET frente = ?, verso = ?, imagem_frente = ?, imagem_verso = ? WHERE id = ?',
+        [texto(corpo.frente), texto(corpo.verso), texto(corpo.imagemFrente), texto(corpo.imagemVerso), texto(corpo.id)],
       );
       return { ok: true };
     case 'rascunho.excluir':
@@ -329,8 +337,11 @@ async function gravar(corpo: Record<string, unknown>) {
       return { ok: true };
     case 'card.salvar':
       await cx.execute(
-        'UPDATE sinapse_flashcards SET frente = ?, verso = ?, deck_id = ?, atualizado_em = ? WHERE id = ?',
-        [texto(corpo.frente), texto(corpo.verso), texto(corpo.deckId), t, texto(corpo.id)],
+        `UPDATE sinapse_flashcards
+            SET frente = ?, verso = ?, imagem_frente = ?, imagem_verso = ?, deck_id = ?, atualizado_em = ?
+          WHERE id = ?`,
+        [texto(corpo.frente), texto(corpo.verso), texto(corpo.imagemFrente), texto(corpo.imagemVerso),
+         texto(corpo.deckId), t, texto(corpo.id)],
       );
       return { ok: true };
     case 'card.excluir':

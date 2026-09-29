@@ -2877,7 +2877,13 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
   /* Acompanha o trilho no mesmo tempo que a grade leva para abrir e fechar a
      coluna, senão o botão saltaria para o lugar novo antes de haver lugar. */
   transition: right var(--transition-spring), opacity var(--transition);
+  /* A caixa da peça tem o tamanho das opções mesmo com elas fechadas e
+     invisíveis, e ficava parada sobre o pé da tela engolindo o toque: os
+     cartões de pasta e as linhas de arquivo de baixo não abriam. Quem recebe
+     clique é só o que se vê — o botão, e as opções quando abertas. */
+  pointer-events: none;
 }
+.fab-principal { pointer-events: auto; }
 
 /* Na tela do arquivo o trilho é uma coluna encostada na direita, e o botão de
    ações rápidas caía bem em cima do rodapé dele — justamente sobre o seletor de
@@ -3476,9 +3482,16 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
 }
 .arquivo-linha-ico { color: var(--gray2); flex-shrink: 0; }
 .arquivo-linha-texto { flex: 1; min-width: 0; }
-.arquivo-linha-nome { font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* `display: block` é o que faz as reticências valerem: o nome é um <span>, e
+   em linha o corte não acontece — o texto corria por baixo da contagem. */
+.arquivo-linha-nome { display: block; font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .arquivo-linha-sub { font-size: 11.5px; font-weight: 500; color: var(--gray2); margin-top: 1px; }
 .arquivo-linha-meta { flex-shrink: 0; font-size: 11.5px; font-weight: 600; color: var(--gray2); white-space: nowrap; }
+.arquivo-linha-sub-cards { display: none; }
+@media (max-width: 560px) {
+  .arquivo-linha-meta { display: none; }
+  .arquivo-linha-sub-cards { display: inline; }
+}
 /* As etiquetas entram entre o nome e a contagem, e cedem espaço antes deles:
    numa linha apertada quem tem de sobreviver é o nome do arquivo. */
 .arquivo-linha-etiquetas { display: flex; flex-wrap: wrap; gap: 5px; min-width: 0; flex-shrink: 1; }
@@ -3999,6 +4012,39 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 }
 .revisao-selo.atrasado { background: var(--red-soft); color: var(--red); }
 .revisao-selo.novo { background: var(--yd); color: var(--black); }
+/* O lado do card na gaveta: o texto em cima e a imagem dele logo abaixo. */
+.lado-card { display: flex; flex-direction: column; gap: 8px; }
+.campo-imagem { position: relative; border-radius: var(--radius-md); transition: box-shadow var(--transition); }
+.campo-imagem.arrastando { box-shadow: 0 0 0 2px var(--yellow); }
+.campo-imagem-vazio {
+  width: 100%;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 10px 12px;
+  border: 1.5px dashed var(--gray3);
+  border-radius: var(--radius-md);
+  font-size: 12.5px; font-weight: 600; color: var(--gray2);
+  text-align: left;
+  transition: border-color var(--transition), color var(--transition);
+}
+button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black); }
+.campo-imagem-vazio small { display: block; font-size: 11px; font-weight: 500; color: var(--gray2); }
+.giro-mini { width: 13px; height: 13px; border-radius: 50%; border: 2px solid var(--gray3); border-top-color: var(--gray); animation: spin .8s linear infinite; }
+.campo-imagem.com-imagem img { display: block; max-width: 100%; max-height: 220px; border-radius: var(--radius-md); border: 1px solid var(--gray3); object-fit: contain; background: var(--white); cursor: zoom-in; }
+.campo-imagem-tirar {
+  position: absolute; top: 6px; right: 6px;
+  width: 26px; height: 26px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: rgba(0,0,0,.55); color: #fff;
+  transition: background var(--transition);
+}
+.campo-imagem-tirar:hover { background: var(--red); }
+.campo-imagem.com-imagem { align-self: flex-start; max-width: 100%; }
+.fcard-imagem { display: block; margin-top: 6px; max-width: 100%; max-height: 90px; border-radius: 6px; border: 1px solid var(--gray3); object-fit: contain; }
+
+/* A imagem do card cabe inteira: um esquema ou um ECG cortado não ensina nada.
+   O teto de altura segura um retrato comprido sem empurrar os botões para fora. */
+.revisao-imagem { display: block; max-width: 100%; max-height: 340px; margin-top: 12px; border-radius: var(--radius-sm); border: 1px solid var(--gray3); object-fit: contain; background: var(--white); cursor: zoom-in; }
+.revisao-imagem[hidden] { display: none; }
 .revisao-frente { font-size: 21px; font-weight: 800; line-height: 1.35; letter-spacing: -.015em; text-wrap: balance; }
 .revisao-verso {
   padding-top: 16px;
@@ -4259,6 +4305,9 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   }
   .trilho-dentro { width: 100%; min-width: 0; }
   .estudo-area[data-trilho="aberto"] .estudo-trilho { transform: none; }
+  /* O fundo do trilho flutuante: tocar nele fecha o trilho. Um degrau abaixo
+     dele, e só o suficiente de sombra para dizer que o texto está atrás. */
+  .trilho-fundo { position: fixed; inset: 60px 0 0 0; z-index: 289; background: rgba(18,19,22,0.28); border: none; animation: fadeIn .2s ease both; cursor: default; }
   .folha { padding: 34px 30px 48px; }
 }
 /* Abaixo disso o texto precisa de toda a largura, e o índice sai de cena. */
@@ -4304,8 +4353,84 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   .cabecalho-acoes { width: 100%; }
   .admin-page-header .btn { flex: 1; justify-content: center; }
   .estudo-trilho { top: 0; height: 100dvh; z-index: 310; }
-  .toast-cais { bottom: 78px; right: 12px; left: 12px; align-items: stretch; }
+  /* No celular o trilho cobre a altura toda e fica acima da barra de baixo, e
+     o fundo vai junto: senão a faixa que sobra à esquerda seria tocável só em
+     parte. */
+  .trilho-fundo { inset: 0; z-index: 305; }
+
+  /* A barra de formatação no celular: uma faixa só, que rola de lado com o
+     dedo, como a do Docs no telefone. Quebrando em linhas ela tomava cinco
+     andares da tela e espalhava os botões em vãos desiguais. O esmaecido na
+     ponta direita diz que tem mais para o lado.
+
+     Sai o que não serve no telefone: a busca de menus (atalho de teclado), a
+     impressão, a ortografia (o teclado do celular já corrige), a margem e o
+     zoom (sem folha A4 nesta largura) e a escolha de fonte. */
+  .barra-edicao {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+    min-height: 44px;
+    padding: 4px 2px;
+    border-radius: 12px;
+  }
+  .barra-edicao::-webkit-scrollbar { display: none; }
+  .barra-edicao::after { flex: 0 0 22px; }
+  /* O esmaecido é uma peça grudada na ponta direita da faixa, por cima dos
+     botões, e não uma máscara: a máscara apagava junto a borda da barra. */
+  .barra-edicao::before {
+    content: "";
+    order: 999;
+    position: sticky;
+    right: 0;
+    z-index: 1;
+    flex: 0 0 30px;
+    margin-left: -30px;
+    align-self: stretch;
+    margin-block: -4px;
+    background: linear-gradient(to right, transparent, var(--white) 75%);
+    pointer-events: none;
+  }
+  .be-grupo { flex-grow: 0; flex-shrink: 0; padding: 0 5px; gap: 2px; justify-content: flex-start; }
+  .be-grupo > .be-caixa:only-child { flex-grow: 0; }
+  .be-grupo > .be-tamanho:only-child { margin-inline: 0; }
+  .be-btn { width: 34px; height: 34px; }
+  .be-dividido .be-btn:first-child { width: 30px; }
+  .be-dividido .be-seta { width: 16px; }
+  .be-com-seta { width: 40px; }
+  .be-caixa { height: 34px; }
+  .be-estilo span { width: 90px; }
+  /* Atalho de teclado não existe no telefone: nos menus ele só ocupava lugar. */
+  .be-opcao-atalho { display: none; }
+  .be-menus, .be-fonte, .be-zoom,
+  .barra-edicao [data-cmd="imprimir"],
+  .barra-edicao [data-cmd="ortografia"],
+  .barra-edicao [data-menu="margem"] { display: none; }
+  /* O grupo da fonte fica vazio sem ela; sem isto sobraria um divisor solto. */
+  .be-grupo:has(> .be-fonte:only-child) { display: none; }
+  /* No celular o aviso desce logo abaixo do cabeçalho, onde o olho já está, e
+     não embaixo, onde disputava lugar com a barra de navegação e o polegar. */
+  .toast-cais { top: 68px; bottom: auto; right: 12px; left: 12px; align-items: stretch; flex-direction: column-reverse; z-index: 100000; }
   .toast-balao { width: auto; }
+
+  /* O modo foco recolhe o menu e o trilho, e no celular os dois já vivem
+     recolhidos: a chave não fazia nada que se visse, e tomava o cabeçalho. */
+  .topo-meio { display: none; }
+
+  /* Filtros numa linha que rola de lado, e a busca inteira na de baixo: com
+     tudo quebrando junto, os gatilhos ficavam espremidos em três tamanhos. */
+  .admin-toolbar { gap: 8px 6px; }
+  .admin-toolbar-spacer { display: none; }
+  .admin-toolbar .secao-busca-campo { flex: 1 1 100%; min-width: 0; height: 38px; }
+  .admin-toolbar .filter-dropdown-btn { height: 34px; padding: 0 12px; }
+
+  /* Três respostas no diálogo empilham, largas e na mesma medida: lado a lado
+     elas quebravam em duas linhas tortas. A principal vai em cima. */
+  .delete-confirm-actions { flex-direction: column-reverse; align-items: stretch; }
+  .delete-confirm-actions > button { width: 100%; justify-content: center; min-height: 42px; white-space: normal; }
+  .delete-confirm-modal.tres { width: auto; }
   /* Estreito, o balão ocupa a largura e encosta no topo: 280px fixos
      empurrariam a quina para fora da tela. */
   .atividade-cais { top: 68px; right: 12px; left: 12px; align-items: stretch; }
@@ -5176,8 +5301,10 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
                <span class="revisao-selo" id="revSelo" hidden></span>
              </div>
              <h2 class="revisao-frente" id="revFrente"></h2>
+             <img class="revisao-imagem" id="revImagemFrente" alt="Imagem da frente do card" hidden>
              <div class="revelar" id="revVersoCaixa"><div>
                <p class="revisao-verso" id="revVerso"></p>
+               <img class="revisao-imagem" id="revImagemVerso" alt="Imagem do verso do card" hidden>
                <p class="revisao-trecho" id="revTrecho" hidden></p>
              </div></div>
            </article>
@@ -5730,6 +5857,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     PASTAS.forEach(function (p) { p.lista.forEach(function (a) { arquivoPorId[a.id] = a; }); });
     rascunhos = (d.rascunhos || []).map(function (r) {
       return { id: proximoId++, bancoId: r.id, frente: r.frente, verso: r.verso,
+               imagemFrente: r.imagemFrente || "", imagemVerso: r.imagemVerso || "",
                trecho: r.trecho, origem: r.origem, arquivo: arquivoPorId[r.arquivoId] || null };
     });
     /* O destino deles é o deck do arquivo de onde saiu o primeiro, como seria
@@ -5746,6 +5874,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     (d.flashcards || []).forEach(function (c) {
       ACERVO_CARDS.push({
         id: c.id, frente: c.frente, verso: c.verso, trecho: c.trecho,
+        imagemFrente: c.imagemFrente || "", imagemVerso: c.imagemVerso || "",
         deck: nomeDoDeck[c.deckId] || "", deckId: c.deckId, arquivoId: c.arquivoId,
         origem: c.origem, estado: c.estado, proxima: c.proxima, quando: quandoDe(c),
         acertos: c.tentativas ? c.acertos + " de " + c.tentativas : "sem histórico",
@@ -6025,9 +6154,36 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     var novo = forcar === undefined ? !aberto : forcar;
     area.dataset.trilho = novo ? "aberto" : "fechado";
     if (novo) desistirDoFoco();
+    acertarFundoTrilho();
     pintarBalaoCiclo();
   }
   $("btnTrilho").addEventListener("click", function () { alternarTrilho(); });
+
+  /* Abaixo de 1180px o trilho flutua por cima do texto, e não havia como sair
+     dele sem achar o botão que o abriu. Agora ele tem um fundo, como o menu:
+     tocar fora fecha, e o Escape também. Na tela larga ele é uma coluna ao
+     lado do texto, e aí não há "fora" nenhum a tocar. */
+  var fundoTrilho = null;
+  function acertarFundoTrilho() {
+    var precisa = mqTrilho.matches && area.dataset.trilho === "aberto";
+    if (precisa && !fundoTrilho) {
+      fundoTrilho = document.createElement("button");
+      fundoTrilho.type = "button";
+      fundoTrilho.className = "trilho-fundo";
+      fundoTrilho.setAttribute("aria-label", "Fechar o painel de estudo");
+      fundoTrilho.addEventListener("click", function () { alternarTrilho(false); });
+      area.appendChild(fundoTrilho);
+    } else if (!precisa && fundoTrilho) {
+      fundoTrilho.remove();
+      fundoTrilho = null;
+    }
+  }
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape" || !fundoTrilho || e.defaultPrevented) return;
+    /* Com gaveta, diálogo ou prévia na frente, o Escape é deles. */
+    if (!$("gavetaOverlay").hidden || !$("dialogoOverlay").hidden || document.querySelector(".previa-tela")) return;
+    alternarTrilho(false);
+  });
 
   /* Trocar de faixa de largura repõe os dois no padrão daquela faixa, então o
      foco não sobrevive: a chave desliga junto para não apontar o contrário. */
@@ -6036,6 +6192,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     area.dataset.trilho = mqTrilho.matches ? "fechado" : "aberto";
     desistirDoFoco();
     tirarFundo();
+    acertarFundoTrilho();
     pintarBalaoCiclo();
   }
   mqCelular.addEventListener("change", ajustarLargura);
@@ -9398,6 +9555,9 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     barraMenu.style.left = Math.max(8, Math.min(r.left, window.innerWidth - barraMenu.offsetWidth - 8)) + "px";
     document.addEventListener("mousedown", foraDoMenuBarra, true);
   }
+  /* No celular a barra rola de lado: o menu aberto ficaria parado no ar,
+     longe do botão que o abriu. Rolar a faixa fecha o menu. */
+  barraEdicao.addEventListener("scroll", fecharMenuBarra, { passive: true });
 
   var ICO_MARCA = '<svg class="be-opcao-marca" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
 
@@ -10380,9 +10540,22 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     if (gatilhoAberto) gatilhoAberto.setAttribute("aria-expanded", "false");
     gatilhoAberto = null;
     document.removeEventListener("mousedown", foraDaLista);
-    window.removeEventListener("scroll", fecharLista, true);
-    window.removeEventListener("resize", fecharLista);
+    document.removeEventListener("touchstart", foraDaLista);
+    window.removeEventListener("scroll", rolouForaDaLista, true);
+    window.removeEventListener("resize", reposicionarLista);
+    reposicionarLista = function () {};
   }
+  /* Rolar a própria lista não é sair dela: antes qualquer rolagem fechava, e
+     uma lista comprida sumia no primeiro gesto de procurar a opção. */
+  function rolouForaDaLista(e) {
+    if (listaAberta && e.target instanceof Node && listaAberta.contains(e.target)) return;
+    fecharLista();
+  }
+  var reposicionarLista = function () {};
+  /* No celular o teclado que abre é um resize: fechar ali matava a lista no
+     mesmo toque que a abriu. O campo de busca também não ganha foco sozinho
+     no toque, pela mesma razão. */
+  var toqueGrosso = window.matchMedia ? window.matchMedia("(pointer: coarse)") : { matches: false };
   function foraDaLista(e) {
     if ((gatilhoAberto && gatilhoAberto.contains(e.target)) || (listaAberta && listaAberta.contains(e.target))) return;
     fecharLista();
@@ -10402,9 +10575,17 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     listaAberta.style.width = r.width + "px";
     listaAberta.style.left = r.left + "px";
 
+    /* Abre para o lado que tiver mais espaço, e encolhe até caber nele: perto
+       do pé da tela (o seletor de deck do trilho) a lista subia além do topo. */
     function posicionar() {
+      r = gatilho.getBoundingClientRect();
+      listaAberta.style.width = r.width + "px";
+      listaAberta.style.left = r.left + "px";
+      var abaixo = window.innerHeight - r.bottom - 12, acima = r.top - 12;
+      var paraBaixo = abaixo >= Math.min(listaAberta.scrollHeight, 320) || abaixo >= acima;
+      listaAberta.style.maxHeight = Math.max(120, Math.min(320, paraBaixo ? abaixo : acima)) + "px";
       var alt = listaAberta.offsetHeight;
-      listaAberta.style.top = (r.bottom + alt + 8 < window.innerHeight ? r.bottom + 6 : r.top - alt - 6) + "px";
+      listaAberta.style.top = (paraBaixo ? r.bottom + 6 : r.top - alt - 6) + "px";
     }
 
     function desenhar() {
@@ -10495,11 +10676,13 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     gatilhoAberto = gatilho;
     gatilho.setAttribute("aria-expanded", "true");
     var primeiro = listaAberta.querySelector(".filter-dropdown-busca");
-    if (primeiro) primeiro.focus();
+    if (primeiro && !toqueGrosso.matches) primeiro.focus();
+    reposicionarLista = posicionar;
     setTimeout(function () {
       document.addEventListener("mousedown", foraDaLista);
-      window.addEventListener("scroll", fecharLista, true);
-      window.addEventListener("resize", fecharLista);
+      document.addEventListener("touchstart", foraDaLista, { passive: true });
+      window.addEventListener("scroll", rolouForaDaLista, true);
+      window.addEventListener("resize", reposicionarLista);
     }, 0);
   }
   /* Clicar no gatilho aberto fecha: não existe dropdown que abre e no segundo
@@ -10592,6 +10775,14 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       el.querySelector(".fcard-origem").title = d.origem;
       el.querySelector(".frente").textContent = d.frente;
       el.querySelector(".verso").textContent = d.verso;
+      [[".frente", d.imagemFrente], [".verso", d.imagemVerso]].forEach(function (par) {
+        if (!par[1]) return;
+        var mini = document.createElement("img");
+        mini.className = "fcard-imagem";
+        mini.src = par[1];
+        mini.alt = "";
+        el.querySelector(par[0]).after(mini);
+      });
 
       el.querySelector(".fcard-tirar").addEventListener("click", function (e) {
         e.stopPropagation();
@@ -10718,9 +10909,11 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     var novos = indo.map(function (d) {
       var arquivoId = (d.arquivo && d.arquivo.id) || null;
       var c = { frente: d.frente, verso: d.verso, trecho: d.trecho || "",
+                imagemFrente: d.imagemFrente || "", imagemVerso: d.imagemVerso || "",
                 origem: d.origem || "", arquivoId: arquivoId };
       ACERVO_CARDS.unshift({
         frente: c.frente, verso: c.verso, trecho: c.trecho, deck: deck.nome,
+        imagemFrente: c.imagemFrente, imagemVerso: c.imagemVerso,
         origem: c.origem, arquivoId: arquivoId,
         estado: "hoje", quando: "Hoje", acertos: "sem histórico", tentativas: 0
       });
@@ -10810,6 +11003,132 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     g.appendChild(dentro);
     return g;
   }
+  /* ── Imagem no card ──
+     Uma por lado, guardada como as do texto: sobe para a `/api/imagem` e o card
+     guarda só o endereço. Sem arquivo de origem na linha da imagem, de
+     propósito: apagar o arquivo apaga as imagens dele, e o card continua
+     existindo no deck. */
+  function subirImagemCard(arquivo) {
+    if (!ehImagem(arquivo)) return Promise.reject(new Error("Só imagem entra no card."));
+    if (arquivo.size > TETO_IMAGEM) {
+      return Promise.reject(new Error("Ela tem " + Math.round(arquivo.size / 1048576) + " MB, e o limite é " + (TETO_IMAGEM / 1048576) + " MB."));
+    }
+    return lerBase64(arquivo).then(function (base64) {
+      return gravar({ acao: "imagem.criar", tipo: arquivo.type, nome: arquivo.name || "", arquivoId: "", dados: base64 });
+    }).then(function (r) {
+      if (!r || !r.url) throw new Error("O servidor não devolveu o endereço da imagem.");
+      return r.url;
+    });
+  }
+
+  function mostrarImagemDoCard(img, url) {
+    img.hidden = !url;
+    if (url) img.src = url; else img.removeAttribute("src");
+  }
+  ["revImagemFrente", "revImagemVerso"].forEach(function (id) {
+    $(id).addEventListener("click", function () {
+      var img = $(id);
+      if (img.src) abrirPrevia([{ url: img.src, nome: img.alt }], 0);
+    });
+  });
+
+  /* O campo: vazio, é uma faixa tracejada que aceita clique, arrasto e colar;
+     com imagem, mostra a imagem com um X para tirar. Enquanto sobe, `aoSubir`
+     avisa a gaveta, que segura o Gravar — gravar no meio perderia a imagem. */
+  function campoImagemCard(url, aoMudar, aoSubir) {
+    var caixa = document.createElement("div");
+    caixa.className = "campo-imagem";
+    var atual = url || "";
+
+    function pintar(estado) {
+      caixa.innerHTML = "";
+      caixa.classList.toggle("com-imagem", !!atual && estado !== "subindo");
+      if (estado === "subindo") {
+        caixa.innerHTML = '<span class="campo-imagem-vazio"><span class="giro-mini"></span>Enviando imagem…</span>';
+        return;
+      }
+      if (atual) {
+        var img = document.createElement("img");
+        img.src = atual;
+        img.alt = "Imagem do card";
+        img.addEventListener("click", function () { abrirPrevia([{ url: atual, nome: "imagem do card" }], 0); });
+        var tirar = document.createElement("button");
+        tirar.type = "button";
+        tirar.className = "campo-imagem-tirar";
+        tirar.setAttribute("aria-label", "Tirar a imagem");
+        tirar.title = "Tirar a imagem";
+        tirar.innerHTML = ICO_FECHAR_PREVIA;
+        tirar.addEventListener("click", function () { atual = ""; aoMudar(""); pintar(); });
+        caixa.appendChild(img);
+        caixa.appendChild(tirar);
+        return;
+      }
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "campo-imagem-vazio";
+      b.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="m21 16-5-5-9 9"/></svg>' +
+        "<span>Adicionar imagem <small>clique, arraste ou cole</small></span>";
+      b.addEventListener("click", function () {
+        var entrada = document.createElement("input");
+        entrada.type = "file";
+        entrada.accept = "image/*";
+        entrada.addEventListener("change", function () { if (entrada.files[0]) receber(entrada.files[0]); });
+        entrada.click();
+      });
+      caixa.appendChild(b);
+    }
+
+    function receber(arquivo) {
+      if (!ehImagem(arquivo)) { avisar("error", "Não é imagem", "Só imagem entra no card."); return; }
+      pintar("subindo");
+      aoSubir(1);
+      subirImagemCard(arquivo).then(function (u) {
+        atual = u;
+        aoMudar(u);
+      }).catch(function (e) {
+        avisar("error", "Não deu para enviar a imagem", e.message);
+      }).then(function () { aoSubir(-1); pintar(); });
+    }
+
+    caixa.addEventListener("dragover", function (e) { e.preventDefault(); caixa.classList.add("arrastando"); });
+    caixa.addEventListener("dragleave", function () { caixa.classList.remove("arrastando"); });
+    caixa.addEventListener("drop", function (e) {
+      e.preventDefault();
+      caixa.classList.remove("arrastando");
+      var f = e.dataTransfer && e.dataTransfer.files[0];
+      if (f) receber(f);
+    });
+    /* Colar: o campo inteiro escuta, e o campo de texto do mesmo lado passa a
+       imagem colada para cá (quem copia um print cola onde está escrevendo). */
+    caixa.receber = receber;
+    caixa.addEventListener("paste", function (e) {
+      var f = imagemColada(e);
+      if (f) { e.preventDefault(); receber(f); }
+    });
+    pintar();
+    return caixa;
+  }
+  function imagemColada(e) {
+    var itens = e.clipboardData && e.clipboardData.items;
+    if (!itens) return null;
+    for (var i = 0; i < itens.length; i++) {
+      if (itens[i].kind === "file" && /^image\//.test(itens[i].type)) return itens[i].getAsFile();
+    }
+    return null;
+  }
+  /* O lado do card na gaveta: o texto e, logo abaixo, a imagem dele. */
+  function ladoDoCard(campoTexto, campoImagem) {
+    var d = document.createElement("div");
+    d.className = "lado-card";
+    campoTexto.addEventListener("paste", function (e) {
+      var f = imagemColada(e);
+      if (f) { e.preventDefault(); campoImagem.receber(f); }
+    });
+    d.appendChild(campoTexto);
+    d.appendChild(campoImagem);
+    return d;
+  }
+
   /* Bloco que só se lê, com o mesmo rótulo dos campos. O `grupo` usa <label>, e
      rótulo sem controle é rótulo que não aponta para nada. */
   function grupoSoLeitura(rotulo, dentro) {
@@ -11429,14 +11748,29 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     return PASTAS.length ? PASTAS[0].nome : "";
   }
 
+  /* Os dois lados do card na gaveta, cada um com o texto e a imagem dele. Card
+     só com imagem na frente é pergunta válida (que ritmo é este?), então a
+     frente pede texto ou imagem. Imagem subindo segura o Gravar. */
+  function montarLadosDoCard(corpo, estado, dicaFrente, dicaVerso) {
+    function subindo(n) { estado.subindo += n; travarGravar(); }
+    corpo.appendChild(grupo("Frente", ladoDoCard(
+      campoFrente(estado.frente, dicaFrente, function (v) { estado.frente = v; }),
+      campoImagemCard(estado.imagemFrente, function (u) { estado.imagemFrente = u; travarGravar(); }, subindo))));
+    corpo.appendChild(grupo("Verso", ladoDoCard(
+      campoArea(estado.verso, dicaVerso, function (v) { estado.verso = v; }),
+      campoImagemCard(estado.imagemVerso, function (u) { estado.imagemVerso = u; }, subindo))));
+  }
+  function podeGravarCard(estado) {
+    return !estado.subindo && (!!estado.frente.trim() || !!estado.imagemFrente);
+  }
+
   function gavetaNovoCard() {
-    var estado = { frente: "", verso: "", deck: deckDoContexto() };
+    var estado = { frente: "", verso: "", imagemFrente: "", imagemVerso: "", subindo: 0, deck: deckDoContexto() };
     abrirPainel({
       nome: "flashcard", rotulo: "Flashcards", tituloEstatico: "Novo flashcard", acao: "Criar",
-      podeGravar: function () { return !!estado.frente.trim(); },
+      podeGravar: function () { return podeGravarCard(estado); },
       montar: function (corpo) {
-        corpo.appendChild(grupo("Frente", campoFrente("", "Qual o alvo de PAM no choque séptico?", function (v) { estado.frente = v; })));
-        corpo.appendChild(grupo("Verso", campoArea("", "A resposta, do jeito que você quer lembrar dela.", function (v) { estado.verso = v; })));
+        montarLadosDoCard(corpo, estado, "Qual o alvo de PAM no choque séptico?", "A resposta, do jeito que você quer lembrar dela.");
         corpo.appendChild(grupo("Deck", campoSelect(estado.deck, opcoesDeDeck(), function (v) { estado.deck = v; })));
       },
       gravar: function () {
@@ -11450,13 +11784,15 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
         }
         var cartao = {
           frente: estado.frente.trim(), verso: estado.verso.trim(), deck: deck.nome,
+          imagemFrente: estado.imagemFrente, imagemVerso: estado.imagemVerso,
           origem: "Escrito à mão", estado: "novo", quando: "Não estudado",
           acertos: "sem histórico", tentativas: 0
         };
         ACERVO_CARDS.unshift(cartao);
         Promise.resolve(deck.pronto).then(function () {
           return gravar({ acao: "card.criar", deckId: deck.id, frente: cartao.frente,
-                          verso: cartao.verso, origem: cartao.origem });
+                          verso: cartao.verso, imagemFrente: cartao.imagemFrente,
+                          imagemVerso: cartao.imagemVerso, origem: cartao.origem });
         }).then(function (r) { if (r && r.ids && r.ids[0]) cartao.id = r.ids[0]; });
         pintarTabela();
         avisar("success", "Flashcard criado", "Entrou em " + deck.nome + ", como card novo.");
@@ -11568,7 +11904,8 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   function abrirGaveta(d) {
     /* Card já salvo traz o deck dele; rascunho ainda não tem um, e aí vale o
        contexto da tela, como em qualquer outra criação. */
-    var estado = { frente: d.frente, verso: d.verso, deck: d.deck || deckDoContexto() };
+    var estado = { frente: d.frente, verso: d.verso, imagemFrente: d.imagemFrente || "",
+                   imagemVerso: d.imagemVerso || "", subindo: 0, deck: d.deck || deckDoContexto() };
     abrirPainel({
       nome: "flashcard", rotulo: "Flashcard, " + d.origem, tituloEstatico: "Editar flashcard",
       acao: "Gravar",
@@ -11580,23 +11917,25 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
           onConfirmar: function () { excluirCard(d); fechar(); }
         });
       },
-      podeGravar: function () { return !!estado.frente.trim(); },
+      podeGravar: function () { return podeGravarCard(estado); },
       montar: function (corpo) {
-        corpo.appendChild(grupo("Frente", campoFrente(d.frente, "", function (v) { estado.frente = v; })));
-        corpo.appendChild(grupo("Verso", campoArea(d.verso, "", function (v) { estado.verso = v; })));
+        montarLadosDoCard(corpo, estado, "", "");
         if (d.trecho) corpo.appendChild(grupo("Trecho de origem", blocoLeitura(d.trecho)));
         corpo.appendChild(grupo("Deck", campoSelect(estado.deck, opcoesDeDeck(), function (v) { estado.deck = v; })));
       },
       gravar: function () {
         d.frente = estado.frente.trim();
         d.verso = estado.verso.trim();
-        /* Rascunho grava só frente e verso: o deck dele é escolhido no trilho,
+        d.imagemFrente = estado.imagemFrente;
+        d.imagemVerso = estado.imagemVerso;
+        /* Rascunho grava só frente e verso (com as imagens): o deck dele é escolhido no trilho,
            na hora de salvar. Card que já está no acervo vai com o deck que foi
            escolhido aqui. */
         if (rascunhos.indexOf(d) >= 0) {
           desenhar();
           Promise.resolve(d.pronto).then(function () {
-            if (d.bancoId) gravar({ acao: "rascunho.salvar", id: d.bancoId, frente: d.frente, verso: d.verso });
+            if (d.bancoId) gravar({ acao: "rascunho.salvar", id: d.bancoId, frente: d.frente, verso: d.verso,
+                                    imagemFrente: d.imagemFrente, imagemVerso: d.imagemVerso });
           });
           return;
         }
@@ -11606,6 +11945,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
         avisar("success", "Flashcard atualizado", "A alteração vale para a próxima revisão.");
         if (d.id) {
           gravar({ acao: "card.salvar", id: d.id, frente: d.frente, verso: d.verso,
+                   imagemFrente: d.imagemFrente, imagemVerso: d.imagemVerso,
                    deckId: idDoDeck(d.deck) });
         }
       }
@@ -13268,7 +13608,9 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   function pintarCard(c) {
     $("revOrigem").textContent = c.origem || c.deck || "Flashcard";
     $("revFrente").textContent = c.frente;
-    $("revVerso").textContent = c.verso || "Este card não tem verso escrito.";
+    $("revVerso").textContent = c.verso || (c.imagemVerso ? "" : "Este card não tem verso escrito.");
+    mostrarImagemDoCard($("revImagemFrente"), c.imagemFrente);
+    mostrarImagemDoCard($("revImagemVerso"), c.imagemVerso);
     $("revTrecho").textContent = c.trecho || "";
     $("revTrecho").hidden = !c.trecho;
 
@@ -13915,9 +14257,18 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     if (gatilhoFiltro) gatilhoFiltro.setAttribute("aria-expanded", "false");
     gatilhoFiltro = null;
     document.removeEventListener("mousedown", foraDoFiltro);
-    window.removeEventListener("scroll", fecharFiltro, true);
-    window.removeEventListener("resize", fecharFiltro);
+    document.removeEventListener("touchstart", foraDoFiltro);
+    window.removeEventListener("scroll", rolouForaDoFiltro, true);
+    window.removeEventListener("resize", reposicionarFiltro);
+    reposicionarFiltro = function () {};
   }
+  /* As mesmas duas armadilhas da lista de seleção: rolar dentro dela e o
+     teclado do celular abrindo fechavam o filtro no meio do uso. */
+  function rolouForaDoFiltro(e) {
+    if (filtroAberto && e.target instanceof Node && filtroAberto.contains(e.target)) return;
+    fecharFiltro();
+  }
+  var reposicionarFiltro = function () {};
   function foraDoFiltro(e) {
     if ((gatilhoFiltro && gatilhoFiltro.contains(e.target)) || (filtroAberto && filtroAberto.contains(e.target))) return;
     fecharFiltro();
@@ -14037,6 +14388,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       function posicionar() {
         var MARGEM = 8;
         var g = b.getBoundingClientRect();
+        filtroAberto.style.maxHeight = Math.max(160, Math.min(320, Math.max(window.innerHeight - g.bottom, g.top) - 2 * MARGEM)) + "px";
         var r = filtroAberto.getBoundingClientRect();
         var cabeAbaixo = window.innerHeight - g.bottom - MARGEM >= r.height + 4;
         var topo = (cabeAbaixo || g.top < r.height + 4)
@@ -14052,11 +14404,13 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       gatilhoFiltro = b;
       b.setAttribute("aria-expanded", "true");
       var campoBusca = filtroAberto.querySelector(".filter-dropdown-busca");
-      if (campoBusca) campoBusca.focus();
+      if (campoBusca && !toqueGrosso.matches) campoBusca.focus();
+      reposicionarFiltro = posicionar;
       setTimeout(function () {
         document.addEventListener("mousedown", foraDoFiltro);
-        window.addEventListener("scroll", fecharFiltro, true);
-        window.addEventListener("resize", fecharFiltro);
+        document.addEventListener("touchstart", foraDoFiltro, { passive: true });
+        window.addEventListener("scroll", rolouForaDoFiltro, true);
+        window.addEventListener("resize", reposicionarFiltro);
       }, 0);
     }
 
@@ -14087,17 +14441,12 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   var LUPA = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="1.8"/><path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
   var XIS = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 
-  function rotuloDaBarra(texto) {
-    var r = document.createElement("span");
-    r.className = "admin-toolbar-label";
-    r.textContent = texto;
-    return r;
-  }
 
   function criarBarraFiltros(cfg) {
     var barra = document.createElement("div");
     barra.className = "admin-toolbar";
-    barra.appendChild(rotuloDaBarra("Filtrar"));
+    /* Sem os rótulos FILTRAR e BUSCAR: os gatilhos e a lupa já dizem o que
+       são, e as duas palavras tomavam espaço — no celular, uma linha inteira. */
 
     var gatilhos = [];
     (cfg.filtros || []).forEach(function (f) {
@@ -14117,8 +14466,6 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     var espaco = document.createElement("div");
     espaco.className = "admin-toolbar-spacer";
     barra.appendChild(espaco);
-
-    barra.appendChild(rotuloDaBarra("Buscar"));
 
     var caixa = document.createElement("span");
     caixa.className = "secao-busca-campo";
@@ -14584,10 +14931,17 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       var palavras = palavrasDe(d.corpo);
       var cards = cardsDoArquivo(d);
       linha.querySelector(".arquivo-linha-nome").textContent = d.nome;
-      linha.querySelector(".arquivo-linha-sub").textContent = palavras
-        ? palavras.toLocaleString("pt-BR") + " palavras" : "em branco";
-      linha.querySelector(".arquivo-linha-meta").textContent =
-        cards + (cards === 1 ? " flashcard" : " flashcards");
+      var contaCards = cards + (cards === 1 ? " flashcard" : " flashcards");
+      var sub = linha.querySelector(".arquivo-linha-sub");
+      sub.textContent = palavras ? palavras.toLocaleString("pt-BR") + " palavras" : "em branco";
+      /* No celular a contagem desce para a linha de baixo, junto das palavras:
+         na coluna própria ela tomava metade da largura, e o nome virava três
+         letras e reticências. */
+      var subCards = document.createElement("span");
+      subCards.className = "arquivo-linha-sub-cards";
+      subCards.textContent = " · " + contaCards;
+      sub.appendChild(subCards);
+      linha.querySelector(".arquivo-linha-meta").textContent = contaCards;
 
       /* As etiquetas do arquivo na própria linha, depois do nome: é por elas
          que se reconhece o que é o texto antes de abri-lo. */
