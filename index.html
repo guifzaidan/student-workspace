@@ -2005,6 +2005,46 @@ input:checked + .switch::after { transform: translateX(14px); }
 .vazio b { color: var(--gray); font-weight: 700; }
 .bloco-salvar { margin-top: auto; padding-top: 16px; border-top: 1px solid var(--cristal-borda); display: flex; flex-direction: column; gap: 10px; }
 
+/* ─── A aba de IA ─────────────────────────────────────────────────────
+   A conversa rola sozinha e o campo fica preso embaixo, como em qualquer chat:
+   o painel inteiro rolando levaria o campo junto para fora da vista. */
+.painel.painel-ia { overflow: hidden; padding-bottom: 14px; gap: 12px; }
+.ia-selo { font-size: 9.5px; font-weight: 800; letter-spacing: .08em; padding: 2px 8px; border-radius: var(--radius-pill); background: var(--gray4); color: var(--gray); }
+.ia-conversa { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; margin: 0 -4px; padding: 0 4px 4px; }
+.ia-boas-vindas { margin: auto 0; text-align: center; color: var(--gray2); font-size: 13px; line-height: 1.55; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 12px 8px; }
+.ia-boas-vindas b { color: var(--gray); }
+.ia-boas-vindas .ia-avatar { width: 38px; height: 38px; }
+.ia-msg { display: flex; gap: 8px; align-items: flex-start; animation: abaEntra .22s var(--curva-anti) backwards; --lado: 0px; }
+.ia-msg.eu { justify-content: flex-end; }
+.ia-avatar { flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--yd); color: var(--black); }
+.ia-balao { max-width: 100%; min-width: 0; font-size: 13.5px; line-height: 1.55; white-space: pre-line; overflow-wrap: anywhere; }
+.ia-msg.eu .ia-balao { max-width: 85%; background: var(--yd); color: var(--black); padding: 8px 12px; border-radius: 14px 14px 4px 14px; font-weight: 500; }
+.ia-msg.ia .ia-balao { flex: 1; background: var(--white); border: 1px solid var(--gray3); padding: 10px 12px; border-radius: 4px 14px 14px 14px; box-shadow: var(--shadow-card); color: var(--black); }
+.ia-balao b { font-weight: 800; }
+.ia-fonte { display: block; margin-top: 8px; font-size: 11px; font-weight: 600; color: var(--gray2); white-space: normal; }
+.ia-digitando { display: inline-flex; gap: 4px; padding: 4px 0; }
+.ia-digitando i { width: 6px; height: 6px; border-radius: 50%; background: var(--gray2); animation: pisca 1s infinite; }
+.ia-digitando i:nth-child(2) { animation-delay: .15s; }
+.ia-digitando i:nth-child(3) { animation-delay: .3s; }
+.ia-sugestoes { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; white-space: normal; }
+.ia-sugestao { border: 1px solid var(--gray3); border-radius: var(--radius-md); background: var(--bg); overflow: hidden; }
+.ia-sugestao-frente { padding: 8px 10px; font-size: 12.5px; font-weight: 700; line-height: 1.45; }
+.ia-sugestao-verso { padding: 8px 10px; border-top: 1px solid var(--gray3); font-size: 12px; line-height: 1.5; color: var(--gray); white-space: pre-line; }
+.ia-sugestao-acao { display: flex; justify-content: flex-end; padding: 0 8px 8px; }
+.ia-botao { font-size: 11.5px; font-weight: 700; padding: 5px 10px; border-radius: var(--radius-pill); border: 1px solid var(--gray3); background: var(--white); color: var(--black); transition: background var(--transition), border-color var(--transition); }
+.ia-botao:hover:not(:disabled) { border-color: var(--gray2); }
+.ia-botao:disabled { color: var(--gray2); cursor: default; }
+.ia-botao.todos { align-self: flex-start; background: var(--yd); border-color: transparent; }
+.ia-atalhos { display: flex; flex-wrap: wrap; gap: 6px; }
+.ia-atalho { font-size: 11.5px; font-weight: 700; padding: 5px 10px; border-radius: var(--radius-pill); border: 1px solid var(--gray3); background: var(--white); color: var(--gray); transition: color var(--transition), border-color var(--transition); }
+.ia-atalho:hover:not(:disabled) { color: var(--black); border-color: var(--gray2); }
+.ia-atalho:disabled { opacity: .5; cursor: default; }
+.ia-compor { display: flex; align-items: flex-end; gap: 6px; border: 1.5px solid var(--gray3); border-radius: 16px; background: var(--white); padding: 6px 6px 6px 12px; transition: border-color var(--transition); }
+.ia-compor:focus-within { border-color: var(--gray2); }
+.ia-compor textarea { flex: 1; border: none; outline: none; resize: none; background: none; font-size: 13.5px; line-height: 1.45; padding: 5px 0; max-height: 120px; min-height: 0; }
+.ia-enviar { flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--yellow); color: var(--black); transition: opacity var(--transition); }
+.ia-enviar:disabled { opacity: .35; cursor: default; }
+
 /* ─── Campo e dropdown da casa ───────────────────────────────────────── */
 .form-input {
   width: 100%;
@@ -2755,6 +2795,23 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
   color: var(--gray2);
 }
 .modal-acao:hover:not(:disabled) { background: var(--gray3); border-color: var(--gray2); color: var(--black); }
+/* A lixeira da gaveta fica na ponta oposta do Gravar: longe do botão que se
+   aperta sem pensar. Só o ícone, na altura dos outros botões do rodapé; a cor
+   de perigo aparece no hover, como na lixeira dos cartões. */
+.gaveta-lixeira {
+  margin-right: auto;
+  width: 38px;
+  align-self: stretch;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: var(--gray2);
+  border: 1.5px solid transparent;
+  transition: background var(--transition), color var(--transition);
+}
+.gaveta-lixeira:hover { background: var(--red-soft); color: var(--red); }
+.gaveta-lixeira:focus-visible { outline: none; border-color: var(--red); color: var(--red); }
+.gaveta-lixeira[hidden] { display: none; }
 .modal-acao-primaria {
   display: inline-flex;
   align-items: center;
@@ -4897,13 +4954,17 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
               <span class="abas-pilula" aria-hidden="true"></span>
               <button type="button" class="aba" id="abaCards" role="tab" aria-selected="true" aria-controls="painelCards">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="14" height="13" rx="2.5"/><path d="M8 3h10a3 3 0 0 1 3 3v10"/></svg>
-                Flashcards
+                Cards
                 <span class="aba-conta" id="abaConta" hidden></span>
               </button>
               <button type="button" class="aba" id="abaComentarios" role="tab" aria-selected="false" aria-controls="painelComentarios">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg>
                 Notas
                 <span class="aba-conta" id="abaContaComentarios" hidden>0</span>
+              </button>
+              <button type="button" class="aba" id="abaIA" role="tab" aria-selected="false" aria-controls="painelIA">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z"/></svg>
+                IA
               </button>
             </div>
           </div>
@@ -4951,6 +5012,27 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
                 <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg>
                 <span><b>Nenhuma nota.</b><br>Selecione um trecho no texto e use <b>Comentar</b>.</span>
               </div>
+            </section>
+
+            <!-- A IA ainda é de mentira: as respostas saem do próprio arquivo, por
+                 regra, e servem para mostrar o jeito da conversa. -->
+            <section class="painel painel-ia" id="painelIA" role="tabpanel" aria-labelledby="abaIA" hidden>
+              <p class="painel-rotulo"><span>Assistente do arquivo</span><b class="ia-selo" title="Respostas simuladas, sem IA de verdade">Demonstração</b></p>
+
+              <div class="ia-conversa" id="iaConversa" aria-live="polite"></div>
+
+              <div class="ia-atalhos" id="iaAtalhos">
+                <button type="button" class="ia-atalho" data-ia="resumir">Resumir o arquivo</button>
+                <button type="button" class="ia-atalho" data-ia="cards">Gerar flashcards</button>
+                <button type="button" class="ia-atalho" data-ia="explicar">Explicar a seleção</button>
+              </div>
+
+              <form class="ia-compor" id="iaCompor">
+                <textarea id="iaCampo" rows="1" placeholder="Pergunte sobre este arquivo…" aria-label="Pergunta para a IA"></textarea>
+                <button type="submit" class="ia-enviar" id="iaEnviar" aria-label="Enviar" disabled>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+                </button>
+              </form>
             </section>
           </div>
         </div>
@@ -5393,6 +5475,12 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     </div>
     <div class="admin-modal-body" id="gavetaCorpo"></div>
     <div class="painel-rodape">
+      <!-- A lixeira da gaveta: a mesma em toda gaveta que edita algo que já
+           existe. Aparece quando quem abre passa `excluir`, e o nome da ação
+           (excluir, descartar, apagar) fica na dica e no leitor de tela. -->
+      <button type="button" class="gaveta-lixeira" id="gavetaExcluir" hidden aria-label="Excluir" title="Excluir">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13h10l1-13"/></svg>
+      </button>
       <button type="button" class="modal-acao" id="gavetaCancelar">Fechar</button>
       <button type="button" class="modal-acao-primaria" id="gavetaGravar">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m20 6-11 11-5-5"/></svg>
@@ -9788,6 +9876,8 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     Array.prototype.forEach.call(arquivoCorpo.querySelectorAll("table.tabela-texto.medida"), normalizarMedida);
     desmisturarTabelas();
     aplicarMargem();
+    /* A aba de IA aberta passa a conversar sobre o arquivo novo. */
+    if (abaAtual === "ia") iaMontar();
   }
 
   /* ── Páginas A4 ─────────────────────────────────────────────────────
@@ -10186,6 +10276,13 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     abrirPainel({
       nome: "nota", rotulo: "Nota do arquivo", tituloEstatico: "Comentário do trecho",
       acao: "Gravar",
+      rotuloExcluir: "Apagar nota",
+      excluir: function (fechar) {
+        confirmarExclusao({
+          coisa: "nota", verbo: "apagar", antes: "a nota sobre", nome: c.trecho,
+          onConfirmar: function () { apagarComentario(c.id); fechar(); }
+        });
+      },
       podeGravar: function () { return !!estado.texto.trim(); },
       montar: function (corpo) {
         corpo.appendChild(grupo("Comentário", campoArea(c.texto,
@@ -10461,15 +10558,23 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   var LIXEIRA = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13h10l1-13"/></svg>';
   var RAIO = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M13.2 2.5 5.1 13.2a.5.5 0 0 0 .4.8h5l-.8 7.5a.5.5 0 0 0 .9.35l8.1-10.7a.5.5 0 0 0-.4-.8h-5l.8-7.5a.5.5 0 0 0-.9-.35Z"/></svg>';
 
+  /* O rascunho é do arquivo em que nasceu: o trilho de um arquivo mostra, conta
+     e salva só os dele. O que perdeu o arquivo (apagado depois) não tem casa, e
+     aparece em qualquer um para poder ser salvo ou descartado. */
+  function rascunhosDoArquivo() {
+    return rascunhos.filter(function (d) { return !d.arquivo || d.arquivo === arquivoAberto; });
+  }
+
   function desenhar() {
+    var meus = rascunhosDoArquivo();
     /* A lista só reanima quando o conjunto muda: é a assinatura dos ids que
        decide, e não cada nova pintura. */
-    var nova = rascunhos.map(function (d) { return d.id; }).join(",");
+    var nova = meus.map(function (d) { return d.id; }).join(",");
     listaCards.className = "cards-lista" + (nova !== assinatura ? " lista-anima" : "");
     assinatura = nova;
     listaCards.innerHTML = "";
 
-    rascunhos.forEach(function (d) {
+    meus.forEach(function (d) {
       var el = document.createElement("article");
       el.className = "fcard";
       el.setAttribute("role", "button");
@@ -10490,19 +10595,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 
       el.querySelector(".fcard-tirar").addEventListener("click", function (e) {
         e.stopPropagation();
-        /* Rascunho descartado não volta: ele ainda não foi para nenhum deck, e
-           não há de onde recuperá-lo. Por isso pergunta, como toda exclusão daqui. */
-        confirmarExclusao({
-          coisa: "rascunho", verbo: "descartar", nome: d.frente,
-          aviso: "Ele ainda não foi salvo em nenhum deck.",
-          onConfirmar: function () {
-            rascunhos = rascunhos.filter(function (x) { return x.id !== d.id; });
-            desenhar();
-            Promise.resolve(d.pronto).then(function () {
-              if (d.bancoId) gravar({ acao: "rascunho.excluir", id: d.bancoId });
-            });
-          }
-        });
+        pedirDescartarRascunho(d);
       });
       el.addEventListener("click", function () { abrirGaveta(d); });
       el.addEventListener("keydown", function (e) {
@@ -10515,7 +10608,7 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
        sem isto continuaria vazio até alguém abrir a lista e escolher. */
     $("deckRotulo").textContent = deckAtual || "Nenhum deck ainda";
 
-    var n = rascunhos.length;
+    var n = meus.length;
     $("abaConta").textContent = n;
     $("abaConta").hidden = n === 0;
     $("contaRascunhos").textContent = n;
@@ -10534,14 +10627,33 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       .replace(/\n{3,}/g, "\n\n").trim();
   }
 
-  $("btnCriarCard").addEventListener("click", function () {
-    if (!textoPendente) return;
+  /* Rascunho descartado não volta: ele ainda não foi para nenhum deck, e não há
+     de onde recuperá-lo. Por isso pergunta, como toda exclusão daqui. Vale para
+     a lixeira do cartão e para o Excluir da gaveta. */
+  function pedirDescartarRascunho(d, depois) {
+    confirmarExclusao({
+      coisa: "rascunho", verbo: "descartar", nome: d.frente,
+      aviso: "Ele ainda não foi salvo em nenhum deck.",
+      onConfirmar: function () {
+        rascunhos = rascunhos.filter(function (x) { return x.id !== d.id; });
+        desenhar();
+        Promise.resolve(d.pronto).then(function () {
+          if (d.bancoId) gravar({ acao: "rascunho.excluir", id: d.bancoId });
+        });
+        if (depois) depois();
+      }
+    });
+  }
+
+  /* O rascunho nasce igual venha de onde vier: do balão sobre o trecho ou de
+     uma sugestão da aba de IA. */
+  function criarRascunho(frente, verso, origem, trecho) {
     var novo = {
       id: proximoId++,
-      frente: "Sobre " + secaoPendente.charAt(0).toLowerCase() + secaoPendente.slice(1) + ": o que o texto afirma?",
-      verso: limpar(textoPendente),
-      origem: secaoPendente,
-      trecho: limpar(textoPendente),
+      frente: frente,
+      verso: verso,
+      origem: origem,
+      trecho: trecho,
       /* O arquivo fica preso ao rascunho no momento em que ele nasce, e por
          referência: lido só na hora de salvar, um rascunho feito aqui e salvo
          depois de abrir outro texto sairia carimbado com o arquivo errado. A
@@ -10557,6 +10669,15 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       return gravar({ acao: "rascunho.criar", arquivoId: (novo.arquivo && novo.arquivo.id) || null,
                       frente: novo.frente, verso: novo.verso, trecho: novo.trecho, origem: novo.origem });
     }).then(function (r) { if (r && r.id) novo.bancoId = r.id; return novo; });
+    desenhar();
+    return novo;
+  }
+
+  $("btnCriarCard").addEventListener("click", function () {
+    if (!textoPendente) return;
+    criarRascunho(
+      "Sobre " + secaoPendente.charAt(0).toLowerCase() + secaoPendente.slice(1) + ": o que o texto afirma?",
+      limpar(textoPendente), secaoPendente, limpar(textoPendente));
     escolherAba("cards");
     if (mqTrilho.matches) alternarTrilho(true);
     desenhar();
@@ -10566,7 +10687,8 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   });
 
   $("btnSalvar").addEventListener("click", function () {
-    var n = rascunhos.length;
+    var indo = rascunhosDoArquivo();
+    var n = indo.length;
     if (!n) return;
     if (!deckAtual) {
       avisar("error", "Falta o deck", "Escolha para onde os flashcards vão, ou crie um pelo próprio campo.");
@@ -10578,9 +10700,9 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     var deck = acharDeck(deckAtual) || criarDeck(deckAtual,
       "Flashcards tirados de " + deckAtual + ".");
 
-    var indo = rascunhos.slice();
-    /* Pinta primeiro: a lista esvazia no gesto, e os contadores sobem junto. */
-    rascunhos = [];
+    /* Pinta primeiro: a lista esvazia no gesto, e os contadores sobem junto. Os
+       rascunhos dos outros arquivos ficam onde estão. */
+    rascunhos = rascunhos.filter(function (d) { return indo.indexOf(d) < 0; });
     desenhar();
     deck.conta += n;
     /* Card salvo hoje entra na fila de hoje: o selo sai da soma dos decks, e
@@ -11053,6 +11175,14 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     corpo.innerHTML = "";
     cfg.montar(corpo);
     gravarAtual = cfg.gravar;
+    /* Só a gaveta que edita uma coisa existente tem o que excluir. A pergunta
+       de confirmação é de quem passa `excluir`, e a gaveta só fecha depois do
+       "sim". */
+    excluirAtual = cfg.excluir || null;
+    var lixeira = $("gavetaExcluir"), nomeExcluir = cfg.rotuloExcluir || "Excluir";
+    lixeira.hidden = !excluirAtual;
+    lixeira.title = nomeExcluir;
+    lixeira.setAttribute("aria-label", nomeExcluir);
     /* Sem campo de título não há campo para segurar o botão, então quem decide
        é a gaveta. */
     podeGravarAtual = cfg.podeGravar || null;
@@ -11097,6 +11227,10 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
       gravarAtual = null;
     }, 180);
   }
+  var excluirAtual = null;
+  $("gavetaExcluir").addEventListener("click", function () {
+    if (excluirAtual) excluirAtual(fecharGaveta);
+  });
   $("gavetaFechar").addEventListener("click", fecharGaveta);
   $("gavetaCancelar").addEventListener("click", fecharGaveta);
   gavetaOverlay.addEventListener("mousedown", function (e) { if (e.target === gavetaOverlay) fecharGaveta(); });
@@ -11438,6 +11572,14 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
     abrirPainel({
       nome: "flashcard", rotulo: "Flashcard, " + d.origem, tituloEstatico: "Editar flashcard",
       acao: "Gravar",
+      rotuloExcluir: rascunhos.indexOf(d) >= 0 ? "Descartar rascunho" : "Excluir flashcard",
+      excluir: function (fechar) {
+        if (rascunhos.indexOf(d) >= 0) { pedirDescartarRascunho(d, fechar); return; }
+        confirmarExclusao({
+          coisa: "flashcard", nome: d.frente,
+          onConfirmar: function () { excluirCard(d); fechar(); }
+        });
+      },
       podeGravar: function () { return !!estado.frente.trim(); },
       montar: function (corpo) {
         corpo.appendChild(grupo("Frente", campoFrente(d.frente, "", function (v) { estado.frente = v; })));
@@ -11787,7 +11929,8 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
   /* ═══ Abas ═══════════════════════════════════════════════════════════ */
   var ABAS = {
     cards: { aba: "abaCards", painel: "painelCards" },
-    comentarios: { aba: "abaComentarios", painel: "painelComentarios" }
+    comentarios: { aba: "abaComentarios", painel: "painelComentarios" },
+    ia: { aba: "abaIA", painel: "painelIA" }
   };
   var ORDEM_ABAS = Object.keys(ABAS);
 
@@ -11858,9 +12001,312 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 
     medirPilulaAbas();
     pintarBalaoCiclo();
+    if (qual === "ia") iaMontar();
   }
   ORDEM_ABAS.forEach(function (k) {
     $(ABAS[k].aba).addEventListener("click", function () { escolherAba(k); });
+  });
+
+  /* ═══ IA (demonstração) ═══════════════════════════════════════════════
+     Ainda não há modelo nenhum por trás: as respostas são montadas por regra a
+     partir do próprio arquivo aberto, para a aba mostrar o jeito da coisa —
+     resumo por seção, flashcards sugeridos que viram rascunho, explicação do
+     trecho selecionado e pergunta livre. Quando a IA de verdade chegar, quem
+     muda é `iaResponder`; a conversa, os atalhos e as sugestões ficam. */
+  var iaConversa = $("iaConversa"), iaCampo = $("iaCampo"), iaEnviar = $("iaEnviar");
+  /* Uma conversa por arquivo, guardada como o próprio pedaço de tela: voltar a
+     um arquivo devolve a conversa dele, e trocar não mistura uma com a outra.
+     Só vale enquanto a página está aberta, como convém a dado de teste. */
+  var iaPorArquivo = new Map(), iaArquivo = null, iaOcupada = false;
+  var ICONE_IA = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"/></svg>';
+
+  function iaMontar() {
+    if (iaArquivo === arquivoAberto && iaConversa.firstChild) return;
+    iaArquivo = arquivoAberto;
+    var guardada = arquivoAberto && iaPorArquivo.get(arquivoAberto);
+    if (!guardada) {
+      guardada = document.createElement("div");
+      guardada.className = "ia-fio";
+      guardada.style.display = "contents";
+      var boas = document.createElement("div");
+      boas.className = "ia-boas-vindas";
+      boas.innerHTML = '<span class="ia-avatar">' + ICONE_IA + '</span><span></span>';
+      boas.lastChild.innerHTML = arquivoAberto
+        ? "<b>Pergunte sobre este arquivo.</b><br>Eu leio o texto aberto, resumo as seções e sugiro flashcards para revisar."
+        : "<b>Abra um arquivo.</b><br>A IA conversa sobre o texto que estiver aberto.";
+      guardada.appendChild(boas);
+      if (arquivoAberto) iaPorArquivo.set(arquivoAberto, guardada);
+    }
+    iaConversa.innerHTML = "";
+    iaConversa.appendChild(guardada);
+    iaTravar();
+    iaRolar();
+  }
+
+  function iaTravar() {
+    var semArquivo = !arquivoAberto;
+    Array.prototype.forEach.call(document.querySelectorAll(".ia-atalho"), function (b) { b.disabled = semArquivo || iaOcupada; });
+    iaCampo.disabled = semArquivo;
+    iaEnviar.disabled = semArquivo || iaOcupada || !iaCampo.value.trim();
+  }
+  function iaRolar() { iaConversa.scrollTop = iaConversa.scrollHeight; }
+
+  function iaFio() {
+    var fio = iaConversa.firstChild;
+    var boas = fio && fio.querySelector(".ia-boas-vindas");
+    if (boas) boas.remove();
+    return fio;
+  }
+
+  function iaMensagem(quem) {
+    var m = document.createElement("div");
+    m.className = "ia-msg " + quem;
+    if (quem === "ia") m.innerHTML = '<span class="ia-avatar">' + ICONE_IA + "</span>";
+    var b = document.createElement("div");
+    b.className = "ia-balao";
+    m.appendChild(b);
+    iaFio().appendChild(m);
+    iaRolar();
+    return b;
+  }
+
+  /* ── Lendo o arquivo ──
+     O texto vira uma fila de linhas, cada uma com a seção a que pertence. Título
+     é o que o texto usa como título: um h1–h3, ou uma linha curta toda em
+     negrito ou grifo, ou terminada em dois-pontos — o jeito do texto colado. */
+  var BLOCO_IA = /^(P|LI|H[1-6]|DIV|TD|TH|BLOCKQUOTE|SUMMARY)$/;
+  function iaSemEnfeite(t) {
+    return t.replace(/[\u2757\u2755\u26A0\uFE0F\u{1F300}-\u{1FAFF}]/gu, "").replace(/\s+/g, " ").replace(/:\s*$/, "").trim();
+  }
+  function iaEhTitulo(el, texto) {
+    if (/^H[1-3]$/.test(el.tagName)) return true;
+    if (texto.length > 90 || texto.length < 3) return false;
+    if (/:$/.test(texto) && !/•/.test(texto)) return true;
+    var forte = Array.prototype.reduce.call(el.querySelectorAll("b, strong, mark, h1, h2, h3"), function (n, b) {
+      return n + b.textContent.trim().length;
+    }, 0);
+    return forte >= texto.replace(/\s/g, "").length * 0.8;
+  }
+  function iaLer() {
+    var linhas = [], secao = arquivoAberto ? arquivoAberto.nome : "Introdução";
+    (function andar(el) {
+      Array.prototype.forEach.call(el.children, function (f) {
+        if (f.tagName === "TABLE" || f.tagName === "FIGURE") return;
+        var temBlocoDentro = Array.prototype.some.call(f.children, function (c) { return BLOCO_IA.test(c.tagName) || /^(UL|OL|TABLE)$/.test(c.tagName); });
+        if (temBlocoDentro && f.tagName !== "LI") { andar(f); return; }
+        if (!BLOCO_IA.test(f.tagName) && !/^(UL|OL)$/.test(f.tagName)) return;
+        if (/^(UL|OL)$/.test(f.tagName)) { andar(f); return; }
+        var texto = f.textContent.replace(/\s+/g, " ").trim();
+        if (!texto) return;
+        if (iaEhTitulo(f, texto)) { secao = iaSemEnfeite(texto) || secao; return; }
+        linhas.push({ secao: secao, texto: (f.tagName === "LI" ? "• " : "") + texto });
+      });
+    })(arquivoCorpo);
+    return linhas;
+  }
+  function iaSecoes(linhas) {
+    var ordem = [], por = {};
+    linhas.forEach(function (l) {
+      if (!por[l.secao]) { por[l.secao] = []; ordem.push(l.secao); }
+      por[l.secao].push(l.texto);
+    });
+    return ordem.map(function (s) { return { titulo: s, linhas: por[s] }; });
+  }
+  function iaFrase(t, teto) {
+    var f = t.replace(/^•\s*/, "").split(/(?<=[.!?])\s+/)[0];
+    teto = teto || 150;
+    return f.length > teto ? f.slice(0, teto).replace(/\s+\S*$/, "") + "…" : f;
+  }
+  function iaSemAcento(t) { return t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase(); }
+
+  /* ── As respostas ── */
+  function iaResumo() {
+    var secoes = iaSecoes(iaLer());
+    if (!secoes.length) return { texto: "O arquivo ainda está vazio: escreva ou cole o conteúdo e eu resumo." };
+    var partes = secoes.slice(0, 7).map(function (s) { return "• <b>" + iaEsc(s.titulo) + "</b>: " + iaEsc(iaFrase(s.linhas[0])); });
+    return {
+      html: "Resumo de <b>" + iaEsc(arquivoAberto.nome) + "</b>, por seção:\n\n" + partes.join("\n") +
+        (secoes.length > 7 ? "\n\n…e mais " + (secoes.length - 7) + " seções." : ""),
+      fonte: secoes.length + " seções lidas"
+    };
+  }
+
+  function iaPerguntaDe(titulo) {
+    if (/\?$/.test(titulo)) return titulo;
+    return "O que você precisa saber sobre " + titulo.charAt(0).toLowerCase() + titulo.slice(1) + "?";
+  }
+  function iaCards() {
+    var secoes = iaSecoes(iaLer()).filter(function (s) { return s.linhas.join(" ").length > 40; });
+    if (!secoes.length) return { texto: "Não achei conteúdo suficiente para montar flashcards. Tente depois de escrever um pouco mais." };
+    /* Espalhadas pelo arquivo, e não as primeiras: cinco cards todos da
+       introdução não ajudam ninguém a revisar. */
+    var passo = Math.max(1, Math.floor(secoes.length / 5)), escolhidas = [];
+    for (var i = 0; i < secoes.length && escolhidas.length < 5; i += passo) escolhidas.push(secoes[i]);
+    return {
+      texto: "Sugeri " + escolhidas.length + " flashcards a partir das seções do arquivo. Adicione os que quiser: eles entram nos rascunhos da aba Cards.",
+      cards: escolhidas.map(function (s) {
+        return { frente: iaPerguntaDe(s.titulo), verso: s.linhas.slice(0, 6).join("\n"), origem: s.titulo };
+      })
+    };
+  }
+
+  function iaExplicar(trecho, secao) {
+    if (!trecho) return { texto: "Selecione um trecho no texto e toque em Explicar a seleção de novo." };
+    var itens = trecho.split(/\s*•\s*|\n+/).map(function (t) { return t.trim(); }).filter(Boolean);
+    if (itens.length < 2) itens = trecho.split(/(?<=[.!?;])\s+/).filter(Boolean);
+    var chave = itens.slice(0, 5).map(function (t) { return "• " + iaEsc(iaFrase(t, 120)); });
+    return {
+      html: "Esse trecho é da seção <b>" + iaEsc(secao) + "</b>. Em poucas palavras: " + iaEsc(iaFrase(itens[0], 160)) +
+        (chave.length > 1 ? "\n\n<b>Pontos-chave</b>\n" + chave.join("\n") : "") +
+        "\n\nDica: vale virar flashcard, com a pergunta sobre " + iaEsc(secao.charAt(0).toLowerCase() + secao.slice(1)) + ".",
+      cards: [{ frente: iaPerguntaDe(secao), verso: limpar(trecho), origem: secao }],
+      fonte: "Explicação simulada"
+    };
+  }
+
+  var IA_VAZIAS = "a o os as um uma de da do das dos e em no na nos nas para por com sem que qual quais quando como onde se ser sao é o que isso esse essa este esta sobre me explica explique fala diga".split(" ");
+  function iaResponderPergunta(pergunta) {
+    var palavras = iaSemAcento(pergunta).split(/[^a-z0-9]+/).filter(function (p) { return p.length > 2 && IA_VAZIAS.indexOf(p) < 0; });
+    var linhas = iaLer();
+    var notas = linhas.map(function (l, i) {
+      var alvo = iaSemAcento(l.secao + " " + l.texto), n = 0;
+      palavras.forEach(function (p) { if (alvo.indexOf(p) >= 0) n += iaSemAcento(l.secao).indexOf(p) >= 0 ? 2 : 1; });
+      return { i: i, n: n };
+    }).filter(function (x) { return x.n > 0; }).sort(function (a, b) { return b.n - a.n; });
+    if (!notas.length) {
+      return { texto: "Não encontrei isso neste arquivo. Tente com outras palavras, ou pergunte sobre uma das seções do texto." };
+    }
+    var melhor = linhas[notas[0].i];
+    var vizinhas = linhas.filter(function (l, i) { return l.secao === melhor.secao && i >= notas[0].i && i < notas[0].i + 4; });
+    return {
+      html: "Segundo o arquivo, em <b>" + iaEsc(melhor.secao) + "</b>:\n\n" + vizinhas.map(function (l) { return iaEsc(l.texto); }).join("\n"),
+      fonte: "Trecho encontrado no texto · resposta simulada"
+    };
+  }
+
+  function iaEsc(t) {
+    return String(t).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; });
+  }
+
+  /* ── A conversa ──
+     A espera e a escrita aos poucos imitam o ritmo de um modelo: sem isso a
+     resposta pronta no mesmo quadro não parece conversa nenhuma. */
+  function iaPerguntar(textoEu, fazer) {
+    if (iaOcupada || !arquivoAberto) return;
+    iaMensagem("eu").textContent = textoEu;
+    var balao = iaMensagem("ia");
+    balao.innerHTML = '<span class="ia-digitando"><i></i><i></i><i></i></span>';
+    iaOcupada = true;
+    iaTravar();
+    setTimeout(function () {
+      var r;
+      try { r = fazer(); } catch (e) { r = { texto: "Não consegui ler o arquivo agora. Tente de novo." }; }
+      iaEscrever(balao, r);
+    }, 650 + Math.random() * 500);
+  }
+
+  function iaEscrever(balao, r) {
+    var html = r.html || iaEsc(r.texto || "");
+    /* Escreve por palavras, sem cortar tag no meio. */
+    var pedacos = html.match(/<[^>]+>|[^<\s]+|\s+/g) || [];
+    var i = 0;
+    balao.innerHTML = "";
+    var alvo = document.createElement("span");
+    balao.appendChild(alvo);
+    (function passo() {
+      i = Math.min(pedacos.length, i + 3);
+      alvo.innerHTML = pedacos.slice(0, i).join("");
+      iaRolar();
+      if (i < pedacos.length) { setTimeout(passo, 18); return; }
+      if (r.fonte) {
+        var f = document.createElement("span");
+        f.className = "ia-fonte";
+        f.textContent = r.fonte;
+        balao.appendChild(f);
+      }
+      if (r.cards && r.cards.length) balao.appendChild(iaSugestoes(r.cards));
+      iaOcupada = false;
+      iaTravar();
+      iaRolar();
+    })();
+  }
+
+  function iaSugestoes(cards) {
+    var caixa = document.createElement("div");
+    caixa.className = "ia-sugestoes";
+    var botoes = [];
+    cards.forEach(function (c) {
+      var s = document.createElement("div");
+      s.className = "ia-sugestao";
+      var fr = document.createElement("div"); fr.className = "ia-sugestao-frente"; fr.textContent = c.frente;
+      var vs = document.createElement("div"); vs.className = "ia-sugestao-verso"; vs.textContent = c.verso;
+      var acao = document.createElement("div"); acao.className = "ia-sugestao-acao";
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "ia-botao"; b.textContent = "Adicionar aos rascunhos";
+      b.addEventListener("click", function () { iaAdicionar(c, b); pintarTodos(); });
+      acao.appendChild(b);
+      s.appendChild(fr); s.appendChild(vs); s.appendChild(acao);
+      caixa.appendChild(s);
+      botoes.push(b);
+    });
+    var todos = null;
+    if (cards.length > 1) {
+      todos = document.createElement("button");
+      todos.type = "button"; todos.className = "ia-botao todos";
+      todos.textContent = "Adicionar os " + cards.length;
+      todos.addEventListener("click", function () {
+        var n = 0;
+        cards.forEach(function (c, i) { if (!botoes[i].disabled) { iaAdicionar(c, botoes[i], true); n++; } });
+        pintarTodos();
+        if (n) avisar("info", n + " rascunhos criados", "Estão na aba Cards, esperando um deck.");
+      });
+      caixa.appendChild(todos);
+    }
+    function pintarTodos() {
+      if (todos && botoes.every(function (b) { return b.disabled; })) { todos.disabled = true; todos.textContent = "Todos adicionados"; }
+    }
+    return caixa;
+  }
+
+  function iaAdicionar(c, botao, calado) {
+    if (botao.disabled) return;
+    criarRascunho(c.frente, c.verso, c.origem, c.verso);
+    botao.disabled = true;
+    botao.textContent = "Adicionado ✓";
+    if (!calado) avisar("info", "Rascunho criado", "Está na aba Cards, esperando um deck.");
+  }
+
+  /* O atalho não pode roubar a seleção do texto: é ela que o "Explicar" lê. */
+  $("iaAtalhos").addEventListener("mousedown", function (e) { if (e.target.closest(".ia-atalho")) e.preventDefault(); });
+  $("iaAtalhos").addEventListener("click", function (e) {
+    var b = e.target.closest(".ia-atalho");
+    if (!b || b.disabled) return;
+    if (b.dataset.ia === "resumir") iaPerguntar("Resuma este arquivo.", iaResumo);
+    else if (b.dataset.ia === "cards") iaPerguntar("Gere flashcards deste arquivo.", iaCards);
+    else {
+      var sel = selecaoDoTexto();
+      var trecho = sel ? limpar(sel.toString()) : "";
+      var secao = sel ? secaoDe(sel.anchorNode) : "";
+      iaPerguntar(trecho ? "Explique: “" + iaFrase(trecho, 80) + "”" : "Explique a seleção.", function () { return iaExplicar(trecho, secao); });
+    }
+  });
+
+  function iaAjustarCampo() {
+    iaCampo.style.height = "auto";
+    iaCampo.style.height = Math.min(iaCampo.scrollHeight, 120) + "px";
+    iaTravar();
+  }
+  iaCampo.addEventListener("input", iaAjustarCampo);
+  iaCampo.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); $("iaCompor").requestSubmit(); }
+  });
+  $("iaCompor").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var p = iaCampo.value.trim();
+    if (!p || iaOcupada) return;
+    iaCampo.value = "";
+    iaAjustarCampo();
+    iaPerguntar(p, function () { return iaResponderPergunta(p); });
   });
 
   /* Remede quando qualquer aba muda de tamanho — o trilho abrindo, a fonte
@@ -14390,10 +14836,9 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
        só nasce na hora de salvar — trocar de arquivo não pode ir criando decks
        vazios pelo caminho. Escolher outro continua a um clique no campo.
 
-       Com rascunhos na mesa o destino não muda debaixo deles: nasceram no
-       arquivo anterior, e mandá-los para o deck deste seria carimbá-los com a
-       origem errada. */
-    if (!rascunhos.length) deckAtual = nomeDoDeckDoArquivo();
+       Os rascunhos de outro arquivo não aparecem aqui nem vão junto no salvar,
+       então o destino pode sempre ser o deste arquivo. */
+    deckAtual = nomeDoDeckDoArquivo();
     desenhar();
     /* Criar pelo lançador pode vir de qualquer tela, então a de Pastas tem de
        entrar antes da vista do arquivo. */
