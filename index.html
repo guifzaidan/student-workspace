@@ -964,6 +964,10 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
    tela. O que é para escrever continua selecionável, e o trilho também, onde
    copiar o texto de um card ou de uma nota faz sentido. */
 .estudo-area { -webkit-user-select: none; user-select: none; }
+/* Sem a ancoragem automática do navegador na rolagem do arquivo: quem segura a
+   vista é a paginação (`ancoraDaVista`). Com a dele ligada, aplicar um título
+   jogava a página milhares de pixels para baixo. */
+.estudo-area .admin-content-wrap { overflow-anchor: none; }
 .estudo-area .arquivo-corpo,
 .estudo-area [contenteditable="true"],
 .estudo-area [contenteditable=""],
@@ -1338,10 +1342,38 @@ body.puxando-coluna * { cursor: col-resize !important; }
    Quando não cabe, ela quebra em linhas por grupo, e não rola de lado: com o
    índice e o trilho abertos a coluna tem uns 570px, e a rolagem escondia
    metade dos botões sem nenhum sinal de que eles existiam. */
-.barra-edicao {
+/* A faixa presa no alto: quem gruda é ela, com a barra e os dois botões de
+   lado dentro. */
+.barra-fixa {
   position: sticky;
   top: 0;
   z-index: 6;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+.barra-fixa > .barra-edicao { flex: 1; min-width: 0; }
+.barra-lado {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  background: var(--white);
+  border: 1.5px solid var(--gray3);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  color: var(--gray);
+  transition: background var(--transition), color var(--transition), border-color var(--transition);
+}
+.barra-lado:hover { color: var(--black); border-color: var(--gray2); }
+/* O X dos painéis flutuantes: quando o índice ou o trilho cobrem a tela, o
+   botão que os abriu fica embaixo deles, e sair precisa de uma porta à vista.
+   Na tela larga eles são colunas, e o X não aparece. */
+.painel-fechar { display: none; flex-shrink: 0; width: 30px; height: 30px; border-radius: var(--radius-sm); place-items: center; color: var(--gray); margin-left: 6px; transition: background var(--transition), color var(--transition); }
+.painel-fechar:hover { background: var(--gray4); color: var(--black); }
+.barra-lado[aria-pressed="true"] { background: var(--yd); color: var(--black); border-color: transparent; }
+.barra-edicao {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -4331,15 +4363,32 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
   }
   .trilho-dentro { width: 100%; min-width: 0; }
   .estudo-area[data-trilho="aberto"] .estudo-trilho { transform: none; }
+  .trilho-topo .painel-fechar { display: grid; }
   /* O fundo do trilho flutuante: tocar nele fecha o trilho. Um degrau abaixo
      dele, e só o suficiente de sombra para dizer que o texto está atrás. */
   .trilho-fundo { position: fixed; inset: 60px 0 0 0; z-index: 289; background: rgba(18,19,22,0.28); border: none; animation: fadeIn .2s ease both; cursor: default; }
   .folha { padding: 34px 30px 48px; }
 }
-/* Abaixo disso o texto precisa de toda a largura, e o índice sai de cena. */
+/* Abaixo disso o texto precisa de toda a largura, e o índice sai da grade:
+   ele vira um painel que entra pela esquerda, por cima do texto, aberto pelo
+   botão da faixa do alto. Antes ele simplesmente sumia nesta largura. */
 @media (max-width: 1040px) {
   .estudo-area, .estudo-area[data-trilho="fechado"] { grid-template-columns: minmax(0, 1fr); }
-  .arquivo-indice { display: none; }
+  .estudo-area > .arquivo-indice,
+  .estudo-area[data-indice="fechado"] > .arquivo-indice {
+    position: fixed;
+    top: 60px; left: 0; bottom: 0;
+    z-index: 292;
+    width: min(300px, 86vw);
+    padding: 20px 10px 30px 18px;
+    background: var(--white);
+    box-shadow: 16px 0 40px -18px rgba(20, 22, 30, .5);
+    transform: translateX(-101%);
+    transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+  }
+  .estudo-area[data-indice="aberto"] > .arquivo-indice { transform: none; }
+  .arquivo-indice-titulo .painel-fechar { display: grid; }
+  .indice-fundo { position: fixed; inset: 60px 0 0 0; z-index: 291; background: rgba(18,19,22,0.28); border: none; animation: fadeIn .2s ease both; cursor: default; }
   /* Com uma coluna só, um `grid-column: 1 / 3` inventaria uma segunda faixa
      implícita e jogaria o texto para fora da tela. */
   .estudo-area > .trilha-tela,
@@ -4383,6 +4432,12 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
      o fundo vai junto: senão a faixa que sobra à esquerda seria tocável só em
      parte. */
   .trilho-fundo { inset: 0; z-index: 305; }
+  /* No celular o índice cobre a altura toda, como o trilho, e os botões de lado
+     encolhem para a altura da barra. */
+  .estudo-area > .arquivo-indice, .estudo-area[data-indice="fechado"] > .arquivo-indice { top: 0; z-index: 312; }
+  .indice-fundo { inset: 0; z-index: 311; }
+  .barra-lado { width: 40px; height: 44px; border-radius: 12px; }
+  .barra-fixa { gap: 4px; }
 
   /* A barra de formatação no celular: uma faixa só, que rola de lado com o
      dedo, como a do Docs no telefone. Quebrando em linhas ela tomava cinco
@@ -4923,9 +4978,9 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
         <span class="trilha-aqui" id="trilhaArquivo"></span>
       </nav>
 
-      <aside class="arquivo-indice" aria-label="Índice do arquivo">
+      <aside class="arquivo-indice" id="arquivoIndice" aria-label="Índice do arquivo">
         <div class="arquivo-indice-dentro">
-          <p class="arquivo-indice-titulo"><span>Índice</span><b id="tocConta">0</b></p>
+          <p class="arquivo-indice-titulo"><span>Índice</span><b id="tocConta">0</b><button type="button" class="painel-fechar" id="btnIndiceFechar" title="Fechar" aria-label="Fechar o índice"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></p>
           <nav id="toc"></nav>
         </div>
       </aside>
@@ -4960,6 +5015,14 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
              a qual eles agem. As listas das caixas com seta abrem num menu só,
              solto na página, porque a barra corta o que passa da borda dela
              (é assim que o divisor do começo de linha some). -->
+        <!-- A faixa presa no alto da rolagem: a barra de formatação no meio e,
+             nas pontas, os botões que abrem e fecham o índice e o trilho. Eles
+             ficam aqui, e não só no cabeçalho, para continuarem à mão no meio
+             de um texto de 60 páginas. -->
+        <div class="barra-fixa">
+        <button type="button" class="barra-lado" id="btnIndiceLado" aria-controls="arquivoIndice" aria-pressed="true" title="Índice" aria-label="Mostrar ou esconder o índice">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg>
+        </button>
         <div class="barra-edicao" id="barraEdicao" role="toolbar" aria-label="Formatação do texto">
           <div class="be-grupo">
           <label class="be-menus" title="Buscar um comando (Alt+/)">
@@ -5087,6 +5150,10 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
           </button>
           </div>
         </div>
+        <button type="button" class="barra-lado" id="btnTrilhoLado" aria-pressed="true" title="Ferramentas de estudo" aria-label="Mostrar ou esconder as ferramentas de estudo">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M15 4v16"/></svg>
+        </button>
+        </div>
 
         <article class="card folha">
           <div class="arquivo-corpo" id="arquivoCorpo" contenteditable="true"
@@ -5118,6 +5185,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
                 IA
               </button>
             </div>
+            <button type="button" class="painel-fechar" id="btnTrilhoFechar" title="Fechar" aria-label="Fechar as ferramentas de estudo"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
           </div>
 
 
@@ -6139,6 +6207,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
       area.dataset.trilho = "fechado";
       area.dataset.indice = "fechado";
       tirarFundo();
+      pintarLados();
       return;
     }
     if (!focoAntes) return;
@@ -6146,6 +6215,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     area.dataset.trilho = focoAntes.trilho;
     area.dataset.indice = focoAntes.indice || "aberto";
     focoAntes = null;
+    pintarLados();
   });
 
   /* ═══ Menu e trilho ══════════════════════════════════════════════════ */
@@ -6180,10 +6250,59 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     var novo = forcar === undefined ? !aberto : forcar;
     area.dataset.trilho = novo ? "aberto" : "fechado";
     if (novo) desistirDoFoco();
+    if (novo && mqTrilho.matches && mqIndice.matches && area.dataset.indice === "aberto") alternarIndice(false);
     acertarFundoTrilho();
+    pintarLados();
     pintarBalaoCiclo();
   }
   $("btnTrilho").addEventListener("click", function () { alternarTrilho(); });
+  $("btnTrilhoLado").addEventListener("click", function () { alternarTrilho(); });
+
+  /* ── O índice ─────────────────────────────────────────────────────────
+     Na tela larga ele é a coluna da esquerda, e o botão a abre e fecha. Abaixo
+     de 1040px ele não cabe ao lado do texto: vira um painel que entra pela
+     esquerda por cima dele, com fundo — tocar fora, o Esc ou escolher uma
+     seção fecham. Os dois botões moram na faixa presa no alto, então
+     continuam à mão no meio de um texto comprido. */
+  var mqIndice = window.matchMedia("(max-width: 1040px)");
+  var fundoIndice = null;
+  function alternarIndice(forcar) {
+    var aberto = area.dataset.indice !== "fechado";
+    var novo = forcar === undefined ? !aberto : forcar;
+    area.dataset.indice = novo ? "aberto" : "fechado";
+    if (novo) desistirDoFoco();
+    /* Painel sobre painel não: abrir o índice flutuante fecha o trilho
+       flutuante, e vice-versa (abaixo). */
+    if (novo && mqIndice.matches && mqTrilho.matches && area.dataset.trilho === "aberto") alternarTrilho(false);
+    acertarFundoIndice();
+    pintarLados();
+  }
+  function acertarFundoIndice() {
+    var precisa = mqIndice.matches && area.dataset.indice === "aberto";
+    if (precisa && !fundoIndice) {
+      fundoIndice = document.createElement("button");
+      fundoIndice.type = "button";
+      fundoIndice.className = "indice-fundo";
+      fundoIndice.setAttribute("aria-label", "Fechar o índice");
+      fundoIndice.addEventListener("click", function () { alternarIndice(false); });
+      area.appendChild(fundoIndice);
+    } else if (!precisa && fundoIndice) {
+      fundoIndice.remove();
+      fundoIndice = null;
+    }
+  }
+  function pintarLados() {
+    $("btnIndiceLado").setAttribute("aria-pressed", String(area.dataset.indice !== "fechado"));
+    $("btnTrilhoLado").setAttribute("aria-pressed", String(area.dataset.trilho === "aberto"));
+  }
+  $("btnIndiceLado").addEventListener("click", function () { alternarIndice(); });
+  $("btnIndiceFechar").addEventListener("click", function () { alternarIndice(false); });
+  $("btnTrilhoFechar").addEventListener("click", function () { alternarTrilho(false); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "Escape" || !fundoIndice || e.defaultPrevented) return;
+    if (!$("gavetaOverlay").hidden || !$("dialogoOverlay").hidden || document.querySelector(".previa-tela")) return;
+    alternarIndice(false);
+  });
 
   /* Abaixo de 1180px o trilho flutua por cima do texto, e não havia como sair
      dele sem achar o botão que o abriu. Agora ele tem um fundo, como o menu:
@@ -6216,13 +6335,19 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
   function ajustarLargura() {
     casca.dataset.menu = mqCelular.matches ? "fechado" : "aberto";
     area.dataset.trilho = mqTrilho.matches ? "fechado" : "aberto";
+    /* O índice acompanha: coluna aberta na tela larga, painel fechado na
+       estreita. */
+    area.dataset.indice = mqIndice.matches ? "fechado" : "aberto";
     desistirDoFoco();
     tirarFundo();
     acertarFundoTrilho();
+    acertarFundoIndice();
+    pintarLados();
     pintarBalaoCiclo();
   }
   mqCelular.addEventListener("change", ajustarLargura);
   mqTrilho.addEventListener("change", ajustarLargura);
+  mqIndice.addEventListener("change", ajustarLargura);
   ajustarLargura();
 
   /* ═══ Menu da conta ══════════════════════════════════════════════════ */
@@ -6280,6 +6405,9 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
       b.appendChild(t);
       b.addEventListener("click", function () {
         editor.scrollTo({ top: naRolagem(h) - 16, behavior: "smooth" });
+        /* No painel flutuante, escolher a seção é também sair dele: o texto
+           está atrás, e é para lá que se queria ir. */
+        if (mqIndice.matches) alternarIndice(false);
       });
       toc.appendChild(b);
       itensToc.push(b);
@@ -10647,6 +10775,10 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     var altos = unidades.map(function (u) { return u.el.offsetHeight; });
     if (mesmoRetrato(unidades, altos)) return;
 
+    /* A tela fica parada: a linha em que se está (ou a que está no meio da
+       vista) volta ao mesmo lugar depois de a paginação refazer as folhas. */
+    var ancora = ancoraDaVista();
+
     /* Uma medida só, sem empurrão nenhum, e o resto é conta. Antes cada bloco
        empurrado pedia uma medida nova da página inteira, e um texto de 25
        folhas travava a digitação por quase um décimo de segundo a cada tecla.
@@ -10697,10 +10829,42 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     Array.prototype.forEach.call(camadaFolhas.children, function (f, i) {
       f.firstChild.textContent = (i + 1) + " de " + folhas;
     });
+    segurarAncora(ancora);
     /* Os balões da tabela são fixos na tela: se o empurrão moveu a tabela, eles
        vão junto. */
     if (tabelaSobPonteiro) pintarMais();
     if (!mesaBarra.hidden) posicionarMesaBarra();
+  }
+
+  /* A âncora da tela é nossa, e não do navegador. A ancoragem automática dele
+     (`overflow-anchor`) segura um elemento na vista quando o que está acima
+     muda de altura — e aqui tudo acima muda o tempo todo: a paginação tira os
+     empurrões para medir e os põe de volta, e virar título troca o próprio
+     elemento que ele segurava. Ele se perdia no meio dessa conta e jogava a
+     página 15 mil pixels para baixo ao aplicar um título. Com ela desligada
+     (no CSS), quem segura a vista é esta dupla: a linha do cursor, se ela
+     está na tela, ou a do meio da vista, fica no mesmo lugar. */
+  function roladorDoTexto() { return folhaDoTexto.closest(".admin-content-wrap"); }
+  function ancoraDaVista() {
+    var rolador = roladorDoTexto();
+    if (!rolador) return null;
+    var caixa = rolador.getBoundingClientRect(), el = null;
+    var sel = window.getSelection();
+    if (sel && sel.rangeCount && arquivoCorpo.contains(sel.focusNode)) {
+      el = sel.focusNode.nodeType === 3 ? sel.focusNode.parentElement : sel.focusNode;
+      var r = el.getBoundingClientRect();
+      if (r.bottom < caixa.top || r.top > caixa.bottom) el = null;
+    }
+    if (!el) {
+      var e = document.elementFromPoint(caixa.left + caixa.width / 2, caixa.top + caixa.height / 3);
+      if (e && e !== arquivoCorpo && arquivoCorpo.contains(e)) el = e;
+    }
+    return el ? { el: el, top: el.getBoundingClientRect().top, rolador: rolador } : null;
+  }
+  function segurarAncora(a) {
+    if (!a || !a.el.isConnected) return;
+    var d = a.el.getBoundingClientRect().top - a.top;
+    if (Math.abs(d) > 1) a.rolador.scrollTop += d;
   }
 
   var quadroPaginas = 0;
