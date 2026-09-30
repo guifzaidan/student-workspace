@@ -59,7 +59,7 @@ function hoje(): string {
 // ── Leitura ──────────────────────────────────────────────────────────────────
 async function lerTudo() {
   const cx = db();
-  const [pastas, arquivos, decks, cards, rascunhos, revisoes, ciclos] = await Promise.all([
+  const [pastas, arquivos, decks, cards, rascunhos, revisoes, ciclos, acessos] = await Promise.all([
     cx.execute('SELECT * FROM sinapse_pastas ORDER BY posicao, criada_em'),
     cx.execute('SELECT * FROM sinapse_arquivos ORDER BY posicao, criado_em'),
     cx.execute('SELECT * FROM sinapse_decks ORDER BY posicao, criado_em'),
@@ -79,6 +79,10 @@ async function lerTudo() {
         WHERE terminou_em IS NOT NULL AND substr(comecou_em, 1, 10) = ?`,
       [hoje()],
     ),
+    // Doze semanas de uso, para o mapa de calor do Dashboard.
+    cx.execute('SELECT hora, minutos FROM sinapse_acessos WHERE hora >= ? ORDER BY hora', [
+      new Date(Date.now() - 84 * 86400000).toISOString().slice(0, 13),
+    ]),
   ]);
 
   const porPasta = new Map<string, Linha[]>();
@@ -158,6 +162,10 @@ async function lerTudo() {
       minutos: numero((ciclos.rows[0] as unknown as Linha)?.minutos),
       ciclos: numero((ciclos.rows[0] as unknown as Linha)?.total),
     },
+    acessos: (acessos.rows as unknown as Linha[]).map((l) => ({
+      hora: texto(l.hora),
+      minutos: numero(l.minutos),
+    })),
   };
 }
 
@@ -409,6 +417,25 @@ async function gravar(corpo: Record<string, unknown>) {
     case 'ciclo.terminar':
       await cx.execute('UPDATE sinapse_ciclos SET terminou_em = ? WHERE id = ?', [t, numero(corpo.id)]);
       return { ok: true };
+
+    case 'acesso.marcar': {
+      /* A tela junta os minutos ativos e manda de tempos em tempos, dizendo a
+         hora a que eles pertencem: o envio da virada da hora chega já na hora
+         seguinte. Hora fora do formato, ou de mais de duas horas atrás, fica
+         com a do servidor. */
+      const pedida = texto(corpo.hora);
+      const limite = new Date(Date.now() - 2 * 3600000).toISOString().slice(0, 13);
+      const hora = /^\d{4}-\d{2}-\d{2}T\d{2}$/.test(pedida) && pedida >= limite && pedida <= t.slice(0, 13)
+        ? pedida
+        : t.slice(0, 13);
+      const minutos = Math.max(1, Math.min(60, Math.round(numero(corpo.minutos, 1))));
+      await cx.execute(
+        `INSERT INTO sinapse_acessos (hora, minutos) VALUES (?, ?)
+         ON CONFLICT(hora) DO UPDATE SET minutos = MIN(60, minutos + excluded.minutos)`,
+        [hora, minutos],
+      );
+      return { ok: true };
+    }
 
     default:
       throw new Error(`Ação desconhecida: ${acao || '(vazia)'}`);

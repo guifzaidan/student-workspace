@@ -8,7 +8,7 @@
 <title>Sinapse</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Manrope:wght@400;500;700;800&display=swap">
 <style>
 /* ═══════════════════════════════════════════════════════════════════════
    Sinapse - estudo ativo.
@@ -35,6 +35,12 @@
   --yd:     rgba(242, 160, 192, 0.14);
   --yb:     rgba(242, 160, 192, 0.45);
   --spinner: #F2A0C0;
+  /* Os degraus do mapa de calor do Dashboard: um tom só, do claro ao escuro.
+     No escuro a escada inverte: mais uso é mais luz. */
+  --mapa-1: #F9DCE8;
+  --mapa-2: #F2B6CE;
+  --mapa-3: #E58AAE;
+  --mapa-4: #C25A86;
   --red:    #D93025;
   --green:  #1E8A3E;
   --green-light: #23A455;
@@ -81,6 +87,14 @@
     --gray4:  #1C1D21;
     --yd:     rgba(242, 160, 192, 0.18);
     --yb:     rgba(242, 160, 192, 0.50);
+  --mapa-1: #3B2530;
+  --mapa-2: #6A3B51;
+  --mapa-3: #A95C7C;
+  --mapa-4: #F2A0C0;
+    --mapa-1: #3B2530;
+    --mapa-2: #6A3B51;
+    --mapa-3: #A95C7C;
+    --mapa-4: #F2A0C0;
     --card-hover-bg: #1E1F24;
     --shadow-card: 0 2px 10px rgba(0,0,0,0.55);
     --shadow-card-hover: 0 8px 32px rgba(0,0,0,0.65), 0 2px 8px rgba(0,0,0,0.5);
@@ -98,6 +112,10 @@
   --gray4:  #1C1D21;
   --yd:     rgba(242, 160, 192, 0.18);
   --yb:     rgba(242, 160, 192, 0.50);
+  --mapa-1: #3B2530;
+  --mapa-2: #6A3B51;
+  --mapa-3: #A95C7C;
+  --mapa-4: #F2A0C0;
   --card-hover-bg: #1E1F24;
   --shadow-card: 0 2px 10px rgba(0,0,0,0.55);
   --shadow-card-hover: 0 8px 32px rgba(0,0,0,0.65), 0 2px 8px rgba(0,0,0,0.5);
@@ -1337,6 +1355,255 @@ body.puxando-coluna * { cursor: col-resize !important; }
   pointer-events: none;
 }
 .arquivo-corpo em { font-style: italic; }
+
+/* ─── Mapa mental ─────────────────────────────────────────────────────
+   Um quadro dentro do texto, no estilo da página de apresentação: folha
+   pontilhada, ideias como etiquetas de contorno preto com sombra dura, um
+   pouco tortas, e as cores do grifo (rosa, lilás, lima, manteiga, céu). As
+   cores são fixas, e não as do tema: o mapa é uma peça, como uma imagem, e no
+   tema escuro continua com a mesma cara. */
+.arquivo-corpo .mapa-mental {
+  --mm-tinta: #121316;
+  --mm-papel: #F8F8F6;
+  position: relative;
+  margin: 22px 0 26px;
+  font-family: "Manrope", system-ui, sans-serif;
+  color: var(--mm-tinta);
+  -webkit-user-select: none; user-select: none;
+}
+.mapa-quadro {
+  position: relative;
+  height: var(--mm-altura, 440px);
+  border: 2px solid var(--mm-tinta);
+  border-radius: 22px;
+  overflow: hidden;
+  background-color: var(--mm-papel);
+  background-image: radial-gradient(circle, rgba(18, 19, 22, .14) 1.1px, transparent 1.2px);
+  background-size: 22px 22px;
+  box-shadow: 6px 6px 0 var(--mm-tinta);
+  cursor: grab;
+  touch-action: none;
+}
+.mapa-quadro.puxando { cursor: grabbing; }
+.mapa-mundo { position: absolute; left: 50%; top: 50%; width: 0; height: 0; transform-origin: 0 0; }
+/* Deslizar a vista até a ideia que acabou de nascer fora do quadro. */
+.mapa-mundo.deslizando { transition: transform .38s cubic-bezier(.2, .8, .2, 1); }
+.mapa-fios { position: absolute; left: 0; top: 0; width: 1px; height: 1px; overflow: visible; pointer-events: none; }
+.mapa-fios path { fill: none; stroke: var(--mm-tinta); stroke-width: 2.5; stroke-linecap: round; }
+.mapa-no {
+  position: absolute;
+  transform: translate(-50%, -50%) rotate(var(--mm-giro, 0deg));
+  /* O mundo tem largura zero (ele só marca o centro), e sem isto a ideia
+     encolheria até caber nele: uma letra por linha. */
+  width: max-content;
+  max-width: 220px;
+  padding: 9px 16px;
+  border: 2px solid var(--mm-tinta);
+  border-radius: 100px;
+  background: var(--mm-cor, #fff);
+  box-shadow: 3px 3px 0 var(--mm-tinta);
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1.25;
+  text-align: center;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  transition: box-shadow .12s, transform .12s;
+  outline: none;
+}
+.mapa-no:hover { box-shadow: 5px 5px 0 var(--mm-tinta); }
+/* A escolhida não ganha moldura: ela levanta, com a sombra mais funda. */
+.mapa-no.escolhido { box-shadow: 6px 6px 0 var(--mm-tinta); z-index: 1; }
+.mapa-no.raiz {
+  --mm-giro: 0deg;
+  padding: 14px 24px;
+  border-radius: 20px;
+  font-family: "Bricolage Grotesque", "Manrope", system-ui, sans-serif;
+  font-size: 21px;
+  letter-spacing: -.02em;
+  color: #fff;
+  background: var(--mm-tinta);
+  box-shadow: 5px 5px 0 #F2A0C0;
+  max-width: 260px;
+}
+.mapa-no.raiz:hover { box-shadow: 7px 7px 0 #F2A0C0; }
+.mapa-no.raiz.escolhido { box-shadow: 8px 8px 0 #F2A0C0; }
+.mapa-texto { display: block; min-width: 2ch; outline: none; }
+.mapa-texto[contenteditable="true"] { cursor: text; -webkit-user-select: text; user-select: text; }
+.mapa-no.editando { cursor: text; z-index: 1; }
+
+/* Recolher e expandir: um botãozinho na borda da ideia, do lado de onde
+   saem os fios. Aberto mostra "−"; fechado fica preto e diz quantas ideias
+   estão guardadas ali dentro. */
+.mapa-dobra {
+  position: absolute; z-index: 2;
+  min-width: 22px; height: 22px; padding: 0 5px;
+  display: grid; place-items: center;
+  /* Encostado por fora da borda, no tamanho de tela fixo: com o zoom longe,
+     não cobre a ideia (que encolhe) nem some junto com ela. */
+  --mm-dobra: translate(4px, -50%);
+  transform-origin: 0 50%;
+  transform: var(--mm-dobra) scale(var(--mm-inv, 1));
+  border: 2px solid var(--mm-tinta); border-radius: 100px;
+  background: #fff; color: var(--mm-tinta);
+  box-shadow: 1.5px 1.5px 0 var(--mm-tinta);
+  font: 800 12px/1 "Manrope", system-ui, sans-serif;
+  cursor: pointer;
+  transition: transform .15s cubic-bezier(.2, 1.4, .4, 1), background .12s;
+}
+.mapa-dobra.esquerda { --mm-dobra: translate(calc(-100% - 4px), -50%); transform-origin: 100% 50%; }
+.mapa-dobra.baixo { --mm-dobra: translate(-50%, 4px); transform-origin: 50% 0; }
+.mapa-dobra:hover { transform: var(--mm-dobra) scale(calc(var(--mm-inv, 1) * 1.15)); }
+.mapa-dobra.fechada { background: var(--mm-tinta); color: #fff; font-size: 11px; box-shadow: 2px 2px 0 #F2A0C0; }
+.mapa-mental.fixo .mapa-dobra { pointer-events: none; }
+/* Recolher: as ideias de dentro voltam para a de cima, encolhendo. */
+.mapa-no.recolhendo { animation: mmRecolher .3s cubic-bezier(.5, 0, .75, 0) forwards; pointer-events: none; }
+@keyframes mmRecolher { to { transform: translate(-50%, -50%) rotate(var(--mm-giro, 0deg)) scale(0); opacity: 0; } }
+.mapa-fios path.recolhendo { stroke-dasharray: 1; animation: mmFioSome .25s ease-in forwards; }
+
+/* Os botões da ideia escolhida: "+" e lixeira, colados nela do lado de fora.
+   Moram no mundo (andam junto com a ideia) e desfazem o zoom (`--mm-inv`),
+   para ficarem do mesmo tamanho em qualquer aproximação. */
+.mapa-acoes-no {
+  position: absolute; z-index: 2;
+  display: flex; gap: 6px;
+  transform-origin: 50% 100%;
+  animation: mmAcoesSurgem .22s cubic-bezier(.2, 1.4, .4, 1) both;
+}
+.mapa-acoes-no[hidden] { display: none; }
+.mapa-acoes-no.esquerda { flex-direction: row-reverse; transform-origin: 100% 50%; }
+.mapa-acoes-no button {
+  width: 32px; height: 32px; padding: 0;
+  display: grid; place-items: center;
+  border-radius: 50%; border: 2px solid var(--mm-tinta);
+  background: #fff; color: var(--mm-tinta);
+  box-shadow: 2px 2px 0 var(--mm-tinta);
+  cursor: pointer;
+  transition: transform .12s, box-shadow .12s, background .12s;
+}
+.mapa-acoes-no button:hover { transform: translate(-1px, -1px); box-shadow: 3px 3px 0 var(--mm-tinta); }
+.mapa-acoes-no button:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--mm-tinta); }
+.mapa-acoes-no .mm-no-mais { background: #F2A0C0; }
+.mapa-acoes-no .mm-no-lixo:hover { background: #FFD9D6; color: #D93025; }
+@keyframes mmAcoesSurgem { from { opacity: 0; scale: .4; } }
+
+/* Nascer: a ideia salta da ideia de cima com um giro e um tranco elástico,
+   e o fio se desenha do pai até ela. */
+.mapa-no.nascendo { animation: mmNascer .6s cubic-bezier(.2, 1.5, .35, 1) both; }
+@keyframes mmNascer {
+  0% { transform: translate(-50%, -50%) rotate(calc(var(--mm-giro, 0deg) - 40deg)) scale(0); opacity: 0; }
+  55% { transform: translate(-50%, -50%) rotate(calc(var(--mm-giro, 0deg) + 6deg)) scale(1.14); opacity: 1; }
+  100% { transform: translate(-50%, -50%) rotate(var(--mm-giro, 0deg)) scale(1); }
+}
+.mapa-fios path.nascendo { stroke-dasharray: 1; stroke-dashoffset: 1; animation: mmFioNasce .45s ease-out forwards; }
+@keyframes mmFioNasce { to { stroke-dashoffset: 0; } }
+
+/* Morrer: incha um pouco, gira e some num ponto; o fio se recolhe. */
+.mapa-no.morrendo { animation: mmMorrer .44s cubic-bezier(.5, 0, .75, 0) forwards; pointer-events: none; }
+@keyframes mmMorrer {
+  0% { transform: translate(-50%, -50%) rotate(var(--mm-giro, 0deg)) scale(1); }
+  30% { transform: translate(-50%, -50%) rotate(calc(var(--mm-giro, 0deg) + 10deg)) scale(1.15); }
+  100% { transform: translate(-50%, -50%) rotate(calc(var(--mm-giro, 0deg) - 45deg)) scale(0); opacity: 0; }
+}
+.mapa-fios path.morrendo { stroke-dasharray: 1; stroke-dashoffset: 0; animation: mmFioSome .36s ease-in forwards; }
+@keyframes mmFioSome { to { stroke-dashoffset: -1; opacity: 0; } }
+
+/* As faíscas: estrelinhas que espirram da ideia que nasce ou que some. */
+/* Confete no estilo da apresentação: quadradinhos e bolinhas de contorno
+   preto, cheios de cor, girando para fora. */
+.mm-faisca {
+  position: absolute; z-index: 3;
+  width: var(--t, 10px); height: var(--t, 10px);
+  margin: calc(var(--t, 10px) / -2) 0 0 calc(var(--t, 10px) / -2);
+  pointer-events: none;
+  background: var(--c, #F2A0C0);
+  border: 1.5px solid var(--mm-tinta);
+  border-radius: 3px;
+  animation: mmFaisca .85s cubic-bezier(.2, .8, .3, 1) forwards;
+}
+.mm-faisca.bola { border-radius: 50%; }
+@keyframes mmFaisca {
+  0% { transform: translate(0, 0) scale(.3) rotate(0); opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(1) rotate(160deg); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mapa-no.recolhendo, .mapa-fios path.recolhendo,
+  .mapa-no.nascendo, .mapa-no.morrendo, .mapa-fios path.nascendo, .mapa-fios path.morrendo,
+  .mapa-acoes-no, .mm-faisca { animation: none !important; }
+  .mm-faisca { display: none; }
+}
+
+/* A barra do mapa: uma pílula solta no canto de cima, como as da apresentação. */
+.mapa-ferramentas {
+  position: absolute; top: 12px; left: 12px; z-index: 3;
+  display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
+  max-width: calc(100% - 24px);
+  padding: 5px;
+  background: #fff;
+  border: 2px solid var(--mm-tinta);
+  border-radius: 16px;
+  box-shadow: 3px 3px 0 var(--mm-tinta);
+  cursor: default;
+}
+.mapa-ferramentas button {
+  height: 30px; min-width: 30px; padding: 0 8px;
+  border: none; border-radius: 10px; background: none;
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  font: inherit; font-size: 12.5px; font-weight: 800; color: var(--mm-tinta);
+  cursor: pointer;
+}
+.mapa-ferramentas button:hover { background: #F0F0EE; }
+.mapa-ferramentas button.mm-principal { background: #F2A0C0; border: 1.5px solid var(--mm-tinta); }
+.mapa-ferramentas button.mm-perigo:hover { background: rgba(217, 48, 37, .1); color: #D93025; }
+.mapa-ferramentas .mm-fio { width: 1.5px; height: 18px; background: #E3E4DE; margin: 0 3px; }
+.mapa-ferramentas .mm-zoom { min-width: 42px; font-variant-numeric: tabular-nums; color: #5E6066; }
+.mapa-ferramentas .mm-cor { width: 20px; min-width: 20px; height: 20px; padding: 0; border-radius: 50%; border: 1.5px solid var(--mm-tinta); }
+.mapa-ferramentas .mm-cor:hover { transform: scale(1.15); background: var(--c); }
+.mapa-ferramentas .mm-cores { display: inline-flex; gap: 5px; padding: 0 4px; }
+.mapa-dica {
+  position: absolute; bottom: 12px; left: 14px; z-index: 2;
+  font-size: 11.5px; font-weight: 700; color: #5E6066;
+  background: rgba(248, 248, 246, .9); padding: 4px 8px; border-radius: 8px;
+  pointer-events: none;
+}
+/* A etiqueta torta no canto, o enfeite da apresentação. */
+.mapa-selo {
+  position: absolute; bottom: -14px; right: 26px; z-index: 4;
+  padding: 6px 14px; border-radius: 100px;
+  border: 2px solid var(--mm-tinta); background: #C6F36B;
+  box-shadow: 3px 3px 0 var(--mm-tinta);
+  font-family: "Bricolage Grotesque", "Manrope", system-ui, sans-serif;
+  font-weight: 800; font-size: 13px;
+  transform: rotate(4deg);
+  pointer-events: none;
+}
+
+/* Fixado: vira uma imagem. Sem barra, sem arrastar, sem editar; um botão
+   discreto aparece no canto para quem quiser voltar a mexer. */
+.mapa-mental.fixo .mapa-quadro { cursor: default; }
+.mapa-mental.fixo .mapa-no { cursor: default; }
+.mapa-mental.fixo .mapa-no:hover { box-shadow: 3px 3px 0 var(--mm-tinta); }
+.mapa-mental.fixo .mapa-no.raiz:hover { box-shadow: 5px 5px 0 #F2A0C0; }
+.mapa-desfixar {
+  position: absolute; top: 12px; left: 12px; z-index: 3;
+  height: 32px; padding: 0 12px; border-radius: 100px;
+  border: 2px solid var(--mm-tinta); background: #fff; box-shadow: 2px 2px 0 var(--mm-tinta);
+  font: inherit; font-size: 12.5px; font-weight: 800; color: var(--mm-tinta);
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer;
+  opacity: 0; transition: opacity .15s;
+}
+.mapa-mental.fixo:hover .mapa-desfixar, .mapa-desfixar:focus-visible { opacity: 1; }
+@media (hover: none) { .mapa-desfixar { opacity: 1; } }
+
+/* Tela cheia: o quadro ocupa a tela inteira. */
+.mapa-mental:fullscreen { background: #F8F8F6; padding: 24px; margin: 0; }
+.mapa-mental:fullscreen .mapa-quadro { height: calc(100vh - 48px); }
+.mapa-mental:fullscreen .mapa-selo { bottom: 14px; right: 40px; }
+@media print {
+  .mapa-ferramentas, .mapa-dica, .mapa-desfixar { display: none !important; }
+}
 
 /* ─── Barra de formatação ──────────────────────────────────────────────
    Presa no alto da rolagem do texto: formatar é coisa que se faz no meio de
@@ -4243,6 +4510,9 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
 .bloco-titulo-solto { font-size: 14px; font-weight: 800; letter-spacing: -.01em; }
 .bloco-titulo { font-size: 13px; font-weight: 800; padding: 13px 14px; border-bottom: 1px solid var(--gray3); letter-spacing: -.01em; }
 .bloco { background: var(--white); border: 1.5px solid var(--gray3); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow-card); }
+/* Na coluna que rola (o celular), um bloco com overflow escondido encolhia até
+   caber na tela, e os dois gráficos do Dashboard viravam uma fita de 30px. */
+.admin-content-wrap > .bloco { flex-shrink: 0; }
 .ajustes { padding: 12px 14px; display: flex; flex-direction: column; gap: 8px; }
 
 /* ─── Decks ──────────────────────────────────────────────────────────── */
@@ -4348,6 +4618,64 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
   z-index: 2;
 }
 .coluna:hover .coluna-balao { opacity: 1; }
+
+/* O mapa de calor do uso: dia da semana nas linhas, hora nas colunas. Um tom
+   só em cinco degraus, e o vazio é o cinza da folha, não um rosa apagado. */
+.mapa-uso .grafico-topo { margin-bottom: 16px; }
+.mapa-grade {
+  display: grid;
+  grid-template-columns: 64px repeat(24, minmax(0, 1fr));
+  gap: 2px;
+  position: relative;
+}
+.mapa-faixa {
+  font-size: 10.5px; font-weight: 700; color: var(--gray);
+  padding: 0 0 4px 2px; margin-right: 2px;
+  border-bottom: 1.5px solid var(--gray3);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.mapa-dia-curto { display: none; }
+.mapa-dia, .mapa-hora {
+  font-size: 10.5px; font-weight: 700; color: var(--gray2);
+  display: flex; align-items: center;
+}
+.mapa-dia { font-size: 11px; color: var(--gray); }
+.mapa-hora { justify-content: center; height: 18px; margin-top: 2px; font-variant-numeric: tabular-nums; text-transform: none; white-space: nowrap; }
+.mapa-celula { height: 20px; border-radius: 3px; background: var(--gray4); cursor: default; }
+.mapa-celula:hover { outline: 2px solid var(--black); outline-offset: -1px; }
+.mapa-n0 { background: var(--gray4); }
+.mapa-n1 { background: var(--mapa-1); }
+.mapa-n2 { background: var(--mapa-2); }
+.mapa-n3 { background: var(--mapa-3); }
+.mapa-n4 { background: var(--mapa-4); }
+.mapa-rodape { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
+.mapa-pico { font-size: 11.5px; font-weight: 600; color: var(--gray2); }
+.mapa-pico b { color: var(--black); font-weight: 700; }
+.mapa-escala { display: inline-flex; align-items: center; gap: 3px; font-size: 10.5px; font-weight: 700; color: var(--gray2); }
+.mapa-escala i { width: 12px; height: 12px; border-radius: 3px; }
+.mapa-escala i:first-child { margin-left: 4px; }
+.mapa-escala i:last-child { margin-right: 4px; }
+.mapa-balao {
+  position: absolute;
+  background: var(--black);
+  color: var(--bg);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 9px;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate(-50%, calc(-100% - 6px));
+  z-index: 2;
+}
+@media (max-width: 640px) {
+  .mapa-grade { grid-template-columns: 30px repeat(24, minmax(0, 1fr)); gap: 1px; }
+  .mapa-celula { height: 16px; border-radius: 2px; }
+  .mapa-dia-longo, .mapa-hora-meio { visibility: hidden; }
+  .mapa-dia-longo { display: none; }
+  .mapa-dia-curto { display: inline; text-transform: uppercase; }
+  .mapa-faixa { font-size: 9.5px; }
+}
 
 /* ─── Barra inferior do celular ──────────────────────────────────────── */
 .nav-inferior { display: none; }
@@ -4507,6 +4835,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
      tudo quebrando junto, os gatilhos ficavam espremidos em três tamanhos. */
   .admin-toolbar { gap: 8px 6px; }
   .admin-toolbar-spacer { display: none; }
+  .admin-toolbar-label { display: none; }
   .admin-toolbar .secao-busca-campo { flex: 1 1 100%; min-width: 0; height: 38px; }
   .admin-toolbar .filter-dropdown-btn { height: 34px; padding: 0 12px; }
 
@@ -4866,6 +5195,18 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
          <div class="coluna-dias" id="dias7d"></div>
        </div>
 
+       <div class="bloco grafico mapa-uso">
+         <div class="grafico-topo">
+           <span class="grafico-titulo">Quando você usa a plataforma</span>
+           <span class="grafico-legenda" id="mapaUsoTotal"></span>
+         </div>
+         <div class="mapa-grade" id="mapaUso" role="table" aria-label="Minutos de uso por dia da semana e hora, nas últimas 12 semanas"></div>
+         <div class="mapa-rodape">
+           <span class="mapa-pico" id="mapaUsoPico"></span>
+           <span class="mapa-escala" aria-hidden="true">Menos<i class="mapa-n0"></i><i class="mapa-n1"></i><i class="mapa-n2"></i><i class="mapa-n3"></i><i class="mapa-n4"></i>Mais</span>
+         </div>
+       </div>
+
        <div class="bloco-cabecalho">
          <span class="bloco-titulo-solto">Desempenho por deck</span>
          <button type="button" class="btn btn-secondary btn-sm" id="btnNovoDeck">
@@ -5105,6 +5446,9 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
           </button>
           <button type="button" class="be-btn" data-cmd="imagem" title="Inserir imagem" aria-label="Inserir imagem">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.1-3.1a2 2 0 0 0-2.8 0L6 21"/></svg>
+          </button>
+          <button type="button" class="be-btn" data-cmd="mapa" title="Inserir mapa mental" aria-label="Inserir mapa mental">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="9.5" width="7" height="5" rx="2"/><circle cx="4" cy="5" r="2"/><circle cx="20" cy="5" r="2"/><circle cx="4" cy="19" r="2"/><circle cx="20" cy="19" r="2"/><path d="M5.6 6.2 8.5 10M18.4 6.2 15.5 10M5.6 17.8l2.9-3.3M18.4 17.8l-2.9-3.3"/></svg>
           </button>
           </div>
           <div class="be-grupo">
@@ -6001,9 +6345,10 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
        o banco respondeu, inclusive quando a resposta é "nada ainda". */
     REVISOES = d.revisoesPorDia || [];
     FOCO_HOJE = d.focoHoje || { minutos: 0, ciclos: 0 };
+    ACESSOS = (d.acessos || []).map(function (a) { return { hora: a.hora, minutos: a.minutos }; });
   }
 
-  var REVISOES = [], FOCO_HOJE = { minutos: 0, ciclos: 0 };
+  var REVISOES = [], FOCO_HOJE = { minutos: 0, ciclos: 0 }, ACESSOS = [];
 
   function emHoras(min) {
     if (!min) return "0h";
@@ -6069,7 +6414,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     pintarDecks();
     pintarTabela();
     pintarArquivos();
-    pintarGrafico();
+    pintarGrafico(); pintarMapaDeUso();
     pintarPorPasta();
     pintarKpis();
     /* O Inbox entra na repintura geral por causa do selo do menu: ele aparece
@@ -6450,7 +6795,8 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     { id: "tabela", nome: "Tabela", dica: "| e espaço", marca: "|", sinal: "▦" },
     /* Sem marcação de teclado: imagem não se digita. Os caminhos dela são este,
        colar e arrastar para dentro do texto. */
-    { id: "imagem", nome: "Imagem", dica: "ou cole, ou arraste", marca: "", sinal: "▣" }
+    { id: "imagem", nome: "Imagem", dica: "ou cole, ou arraste", marca: "", sinal: "▣" },
+    { id: "mapa", nome: "Mapa mental", dica: "ideias ligadas num quadro", marca: "", sinal: "✳" }
   ];
   var POR_MARCA = {};
   BLOCOS.forEach(function (b) { if (b.marca) POR_MARCA[b.marca] = b.id; });
@@ -6480,6 +6826,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     /* A imagem não converte o bloco: ela entra depois dele. Converter apagaria
        a linha em que se está escrevendo, e o que se quer é acrescentar. */
     if (tipo === "imagem") { escolherImagem(bloco); return; }
+    if (tipo === "mapa") { inserirMapa(bloco); return; }
     var html = conteudo || "";
     var novo;
     if (tipo === "ul" || tipo === "ol" || tipo === "tarefas") {
@@ -7614,6 +7961,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
   /* A rede: texto não se arrasta dentro do arquivo. Imagem e arquivo de fora
      seguem com o caminho deles. */
   arquivoCorpo.addEventListener("dragstart", function (e) {
+    if (e.target && e.target.nodeType === 1 && e.target.closest(".mapa-mental")) { e.preventDefault(); return; }
     if (e.target && e.target.nodeType === 1 && e.target.closest("img, figure")) return;
     e.preventDefault();
   });
@@ -7789,7 +8137,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
 
   function salvarTexto() {
     if (!arquivoAberto) return;
-    arquivoAberto.corpo = semBloco(arquivoCorpo.innerHTML);
+    arquivoAberto.corpo = semMapaMontado(semBloco(arquivoCorpo.innerHTML));
     montarIndice();
     agendarGravarArquivo();
   }
@@ -8174,6 +8522,8 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     var sel = window.getSelection();
     if (!sel || sel.isCollapsed || !sel.rangeCount) return null;
     if (!arquivoCorpo.contains(sel.getRangeAt(0).commonAncestorContainer)) return null;
+    var dentroDoMapa = sel.anchorNode && (sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentElement : sel.anchorNode);
+    if (dentroDoMapa && dentroDoMapa.closest(".mapa-mental")) return null;
     if (sel.toString().trim().length < 4) return null;
     return sel;
   }
@@ -9243,6 +9593,809 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     salvarTexto();
   });
 
+  /* ═══ Mapa mental ════════════════════════════════════════════════════
+     Um bloco do texto, como a imagem: uma <figure> que não se edita como
+     texto (contenteditable="false") e guarda o mapa inteiro num atributo —
+     as ideias, onde cada uma está, a cor, o zoom e se está fixado. O desenho
+     é refeito a partir desse atributo toda vez que o arquivo abre; no banco
+     vai só o atributo (ver `semMapaMontado`), e não centenas de linhas de
+     HTML de desenho.
+
+     O atributo vai codificado (`encodeURIComponent`): o texto das ideias pode
+     ter aspas e sinais de maior e menor ("ST > 50%"), e cru ele poderia
+     quebrar a leitura do HTML do arquivo.
+
+     Por dentro, o mapa é um quadro que se arrasta (o fundo) e se aproxima (os
+     botões, ou Ctrl + roda), com as ideias ligadas por fios à ideia de cima.
+     Duplo clique edita; Tab cria uma ideia filha, Enter uma irmã; Delete
+     apaga (perguntando, como toda exclusão daqui). Fixado, ele vira imagem:
+     sem barra, sem arrastar, sem editar. */
+  var MM_CORES = [
+    ["rosa", "#F2A0C0"], ["lilas", "#DCCBFF"], ["lima", "#C6F36B"],
+    ["manteiga", "#FFE27A"], ["ceu", "#CFE3FF"], ["branco", "#FFFFFF"]
+  ];
+  var MM_COR = {};
+  MM_CORES.forEach(function (c) { MM_COR[c[0]] = c[1]; });
+  var MM_ZOOM_MIN = 0.35, MM_ZOOM_MAX = 2.2;
+
+  function mapaNovo() {
+    return {
+      v: 1, zoom: 1, px: 0, py: 0, fixo: false,
+      nos: [
+        { id: "r", pai: null, texto: "Tema central", x: 0, y: 0 },
+        { id: "a", pai: "r", texto: "Ideia", x: 250, y: -90, cor: "rosa" },
+        { id: "b", pai: "r", texto: "Ideia", x: 250, y: 90, cor: "lima" },
+        { id: "c", pai: "r", texto: "Ideia", x: -250, y: 0, cor: "lilas" }
+      ]
+    };
+  }
+  function lerMapa(fig) {
+    try {
+      var d = JSON.parse(decodeURIComponent(fig.getAttribute("data-mapa") || ""));
+      if (d && Array.isArray(d.nos) && d.nos.length) return d;
+    } catch (e) { /* atributo estragado: começa de novo */ }
+    return mapaNovo();
+  }
+  /* Uma cópia viva do mapa por <figure> (`fig._mm.d`): é nela que toda ação
+     lê e escreve, e o atributo é só onde ela é guardada. Antes cada desenho
+     tinha a sua cópia, e a ação de um desenho antigo gravava por cima do que
+     outra acabara de mudar — o texto editado voltava a ser "Ideia". */
+  function dadosDoMapa(fig) {
+    var st = fig._mm || (fig._mm = { escolhido: null });
+    return st.d || (st.d = lerMapa(fig));
+  }
+  function gravarMapa(fig, d) {
+    (fig._mm || (fig._mm = { escolhido: null })).d = d;
+    fig.setAttribute("data-mapa", encodeURIComponent(JSON.stringify(d)));
+    salvarTexto();
+  }
+  /* O que vai para o banco: a <figure> com o atributo, sem o desenho. */
+  function semMapaMontado(html) {
+    return html.replace(/(<figure[^>]*class="mapa-mental[^"]*"[^>]*>)[\s\S]*?(<\/figure>)/g, "$1$2");
+  }
+  /* Cada ideia pende um pouco para um lado, como etiqueta colada à mão; o
+     jeito sai do id, então ela não muda de inclinação a cada desenho. */
+  function giroDe(id) {
+    var n = 0;
+    for (var i = 0; i < id.length; i++) n = (n * 31 + id.charCodeAt(i)) >>> 0;
+    return ((n % 7) - 3) * 0.9;
+  }
+  function idNovo(d) {
+    var n = d.nos.length;
+    var id;
+    do { id = "n" + (n++).toString(36); } while (d.nos.some(function (x) { return x.id === id; }));
+    return id;
+  }
+
+  var ICO_MM = {
+    mais: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+    menos: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"/></svg>',
+    ajustar: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>',
+    cheia: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>',
+    fixar: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 17v5M9 10.76V4h6v6.76a2 2 0 0 0 1.11 1.79l1.78.9A2 2 0 0 1 19 15.24V16H5v-.76a2 2 0 0 1 1.11-1.79l1.78-.9A2 2 0 0 0 9 10.76Z"/></svg>',
+    lixo: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13h10l1-13"/></svg>',
+    lapis: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>'
+  };
+
+  var mmSemMovimento = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : { matches: false };
+  /* Estrelinhas que espirram de um ponto do mundo: coloridas quando uma ideia
+     nasce, e na cor dela quando ela some. Somem sozinhas. */
+  function faiscas(mundo, x, y, cores) {
+    if (mmSemMovimento.matches) return;
+    for (var i = 0; i < 8; i++) {
+      var f = document.createElement("span");
+      f.className = "mm-faisca";
+      var ang = (i / 8) * Math.PI * 2 + Math.random() * 0.6, dist = 46 + Math.random() * 34;
+      f.style.left = x + "px";
+      f.style.top = y + "px";
+      f.style.setProperty("--dx", Math.cos(ang) * dist + "px");
+      f.style.setProperty("--dy", Math.sin(ang) * dist + "px");
+      f.style.setProperty("--c", cores[i % cores.length]);
+      f.style.setProperty("--t", (8 + Math.random() * 6) + "px");
+      if (i % 2) f.classList.add("bola");
+      mundo.appendChild(f);
+      setTimeout(function (el) { el.remove(); }, 900, f);
+    }
+  }
+
+  /* Desenha (ou redesenha) um mapa. O estado de quem está mexendo — ideia
+     escolhida, arrasto em curso — mora no próprio elemento, e sobrevive aos
+     redesenhos. */
+  function montarMapa(fig) {
+    var d = dadosDoMapa(fig);
+    var st = fig._mm;
+    fig.setAttribute("contenteditable", "false");
+    ligarMapaUmaVez(fig);
+    st.teclado = null;
+    fig.classList.toggle("fixo", !!d.fixo);
+    fig.innerHTML = "";
+
+    var quadro = document.createElement("div");
+    quadro.className = "mapa-quadro";
+    var mundo = document.createElement("div");
+    mundo.className = "mapa-mundo";
+    var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("class", "mapa-fios");
+    mundo.appendChild(svg);
+    quadro.appendChild(mundo);
+    fig.appendChild(quadro);
+
+    var selo = document.createElement("span");
+    selo.className = "mapa-selo";
+    selo.textContent = "✳ Mapa mental";
+    fig.appendChild(selo);
+
+    var porId = {};
+    d.nos.forEach(function (n) { porId[n.id] = n; });
+    /* As guardadas: tudo o que pende de uma ideia recolhida. Elas continuam
+       nos dados, só não se desenham. */
+    var oculto = {};
+    d.nos.forEach(function (n) {
+      if (!n.recolhido) return;
+      var fila = [n.id];
+      while (fila.length) {
+        var atual = fila.shift();
+        d.nos.forEach(function (f) { if (f.pai === atual && !oculto[f.id]) { oculto[f.id] = true; fila.push(f.id); } });
+      }
+    });
+    function nasce(id) { return st.nascendo === id || !!(st.nascendoVarios && st.nascendoVarios.indexOf(id) >= 0); }
+    var els = {};
+    d.nos.forEach(function (n) {
+      if (oculto[n.id]) return;
+      var el = document.createElement("div");
+      el.className = "mapa-no" + (n.pai ? "" : " raiz") + (st.escolhido === n.id && !d.fixo ? " escolhido" : "");
+      el.dataset.id = n.id;
+      el.style.left = n.x + "px";
+      el.style.top = n.y + "px";
+      if (n.pai) {
+        el.style.setProperty("--mm-cor", MM_COR[n.cor] || "#fff");
+        el.style.setProperty("--mm-giro", giroDe(n.id) + "deg");
+      }
+      if (!d.fixo) el.tabIndex = 0;
+      if (nasce(n.id)) el.classList.add("nascendo");
+      var t = document.createElement("span");
+      t.className = "mapa-texto";
+      t.textContent = n.texto;
+      el.appendChild(t);
+      mundo.appendChild(el);
+      els[n.id] = el;
+    });
+
+    function desenharFios() {
+      var caminhos = "";
+      d.nos.forEach(function (n) {
+        var p = n.pai && porId[n.pai];
+        if (!p || oculto[n.id]) return;
+        var mx = (p.x + n.x) / 2;
+        caminhos += '<path pathLength="1" data-de="' + n.id + '"' + (nasce(n.id) ? ' class="nascendo"' : "") +
+          ' d="M' + p.x + " " + p.y + " C" + mx + " " + p.y + " " + mx + " " + n.y + " " + n.x + " " + n.y + '"/>';
+      });
+      svg.innerHTML = caminhos;
+    }
+    function aplicarVista() {
+      mundo.style.transform = "translate(" + d.px + "px," + d.py + "px) scale(" + d.zoom + ")";
+      mundo.style.setProperty("--mm-inv", String(1 / d.zoom));
+      var z = fig.querySelector(".mm-zoom");
+      if (z) z.textContent = Math.round(d.zoom * 100) + "%";
+    }
+    /* Enquadra todas as ideias, com folga: é o "Ajustar" e é como o mapa
+       fixado se mostra. */
+    function ajustar() {
+      var qb = quadro.getBoundingClientRect();
+      if (!qb.width) return;
+      var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      d.nos.forEach(function (n) {
+        var el = els[n.id];
+        if (!el) return;
+        var w = el.offsetWidth / 2 + 10, h = el.offsetHeight / 2 + 10;
+        x0 = Math.min(x0, n.x - w); x1 = Math.max(x1, n.x + w);
+        y0 = Math.min(y0, n.y - h); y1 = Math.max(y1, n.y + h);
+      });
+      var folga = 48, alturaUtil = qb.height - (d.fixo ? 0 : 50);
+      var z = Math.min((qb.width - folga * 2) / (x1 - x0), (alturaUtil - folga * 2) / (y1 - y0), 1.4);
+      d.zoom = Math.max(MM_ZOOM_MIN, Math.min(MM_ZOOM_MAX, z));
+      d.px = -((x0 + x1) / 2) * d.zoom;
+      d.py = -((y0 + y1) / 2) * d.zoom + (d.fixo ? 0 : 22);
+      aplicarVista();
+    }
+    function zoomEm(fator, cx, cy) {
+      var novo = Math.max(MM_ZOOM_MIN, Math.min(MM_ZOOM_MAX, d.zoom * fator));
+      var real = novo / d.zoom;
+      /* Aproxima em volta do ponto dado (o ponteiro, ou o centro): o que está
+         sob ele fica sob ele. */
+      d.px = cx - (cx - d.px) * real;
+      d.py = cy - (cy - d.py) * real;
+      d.zoom = novo;
+      aplicarVista();
+    }
+
+    desenharFios();
+    aplicarVista();
+    /* O quadro esconde o que passa da borda, e o navegador rolava o miolo dele
+       para seguir o cursor de quem digita numa ideia lá fora: o centro saía do
+       lugar e a dica ficava cortada. Quem move a vista é só o mapa. */
+    quadro.addEventListener("scroll", function () { quadro.scrollTop = 0; quadro.scrollLeft = 0; });
+    /* Leva a vista até uma ideia que ficou fora do quadro (ou embaixo da
+       barra), deslizando, com folga para os botões dela. */
+    function mostrarNo(id) {
+      var el = els[id];
+      if (!el) return;
+      var q = quadro.getBoundingClientRect(), r = el.getBoundingClientRect();
+      var folga = 70, topo = q.top + (d.fixo ? 20 : 64), pe = q.bottom - 36;
+      var dx = 0, dy = 0;
+      if (r.right > q.right - folga) dx = q.right - folga - r.right;
+      else if (r.left < q.left + folga) dx = q.left + folga - r.left;
+      if (r.top < topo) dy = topo - r.top;
+      else if (r.bottom > pe) dy = pe - r.bottom;
+      if (!dx && !dy) return;
+      if (!mmSemMovimento.matches) {
+        mundo.classList.add("deslizando");
+        setTimeout(function () { mundo.classList.remove("deslizando"); posicionarAcoes(); }, 420);
+      }
+      d.px += dx;
+      d.py += dy;
+      aplicarVista();
+      posicionarAcoes();
+      clearTimeout(st.relogioVista);
+      st.relogioVista = setTimeout(function () { gravarMapa(fig, d); }, 450);
+    }
+    if (st.nascendo && porId[st.nascendo]) {
+      var nasceu = porId[st.nascendo];
+      mostrarNo(nasceu.id);
+      faiscas(mundo, nasceu.x, nasceu.y, ["#F2A0C0", "#C6F36B", "#FFE27A", "#CFE3FF", "#DCCBFF"]);
+      st.nascendo = null;
+    }
+    st.nascendoVarios = null;
+
+    /* ── Recolher e expandir ── */
+    function ladoDosFilhos(n) {
+      var fs = d.nos.filter(function (f) { return f.pai === n.id; });
+      var soma = fs.reduce(function (t, f) { return t + (f.x - n.x); }, 0);
+      if (soma) return soma > 0 ? 1 : -1;
+      return n.x >= d.nos[0].x ? 1 : -1;
+    }
+    function contarGuardadas(id) {
+      var total = 0, fila = [id];
+      while (fila.length) {
+        var atual = fila.shift();
+        d.nos.forEach(function (f) { if (f.pai === atual) { total++; fila.push(f.id); } });
+      }
+      return total;
+    }
+    d.nos.forEach(function (n) {
+      var el = els[n.id];
+      if (!el || !d.nos.some(function (f) { return f.pai === n.id; })) return;
+      if (d.fixo && !n.recolhido) return;
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "mapa-dobra" + (n.recolhido ? " fechada" : "");
+      b.dataset.id = n.id;
+      b.textContent = n.recolhido ? "+" + contarGuardadas(n.id) : "−";
+      b.title = n.recolhido ? "Mostrar as ideias de dentro" : "Recolher as ideias de dentro";
+      b.setAttribute("aria-label", b.title);
+      b.setAttribute("aria-expanded", String(!n.recolhido));
+      if (!n.pai) {
+        /* A central tem filhos dos dois lados: o botão fica embaixo dela. */
+        b.classList.add("baixo");
+        b.style.left = n.x + "px";
+        b.style.top = (n.y + el.offsetHeight / 2) + "px";
+      } else {
+        var ld = ladoDosFilhos(n);
+        if (ld < 0) b.classList.add("esquerda");
+        b.style.left = (n.x + ld * el.offsetWidth / 2) + "px";
+        b.style.top = n.y + "px";
+      }
+      mundo.appendChild(b);
+    });
+    function alternarRecolher(id) {
+      var n = porId[id];
+      if (!n) return;
+      encerrarEdicao();
+      if (n.recolhido) {
+        /* Expandir: as de dentro nascem de novo, com o tranco e o fio. */
+        n.recolhido = false;
+        var voltam = [], fila = [id];
+        while (fila.length) {
+          var atual = fila.shift();
+          d.nos.forEach(function (f) {
+            if (f.pai !== atual) return;
+            voltam.push(f.id);
+            if (!f.recolhido) fila.push(f.id);
+          });
+        }
+        st.nascendoVarios = voltam;
+        gravarMapa(fig, d);
+        montarMapa(fig);
+        return;
+      }
+      /* Recolher: as de dentro voltam para ela, encolhendo, e só depois somem
+         do desenho. */
+      var vao = [];
+      Object.keys(els).forEach(function (k) {
+        var a = porId[k].pai;
+        while (a) { if (a === id) { vao.push(k); break; } a = porId[a] && porId[a].pai; }
+      });
+      vao.forEach(function (k) {
+        els[k].classList.add("recolhendo");
+        var fio = svg.querySelector('path[data-de="' + k + '"]');
+        if (fio) fio.classList.add("recolhendo");
+      });
+      if (st.escolhido && vao.indexOf(st.escolhido) >= 0) st.escolhido = id;
+      setTimeout(function () {
+        n.recolhido = true;
+        gravarMapa(fig, d);
+        montarMapa(fig);
+      }, mmSemMovimento.matches ? 0 : 300);
+    }
+    mundo.addEventListener("click", function (e) {
+      var b = e.target.closest(".mapa-dobra");
+      if (b && !d.fixo) alternarRecolher(b.dataset.id);
+    });
+    if (d.fixo || st.ajustarAoMontar) {
+      st.ajustarAoMontar = false;
+      requestAnimationFrame(function () { ajustar(); if (!d.fixo) gravarMapa(fig, d); });
+    }
+
+    function escolher(id) {
+      st.escolhido = id;
+      Object.keys(els).forEach(function (k) { els[k].classList.toggle("escolhido", k === id); });
+      posicionarAcoes();
+    }
+    /* Os botões "+" e lixeira ao lado da ideia escolhida, do lado de fora dela
+       (à direita de quem está à direita do centro, e vice-versa). Somem com o
+       mapa fixado, sem ideia escolhida e enquanto a ideia é editada. */
+    var acoes = null;
+    function posicionarAcoes() {
+      if (!acoes) return;
+      var id = st.escolhido, n = id && porId[id], el = id && els[id];
+      if (!n || !el || d.fixo || el.classList.contains("editando")) { acoes.hidden = true; return; }
+      acoes.hidden = false;
+      acoes.querySelector(".mm-no-lixo").hidden = !n.pai;
+      /* Em cima da ideia, no meio: a borda do lado dos fios é do botão de
+         recolher. Sem espaço em cima (a barra do mapa), vão para baixo. */
+      function por(emCima) {
+        acoes.style.left = n.x + "px";
+        acoes.style.top = (n.y + (emCima ? -1 : 1) * (el.offsetHeight / 2 + 8)) + "px";
+        acoes.style.transformOrigin = emCima ? "50% 100%" : "50% 0";
+        acoes.style.transform = "translate(-50%, " + (emCima ? "-100%" : "0") + ") scale(var(--mm-inv, 1))";
+      }
+      por(true);
+      var q = quadro.getBoundingClientRect(), a = acoes.getBoundingClientRect();
+      if (a.top < q.top + 60) { por(false); a = acoes.getBoundingClientRect(); }
+      /* E, de um lado a outro, ficam dentro do quadro. */
+      var dx = 0;
+      if (a.left < q.left + 6) dx = q.left + 6 - a.left;
+      else if (a.right > q.right - 6) dx = q.right - 6 - a.right;
+      if (dx) acoes.style.left = (n.x + dx / d.zoom) + "px";
+    }
+    st.posAcoes = posicionarAcoes;
+    function filhosDe(id) { return d.nos.filter(function (n) { return n.pai === id; }); }
+    function descendentes(id) {
+      var todos = [], fila = [id];
+      while (fila.length) {
+        var atual = fila.shift();
+        filhosDe(atual).forEach(function (f) { todos.push(f.id); fila.push(f.id); });
+      }
+      return todos;
+    }
+    /* Onde nasce uma ideia filha: para o lado de fora (a raiz alterna os
+       lados), empilhada abaixo das irmãs que já estão daquele lado. */
+    function novaFilha(paiId) {
+      var pai = porId[paiId], raiz = d.nos[0];
+      if (pai.recolhido) pai.recolhido = false;
+      var lado;
+      if (!pai.pai) {
+        var dir = filhosDe(paiId).filter(function (f) { return f.x >= pai.x; }).length;
+        var esq = filhosDe(paiId).length - dir;
+        lado = dir <= esq ? 1 : -1;
+      } else {
+        lado = pai.x >= raiz.x ? 1 : -1;
+      }
+      var irmas = filhosDe(paiId).filter(function (f) { return (f.x - pai.x) * lado > 0; });
+      var k = irmas.length;
+      var y = k === 0 ? pai.y : Math.max.apply(null, irmas.map(function (f) { return f.y; })) + 76;
+      if (k === 0 && pai.pai) y = pai.y;
+      var cores = MM_CORES.slice(0, 5);
+      var cor = pai.pai ? pai.cor || "branco" : cores[filhosDe(paiId).length % cores.length][0];
+      var n = { id: idNovo(d), pai: paiId, texto: "Ideia", x: pai.x + lado * (pai.pai ? 210 : 250), y: y, cor: cor };
+      d.nos.push(n);
+      st.escolhido = n.id;
+      st.nascendo = n.id;
+      gravarMapa(fig, d);
+      montarMapa(fig);
+      editarNo(fig, n.id);
+    }
+    function apagarNo(id) {
+      var n = porId[id];
+      if (!n) return;
+      if (!n.pai) {
+        avisar("info", "O tema central fica", "Para tirar o mapa inteiro, use a lixeira da barra do mapa.");
+        return;
+      }
+      var desc = descendentes(id);
+      confirmarExclusao({
+        coisa: "ideia", nome: n.texto,
+        aviso: desc.length ? (desc.length === 1 ? "A ideia ligada a ela sai junto." : "As " + desc.length + " ideias ligadas a ela saem junto.") : "",
+        onConfirmar: function () {
+          var fora = [id].concat(desc);
+          /* Primeiro a despedida: a ideia e as penduradas nela giram e somem
+             num ponto, os fios se recolhem, e a poeira espirra. Só depois ela
+             sai dos dados e o mapa se redesenha. */
+          if (acoes) acoes.hidden = true;
+          fora.forEach(function (fid, k) {
+            var noEl = els[fid];
+            if (noEl) {
+              noEl.style.animationDelay = (k === 0 ? 0 : 40 + k * 25) + "ms";
+              noEl.classList.add("morrendo");
+            }
+            var fio = svg.querySelector('path[data-de="' + fid + '"]');
+            if (fio) fio.classList.add("morrendo");
+            var dados = porId[fid];
+            if (dados) faiscas(mundo, dados.x, dados.y, [MM_COR[dados.cor] || "#FFFFFF", "#F2A0C0", "#FFE27A"]);
+          });
+          setTimeout(function () {
+            d.nos = d.nos.filter(function (x) { return fora.indexOf(x.id) < 0; });
+            st.escolhido = n.pai;
+            gravarMapa(fig, d);
+            montarMapa(fig);
+            var el = fig.querySelector('.mapa-no[data-id="' + n.pai + '"]');
+            if (el) el.focus({ preventScroll: true });
+          }, mmSemMovimento.matches ? 0 : 460 + Math.min(fora.length, 8) * 25);
+        }
+      });
+    }
+
+    /* ── Fixado: só o botão de voltar a editar ── */
+    if (d.fixo) {
+      var desfixar = document.createElement("button");
+      desfixar.type = "button";
+      desfixar.className = "mapa-desfixar";
+      desfixar.innerHTML = ICO_MM.lapis + "Editar mapa";
+      desfixar.addEventListener("click", function () {
+        d.fixo = false;
+        gravarMapa(fig, d);
+        montarMapa(fig);
+      });
+      fig.appendChild(desfixar);
+      return;
+    }
+
+    /* ── A barra ── */
+    var barra = document.createElement("div");
+    barra.className = "mapa-ferramentas";
+    barra.innerHTML =
+      '<button type="button" class="mm-principal" data-mm="filha" title="Nova ideia ligada à escolhida (Tab)">' + ICO_MM.mais + 'Ideia</button>' +
+      '<span class="mm-cores">' + MM_CORES.map(function (c) {
+        return '<button type="button" class="mm-cor" data-mm="cor" data-cor="' + c[0] + '" style="background:' + c[1] + ';--c:' + c[1] + '" title="Cor da ideia" aria-label="Cor ' + c[0] + '"></button>';
+      }).join("") + '</span>' +
+      '<span class="mm-fio"></span>' +
+      '<button type="button" data-mm="menos" title="Afastar" aria-label="Afastar">' + ICO_MM.menos + '</button>' +
+      '<button type="button" class="mm-zoom" data-mm="cem" title="Voltar a 100%">100%</button>' +
+      '<button type="button" data-mm="mais" title="Aproximar" aria-label="Aproximar">' + ICO_MM.mais + '</button>' +
+      '<button type="button" data-mm="ajustar" title="Enquadrar tudo" aria-label="Enquadrar tudo">' + ICO_MM.ajustar + '</button>' +
+      '<button type="button" data-mm="cheia" title="Tela cheia" aria-label="Tela cheia">' + ICO_MM.cheia + '</button>' +
+      '<span class="mm-fio"></span>' +
+      '<button type="button" data-mm="fixar" title="Fixar como imagem: sem edição">' + ICO_MM.fixar + 'Fixar</button>' +
+      '<button type="button" class="mm-perigo" data-mm="apagar" title="Excluir o mapa" aria-label="Excluir o mapa">' + ICO_MM.lixo + '</button>';
+    fig.appendChild(barra);
+    aplicarVista();
+
+    acoes = document.createElement("div");
+    acoes.className = "mapa-acoes-no";
+    acoes.hidden = true;
+    acoes.innerHTML =
+      '<button type="button" class="mm-no-mais" title="Nova ideia ligada a esta" aria-label="Nova ideia ligada a esta">' + ICO_MM.mais + '</button>' +
+      '<button type="button" class="mm-no-lixo" title="Excluir esta ideia" aria-label="Excluir esta ideia">' + ICO_MM.lixo + '</button>';
+    mundo.appendChild(acoes);
+    acoes.addEventListener("click", function (e) {
+      var b = e.target.closest("button");
+      if (!b || !st.escolhido || !porId[st.escolhido]) return;
+      if (b.classList.contains("mm-no-mais")) novaFilha(st.escolhido);
+      else apagarNo(st.escolhido);
+    });
+    posicionarAcoes();
+
+    var dica = document.createElement("span");
+    dica.className = "mapa-dica";
+    dica.textContent = "Duplo clique edita · Tab cria ideia · arraste o fundo para mover";
+    quadro.appendChild(dica);
+
+    barra.addEventListener("click", function (e) {
+      var b = e.target.closest("button[data-mm]");
+      if (!b) return;
+      var acao = b.dataset.mm;
+      if (acao === "filha") novaFilha(st.escolhido && porId[st.escolhido] ? st.escolhido : "r");
+      else if (acao === "cor") {
+        var alvo = st.escolhido && porId[st.escolhido];
+        if (!alvo || !alvo.pai) { avisar("info", "Escolha uma ideia", "Toque numa ideia do mapa e depois na cor."); return; }
+        alvo.cor = b.dataset.cor;
+        gravarMapa(fig, d);
+        montarMapa(fig);
+      }
+      else if (acao === "mais") { zoomEm(1.2, 0, 0); gravarMapa(fig, d); }
+      else if (acao === "menos") { zoomEm(1 / 1.2, 0, 0); gravarMapa(fig, d); }
+      else if (acao === "cem") { zoomEm(1 / d.zoom, 0, 0); gravarMapa(fig, d); }
+      else if (acao === "ajustar") { ajustar(); gravarMapa(fig, d); }
+      else if (acao === "cheia") {
+        if (document.fullscreenElement === fig) document.exitFullscreen();
+        else if (fig.requestFullscreen) fig.requestFullscreen().then(function () { requestAnimationFrame(ajustar); }).catch(function () {});
+      }
+      else if (acao === "fixar") {
+        if (document.fullscreenElement === fig) document.exitFullscreen();
+        d.fixo = true;
+        st.escolhido = null;
+        gravarMapa(fig, d);
+        montarMapa(fig);
+      }
+      else if (acao === "apagar") pedirExcluirMapa(fig);
+    });
+
+    /* ── Arrastar: a ideia, ou o fundo ── */
+    var arrasto = null;
+    /* O clique no mapa não pode pôr o cursor no texto em volta nem começar
+       uma seleção: o `mousedown` é barrado, fora da ideia que está sendo
+       editada. */
+    /* Fecha a edição em curso (gravando): clicar em outra ideia ou no fundo é
+       dar a edição por terminada. O clique no fundo não tira o foco sozinho —
+       o `mousedown` é barrado para não mexer no texto em volta —, então a
+       edição é encerrada à mão. */
+    function encerrarEdicao() {
+      var t = fig.querySelector('.mapa-texto[contenteditable="true"]');
+      if (t) t.blur();
+    }
+    st.encerrarEdicao = encerrarEdicao;
+    quadro.addEventListener("mousedown", function (e) {
+      if (e.target.closest(".mapa-ferramentas") || e.target.closest(".mapa-acoes-no") || e.target.closest(".editando")) return;
+      e.preventDefault();
+    });
+    quadro.addEventListener("pointerdown", function (e) {
+      if (e.button !== 0 || e.target.closest(".mapa-ferramentas") || e.target.closest(".mapa-acoes-no") || e.target.closest(".mapa-dobra")) return;
+      var noEl = e.target.closest(".mapa-no");
+      var naEdicao = !!(noEl && noEl.classList.contains("editando"));
+      if (!naEdicao) encerrarEdicao();
+      e.stopPropagation();
+      /* Sem captura de ponteiro: com ela, o duplo clique chegaria no quadro,
+         e não na ideia. O movimento é ouvido na janela durante o arrasto. */
+      window.addEventListener("pointermove", mover);
+      window.addEventListener("pointerup", soltar);
+      window.addEventListener("pointercancel", soltar);
+      if (noEl) {
+        var n = porId[noEl.dataset.id];
+        escolher(n.id);
+        /* Na ideia que está sendo editada, o clique põe o cursor no texto; se o
+           ponteiro andar, a edição fecha e ela é arrastada. */
+        if (!naEdicao) noEl.focus({ preventScroll: true });
+        arrasto = { tipo: "no", n: n, el: noEl, x: e.clientX, y: e.clientY, nx: n.x, ny: n.y, mexeu: false, editando: naEdicao };
+      } else {
+        escolher(null);
+        quadro.classList.add("puxando");
+        arrasto = { tipo: "fundo", x: e.clientX, y: e.clientY, px: d.px, py: d.py, mexeu: false };
+      }
+    });
+    function mover(e) {
+      if (!arrasto) return;
+      var dx = e.clientX - arrasto.x, dy = e.clientY - arrasto.y;
+      if (Math.abs(dx) + Math.abs(dy) > 4) arrasto.mexeu = true;
+      if (!arrasto.mexeu) return;
+      if (arrasto.editando) {
+        arrasto.editando = false;
+        encerrarEdicao();
+        var sel = window.getSelection();
+        if (sel) sel.removeAllRanges();
+      }
+      if (arrasto.tipo === "no") {
+        arrasto.n.x = Math.round(arrasto.nx + dx / d.zoom);
+        arrasto.n.y = Math.round(arrasto.ny + dy / d.zoom);
+        arrasto.el.style.left = arrasto.n.x + "px";
+        arrasto.el.style.top = arrasto.n.y + "px";
+        desenharFios();
+        posicionarAcoes();
+      } else {
+        d.px = arrasto.px + dx;
+        d.py = arrasto.py + dy;
+        aplicarVista();
+      }
+    }
+    function soltar() {
+      window.removeEventListener("pointermove", mover);
+      window.removeEventListener("pointerup", soltar);
+      window.removeEventListener("pointercancel", soltar);
+      if (!arrasto) return;
+      var mexeu = arrasto.mexeu, eraNo = arrasto.tipo === "no";
+      arrasto = null;
+      quadro.classList.remove("puxando");
+      if (mexeu) {
+        gravarMapa(fig, d);
+        /* O botão de recolher mora na borda da ideia: com ela no lugar novo, o
+           desenho se refaz para ele ir junto. */
+        if (eraNo) montarMapa(fig);
+      }
+    }
+    quadro.addEventListener("dblclick", function (e) {
+      var noEl = e.target.closest(".mapa-no");
+      /* Numa ideia já em edição, o duplo clique é do navegador: escolhe a
+         palavra. */
+      if (!noEl || noEl.classList.contains("editando")) return;
+      editarNo(fig, noEl.dataset.id, { x: e.clientX, y: e.clientY });
+    });
+    /* Ctrl + roda aproxima em volta do ponteiro; a roda sozinha continua
+       rolando o texto, que é o que se espera dela no meio de um arquivo. */
+    quadro.addEventListener("wheel", function (e) {
+      if (!e.ctrlKey && !e.metaKey) return;
+      e.preventDefault();
+      var qb = quadro.getBoundingClientRect();
+      zoomEm(e.deltaY < 0 ? 1.1 : 1 / 1.1, e.clientX - qb.left - qb.width / 2, e.clientY - qb.top - qb.height / 2);
+      clearTimeout(st.relogioZoom);
+      st.relogioZoom = setTimeout(function () { gravarMapa(fig, d); }, 400);
+    }, { passive: false });
+
+    /* ── Teclado, com uma ideia escolhida ── */
+    st.teclado = function (e) {
+      var noEl = e.target.closest && e.target.closest(".mapa-no");
+      if (!noEl || noEl.classList.contains("editando")) return;
+      var id = noEl.dataset.id, n = porId[id];
+      if (!n) return;
+      if (e.key === "Tab") { e.preventDefault(); novaFilha(id); }
+      else if (e.key === "Enter") { e.preventDefault(); novaFilha(n.pai || id); }
+      else if (e.key === "Delete" || e.key === "Backspace") { e.preventDefault(); apagarNo(id); }
+      else if (e.key === "F2") { e.preventDefault(); editarNo(fig, id); }
+    };
+  }
+
+  /* O que se prende na própria <figure> entra uma vez só: ela sobrevive aos
+     redesenhos (só o miolo é refeito), e prender a cada desenho empilharia
+     o mesmo ouvinte — uma tecla viraria três ideias. O teclado chama a versão
+     do desenho atual, guardada em `st.teclado`. */
+  function ligarMapaUmaVez(fig) {
+    if (fig._mmLigado) return;
+    fig._mmLigado = true;
+    fig.addEventListener("keydown", function (e) {
+      /* Com a pergunta de exclusão dentro do mapa (tela cheia), as teclas
+         dela seguem para o diálogo. */
+      if (e.target.closest && e.target.closest("#dialogoOverlay")) return;
+      e.stopPropagation();
+      if (fig._mm && fig._mm.teclado) fig._mm.teclado(e);
+    });
+    /* Nada do mapa conversa com o texto em volta: digitação e colagem dentro
+       dele não passam para os atalhos e ouvintes do editor. */
+    ["input", "beforeinput", "paste", "cut", "copy"].forEach(function (tipo) {
+      fig.addEventListener(tipo, function (e) { e.stopPropagation(); });
+    });
+  }
+
+  /* Editar o texto de uma ideia, no próprio lugar. Enter grava, Escape
+     desiste, e sair dela também grava. */
+  /* `ponto`, quando vem (o duplo clique), põe o cursor ali; sem ele (ideia
+     recém-criada), o texto vem todo escolhido, pronto para ser trocado. */
+  function editarNo(fig, id, ponto) {
+    var el = fig.querySelector('.mapa-no[data-id="' + id + '"]');
+    if (!el) return;
+    var t = el.querySelector(".mapa-texto");
+    var antes = t.textContent;
+    el.classList.add("editando");
+    if (fig._mm && fig._mm.posAcoes) fig._mm.posAcoes();
+    t.setAttribute("contenteditable", "true");
+    t.focus({ preventScroll: true });
+    var r = null;
+    if (ponto && document.caretRangeFromPoint) {
+      r = document.caretRangeFromPoint(ponto.x, ponto.y);
+      if (r && !t.contains(r.startContainer)) r = null;
+    }
+    if (!r) {
+      r = document.createRange();
+      r.selectNodeContents(t);
+      if (ponto) r.collapse(false);
+    }
+    var sel = window.getSelection();
+    sel.removeAllRanges();
+    sel.addRange(r);
+    var feito = false;
+    function fim(gravar) {
+      if (feito) return;
+      feito = true;
+      t.removeAttribute("contenteditable");
+      el.classList.remove("editando");
+      if (fig._mm && fig._mm.posAcoes) fig._mm.posAcoes();
+      var d = dadosDoMapa(fig);
+      var n = d.nos.filter(function (x) { return x.id === id; })[0];
+      var escrito = t.textContent.replace(/\s+/g, " ").trim();
+      var texto = gravar && escrito ? escrito : antes;
+      if (n && n.texto !== texto) { n.texto = texto; gravarMapa(fig, d); }
+      t.textContent = n ? n.texto : antes;
+      el.focus({ preventScroll: true });
+    }
+    t.addEventListener("keydown", function (e) {
+      e.stopPropagation();
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); fim(true); }
+      else if (e.key === "Escape") { e.preventDefault(); fim(false); }
+    });
+    t.addEventListener("blur", function () { fim(true); }, { once: true });
+    t.addEventListener("paste", function (e) {
+      e.preventDefault();
+      var texto = (e.clipboardData || window.clipboardData).getData("text");
+      document.execCommand("insertText", false, texto.replace(/\s+/g, " "));
+    });
+  }
+
+  /* Em tela cheia só o mapa aparece: o diálogo de confirmação e os avisos,
+     que moram no corpo da página, ficavam escondidos atrás dele. Enquanto
+     o mapa está em tela cheia, os dois passam para dentro dele. */
+  document.addEventListener("fullscreenchange", function () {
+    var cheio = document.fullscreenElement;
+    var destino = cheio && cheio.classList && cheio.classList.contains("mapa-mental") ? cheio : document.body;
+    ["dialogoOverlay", "toastCais"].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el && el.parentElement !== destino) destino.appendChild(el);
+    });
+  });
+
+  function pedirExcluirMapa(fig) {
+    var d = dadosDoMapa(fig);
+    confirmarExclusao({
+      coisa: "mapa mental", nome: d.nos[0].texto,
+      aviso: "O mapa inteiro sai do texto, com todas as ideias.",
+      onConfirmar: function () {
+        if (document.fullscreenElement === fig) document.exitFullscreen();
+        var depois = fig.nextElementSibling || fig.previousElementSibling;
+        fig.remove();
+        if (!arquivoCorpo.firstElementChild) {
+          arquivoCorpo.innerHTML = "<p><br></p>";
+          depois = arquivoCorpo.firstElementChild;
+        }
+        if (depois) porCursorEm(depois);
+        salvarTexto();
+      }
+    });
+  }
+
+  /* Entra depois do bloco do cursor, ou no lugar de uma linha vazia; um
+     parágrafo vem junto quando ele fica no fim, para dar onde continuar
+     escrevendo — a mesma regra da tabela. */
+  function inserirMapa(bloco) {
+    var fig = document.createElement("figure");
+    fig.className = "mapa-mental";
+    fig.setAttribute("contenteditable", "false");
+    fig.setAttribute("data-mapa", encodeURIComponent(JSON.stringify(mapaNovo())));
+    var vazio = bloco && bloco.tagName === "P" && !bloco.textContent.trim() && !bloco.querySelector("img");
+    if (vazio) bloco.replaceWith(fig);
+    else if (bloco) bloco.after(fig);
+    else arquivoCorpo.appendChild(fig);
+    if (!fig.nextElementSibling) {
+      var p = document.createElement("p");
+      p.innerHTML = "<br>";
+      fig.after(p);
+    }
+    fig._mm = { escolhido: "r", ajustarAoMontar: true };
+    montarMapa(fig);
+    salvarTexto();
+    requestAnimationFrame(function () { editarNo(fig, "r"); });
+  }
+
+  /* Os mapas do arquivo que ainda não têm desenho: ao abrir, depois de colar
+     ou de desfazer. */
+  function montarMapas() {
+    Array.prototype.forEach.call(arquivoCorpo.querySelectorAll("figure.mapa-mental"), function (fig) {
+      if (!fig.querySelector(".mapa-quadro")) montarMapa(fig);
+    });
+  }
+
+  /* Encostado no mapa, o Backspace (de baixo) e o Delete (de cima) não o
+     apagam de uma vez: perguntam, como a imagem. */
+  arquivoCorpo.addEventListener("keydown", function (e) {
+    var paraTras = e.key === "Backspace";
+    if ((!paraTras && e.key !== "Delete") || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.target.closest && e.target.closest(".mapa-mental")) return;
+    var sel = window.getSelection();
+    if (!sel || !sel.rangeCount || !sel.isCollapsed || !arquivoCorpo.contains(sel.anchorNode)) return;
+    var par = blocoEVizinho(sel.anchorNode, paraTras);
+    if (!par || !par.vizinho || !par.vizinho.classList.contains("mapa-mental")) return;
+    if (!naPonta(par.bloco, sel, paraTras)) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    pedirExcluirMapa(par.vizinho);
+  }, true);
+
+
   /* ═══ Barra de formatação ════════════════════════════════════════════
      A barra do Google Docs, na mesma ordem. O que o navegador já sabe fazer
      bem, negrito, itálico, fonte, cor, passa pelo `execCommand`, que também
@@ -10008,6 +11161,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     link: acaoLink,
     comentar: acaoComentar,
     imagem: function () { if (voltarAoTexto()) escolherImagem(blocoParaMidia()); },
+    mapa: function () { if (voltarAoTexto()) inserirMapa(blocoDoCursor() || arquivoCorpo.lastElementChild); },
     tarefas: function () { alternarLista("tarefas"); },
     marcadores: function () { alternarLista("marcadores"); },
     numeros: function () { alternarLista("numeros"); },
@@ -10288,7 +11442,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
       ["Aumentar tamanho da fonte", "Ctrl+Shift+.", ACOES.maior],
       ["Diminuir tamanho da fonte", "Ctrl+Shift+,", ACOES.menor],
       ["Inserir link", "Ctrl+K", acaoLink], ["Adicionar nota", "", acaoComentar],
-      ["Inserir imagem", "", ACOES.imagem],
+      ["Inserir imagem", "", ACOES.imagem], ["Inserir mapa mental", "", ACOES.mapa],
       ["Layout: páginas A4", "", function () { ligarPaginas(true); }],
       ["Layout: sem páginas", "", function () { ligarPaginas(false); }],
       ["Margens: normal (2,54 cm)", "", function () { definirMargem(2.54); }],
@@ -12994,7 +14148,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
 
   /* ── Lendo o arquivo ──
      O texto vira uma fila de linhas, cada uma com a seção a que pertence. Título
-     é o que o texto usa como título: um h1–h3, ou uma linha curta toda em
+     é o que o texto usa como título: um h1 a h3, ou uma linha curta toda em
      negrito ou grifo, ou terminada em dois-pontos, o jeito do texto colado. */
   var BLOCO_IA = /^(P|LI|H[1-6]|DIV|TD|TH|BLOCKQUOTE|SUMMARY)$/;
   function iaSemEnfeite(t) {
@@ -13791,7 +14945,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     });
     if (nome === "inbox") pintarInbox();
     if (nome === "decks") pintarGradeDecks();
-    if (nome === "relatorios") { pintarDecks(); pintarGrafico(); }
+    if (nome === "relatorios") { pintarDecks(); pintarGrafico(); pintarMapaDeUso(); }
     /* A fila se refaz a cada entrada, e não uma vez no carregamento: card
        criado, excluído ou revisado depois disso mudava o acervo e não mudava a
        fila, que continuava oferecendo o que já não existia. */
@@ -14824,6 +15978,160 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     });
   }
 
+  /* ═══ Mapa de uso ══════════════════════════════════════════════════
+     Os minutos ativos de cada hora, somados por dia da semana e hora do dia,
+     nas últimas doze semanas. O banco guarda a hora em UTC; o dia e a hora
+     que se veem aqui são os do relógio de quem está olhando. */
+  var DIAS_MAPA = [1, 2, 3, 4, 5, 6, 0];
+  var NOMES_DIA = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
+  var CURTOS_DIA = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+  var DOZE_SEMANAS = 84 * 86400000;
+  var FAIXAS_MAPA = ["Madrugada", "Manhã", "Tarde", "Noite"];
+
+  function horaUtc(ms) { return new Date(ms || Date.now()).toISOString().slice(0, 13); }
+
+  function gradeDeUso() {
+    var grade = [], corte = horaUtc(Date.now() - DOZE_SEMANAS);
+    for (var d = 0; d < 7; d++) { grade.push([]); for (var h = 0; h < 24; h++) grade[d].push(0); }
+    ACESSOS.forEach(function (a) {
+      if (a.hora < corte) return;
+      var dt = new Date(a.hora + ":00:00Z");
+      if (isNaN(dt)) return;
+      grade[dt.getDay()][dt.getHours()] += a.minutos;
+    });
+    return grade;
+  }
+
+  /* "7h 55min", e não o "7h 55" dos outros painéis: aqui o número aparece
+     sozinho num balão, sem a coluna que diria que é tempo. */
+  function tempoDeUso(min) {
+    var h = Math.floor(min / 60), m = min % 60;
+    return h ? h + "h" + (m ? " " + m + "min" : "") : m + "min";
+  }
+
+  function nivelDeUso(v, teto) { return v ? Math.max(1, Math.ceil(v / teto * 4)) : 0; }
+
+  function pintarMapaDeUso() {
+    var alvo = $("mapaUso");
+    if (!alvo) return;
+    var grade = gradeDeUso(), teto = 0, total = 0, pico = null;
+    grade.forEach(function (linha, d) {
+      linha.forEach(function (v, h) {
+        total += v;
+        if (v > teto) { teto = v; pico = { d: d, h: h }; }
+      });
+    });
+    alvo.innerHTML = "";
+    function vazio() {
+      var v = document.createElement("span");
+      v.setAttribute("role", "presentation");
+      alvo.appendChild(v);
+    }
+    /* As faixas do dia por cima das horas, cada uma cobrindo as suas seis. */
+    vazio();
+    FAIXAS_MAPA.forEach(function (f) {
+      var faixa = document.createElement("span");
+      faixa.className = "mapa-faixa";
+      faixa.setAttribute("role", "presentation");
+      faixa.style.gridColumn = "span 6";
+      faixa.textContent = f;
+      alvo.appendChild(faixa);
+    });
+    vazio();
+    for (var h = 0; h < 24; h++) {
+      var rot = document.createElement("span");
+      rot.className = "mapa-hora" + (h % 3 ? " mapa-hora-meio" : "");
+      rot.setAttribute("role", "presentation");
+      rot.textContent = h + "h";
+      alvo.appendChild(rot);
+    }
+    DIAS_MAPA.forEach(function (d) {
+      var dia = document.createElement("span");
+      dia.className = "mapa-dia";
+      dia.innerHTML = "<span class=\"mapa-dia-longo\"></span><span class=\"mapa-dia-curto\"></span>";
+      dia.firstChild.textContent = NOMES_DIA[d].charAt(0).toUpperCase() + NOMES_DIA[d].slice(1);
+      dia.lastChild.textContent = CURTOS_DIA[d];
+      alvo.appendChild(dia);
+      grade[d].forEach(function (v, h) {
+        var c = document.createElement("span");
+        c.className = "mapa-celula mapa-n" + nivelDeUso(v, teto);
+        c.dataset.texto = NOMES_DIA[d].charAt(0).toUpperCase() + NOMES_DIA[d].slice(1) +
+          ", das " + h + "h às " + ((h + 1) % 24) + "h: " + (v ? tempoDeUso(v) : "sem uso");
+        c.setAttribute("aria-label", c.dataset.texto);
+        alvo.appendChild(c);
+      });
+    });
+    $("mapaUsoTotal").textContent = total ? tempoDeUso(total) + " nas últimas 12 semanas" : "Últimas 12 semanas";
+    var picoEl = $("mapaUsoPico");
+    picoEl.textContent = "";
+    if (pico) {
+      picoEl.appendChild(document.createTextNode("Horário de mais uso: "));
+      var b = document.createElement("b");
+      b.textContent = NOMES_DIA[pico.d] + ", das " + pico.h + "h às " + ((pico.h + 1) % 24) + "h";
+      picoEl.appendChild(b);
+    } else {
+      picoEl.textContent = "O uso passa a ser contado a partir de agora.";
+    }
+  }
+
+  /* Um balão só para a grade inteira, e não um por célula: são 168 delas. */
+  (function () {
+    var alvo = $("mapaUso"), balao = null;
+    if (!alvo) return;
+    alvo.addEventListener("pointerover", function (e) {
+      var c = e.target.closest(".mapa-celula");
+      if (!c) return;
+      if (!balao) { balao = document.createElement("span"); balao.className = "mapa-balao"; }
+      balao.textContent = c.dataset.texto;
+      alvo.appendChild(balao);
+      var meio = c.offsetLeft + c.offsetWidth / 2;
+      balao.style.top = c.offsetTop + "px";
+      /* Nas pontas, o balão encosta na borda em vez de sair do bloco. */
+      var metade = balao.offsetWidth / 2;
+      balao.style.left = Math.max(metade, Math.min(alvo.clientWidth - metade, meio)) + "px";
+    });
+    alvo.addEventListener("pointerleave", function () { if (balao) balao.remove(); });
+  })();
+
+  /* O que conta como uso: a aba à vista e algum gesto (tecla, clique, rolagem)
+     nos últimos três minutos. Ler parado conta; a aba esquecida aberta não.
+     Os minutos se juntam aqui e vão ao banco a cada cinco, na virada da hora
+     e quando a página some. */
+  var ultimoGesto = Date.now(), minutosDeUso = 0, horaDeUso = horaUtc();
+  ["pointerdown", "keydown", "wheel", "touchstart", "scroll"].forEach(function (ev) {
+    document.addEventListener(ev, function () { ultimoGesto = Date.now(); }, { passive: true, capture: true });
+  });
+
+  function enviarUso() {
+    if (!minutosDeUso) return;
+    var m = minutosDeUso, hora = horaDeUso;
+    minutosDeUso = 0;
+    if (!comBanco) return;
+    chamar({ acao: "acesso.marcar", hora: hora, minutos: m }).catch(function () { /* uso é estatística: perder um envio não merece aviso */ });
+  }
+
+  function somarUsoNaTela(hora) {
+    var a = null;
+    for (var i = ACESSOS.length - 1; i >= 0; i--) { if (ACESSOS[i].hora === hora) { a = ACESSOS[i]; break; } }
+    if (!a) { a = { hora: hora, minutos: 0 }; ACESSOS.push(a); }
+    a.minutos = Math.min(60, a.minutos + 1);
+    if (paginaAtual === "relatorios") pintarMapaDeUso();
+  }
+
+  setInterval(function () {
+    var agora = horaUtc();
+    if (agora !== horaDeUso) { enviarUso(); horaDeUso = agora; }
+    if (document.visibilityState === "visible" && Date.now() - ultimoGesto < 3 * 60000) {
+      minutosDeUso++;
+      somarUsoNaTela(horaDeUso);
+    }
+    if (minutosDeUso >= 5) enviarUso();
+  }, 60000);
+  document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "hidden") enviarUso();
+  });
+  window.addEventListener("pagehide", enviarUso);
+
   /* ═══ Filtro de múltipla escolha ═════════════════════════════════════
      O mesmo desenho do FilterDropdown do portal: marca de seleção à esquerda,
      "Limpar seleção" no topo quando há algo marcado, e busca própria só a
@@ -15024,11 +16332,20 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
   var XIS = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 
 
+  function rotuloDaBarra(texto) {
+    var r = document.createElement("span");
+    r.className = "admin-toolbar-label";
+    r.textContent = texto;
+    return r;
+  }
+
   function criarBarraFiltros(cfg) {
     var barra = document.createElement("div");
     barra.className = "admin-toolbar";
-    /* Sem os rótulos FILTRAR e BUSCAR: os gatilhos e a lupa já dizem o que
-       são, e as duas palavras tomavam espaço, no celular, uma linha inteira. */
+    /* Os rótulos FILTRAR e BUSCAR aparecem na tela larga, onde sobra espaço na
+       linha. No celular eles somem (CSS): lá as duas palavras tomavam uma
+       linha inteira, e os gatilhos e a lupa já dizem o que são. */
+    barra.appendChild(rotuloDaBarra("Filtrar"));
 
     var gatilhos = [];
     (cfg.filtros || []).forEach(function (f) {
@@ -15048,6 +16365,8 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     var espaco = document.createElement("div");
     espaco.className = "admin-toolbar-spacer";
     barra.appendChild(espaco);
+
+    barra.appendChild(rotuloDaBarra("Buscar"));
 
     var caixa = document.createElement("span");
     caixa.className = "secao-busca-campo";
@@ -15765,6 +17084,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
        usa e não pode virar marcação. */
     if (!d.corpo) d.corpo = "<p><br></p>";
     arquivoCorpo.innerHTML = d.corpo;
+    montarMapas();
     /* O arquivo de antes trazia o próprio nome como primeira linha, copiado de
        lá para o cabeçalho. Agora o nome mora só no cabeçalho, e essa cópia
        idêntica no topo do texto sai, só quando é exatamente o nome, para não
@@ -15853,6 +17173,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
      refazer os dois a cada tecla é trabalho jogado fora. */
   arquivoCorpo.addEventListener("input", function () {
     if (!arquivoAberto) return;
+    montarMapas();
     /* Apagar o texto inteiro não pode deixar o corpo sem parágrafo nenhum: o
        que se digitasse depois ficaria solto, fora de bloco, e a barra não
        teria onde aplicar estilo, alinhamento ou lista. */
@@ -15862,7 +17183,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
         porCursorEm(arquivoCorpo.firstElementChild);
       }
     }
-    arquivoAberto.corpo = semBloco(arquivoCorpo.innerHTML);
+    arquivoAberto.corpo = semMapaMontado(semBloco(arquivoCorpo.innerHTML));
     clearTimeout(relogioTexto);
     relogioTexto = setTimeout(function () {
       montarIndice();

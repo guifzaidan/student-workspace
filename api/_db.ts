@@ -148,6 +148,14 @@ const SCHEMA = [
      terminou_em TEXT
    )`,
   `CREATE INDEX IF NOT EXISTS idx_ciclos_dia ON sinapse_ciclos (comecou_em)`,
+
+  // O uso da plataforma, em minutos ativos por hora (UTC, `AAAA-MM-DDTHH`). Uma
+  // linha por hora, e não por acesso: o mapa de calor do Dashboard só precisa
+  // do total de cada hora, e a tabela cresce no máximo 24 linhas por dia.
+  `CREATE TABLE IF NOT EXISTS sinapse_acessos (
+     hora    TEXT PRIMARY KEY,
+     minutos INTEGER NOT NULL DEFAULT 0
+   )`,
 ];
 
 /**
@@ -177,6 +185,23 @@ async function garantirColunas(cx: ReturnType<typeof db>): Promise<void> {
 }
 
 /**
+ * O registro de uso nasceu depois do resto. Na primeira vez, ele herda o que
+ * o histórico já conta: cada card revisado vale um minuto, e cada ciclo de
+ * foco concluído vale os minutos dele, na hora em que começou. Sem isso o
+ * mapa de calor abriria vazio para quem já estuda há semanas.
+ */
+async function preencherAcessos(cx: ReturnType<typeof db>): Promise<void> {
+  await cx.execute(
+    `INSERT OR IGNORE INTO sinapse_acessos (hora, minutos)
+     SELECT hora, MIN(60, SUM(m)) FROM (
+       SELECT substr(revisado_em, 1, 13) AS hora, 1 AS m FROM sinapse_revisoes
+       UNION ALL
+       SELECT substr(comecou_em, 1, 13), minutos FROM sinapse_ciclos WHERE terminou_em IS NOT NULL
+     ) GROUP BY hora`,
+  );
+}
+
+/**
  * Garante o schema uma vez por processo.
  *
  * A promessa fica presa num módulo: requisições simultâneas na mesma instância
@@ -186,7 +211,11 @@ export function garantirSchema(): Promise<void> {
   if (schemaPronto) return schemaPronto;
   schemaPronto = (async () => {
     const cx = db();
+    const antes = await cx.execute(
+      `SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'sinapse_acessos'`,
+    );
     for (const ddl of SCHEMA) await cx.execute(ddl);
+    if (!antes.rows.length) await preencherAcessos(cx);
     await garantirColunas(cx);
     await cx.execute('PRAGMA foreign_keys = ON');
   })().catch((erro) => {

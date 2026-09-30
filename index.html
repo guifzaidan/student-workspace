@@ -144,14 +144,52 @@ h1.titulo {
 .acoes { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
 .nota-pe { margin-top: 18px; font-size: 13px; color: var(--cinza2); font-weight: 600; }
 
-/* O mosaico de telas do produto, à direita. */
+/* O mosaico, à direita: duas colunas desencontradas, com gente e telas do
+   produto se alternando (a referência da Caima). A coluna da direita desce um
+   pouco, e é esse degrau que tira o ar de tabela. */
 .mosaico {
   position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-auto-rows: minmax(0, auto);
   gap: 16px;
+  align-items: start;
 }
+.mosaico .coluna { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.mosaico .coluna.desce { margin-top: 46px; }
+
+/* As fotos: gente de verdade, cada uma no fundo de uma cor, na moldura das
+   outras peças. O selo embaixo diz o que ela está fazendo, e a estrela no
+   canto é o enfeite da referência. */
+.foto {
+  position: relative;
+  margin: 0;
+  border: 2px solid var(--tinta);
+  border-radius: var(--raio);
+  overflow: hidden;
+  box-shadow: var(--sombra-dura-g);
+  aspect-ratio: 5 / 6;
+  background: var(--rosa);
+}
+.foto img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .7s var(--curva); }
+.foto:hover img { transform: scale(1.04); }
+.foto figcaption {
+  position: absolute; left: 12px; right: 12px; bottom: 12px;
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 12px; border-radius: 14px;
+  background: var(--branco); border: 1.5px solid var(--tinta);
+  font-size: 12.5px; font-weight: 700; line-height: 1.3;
+}
+.foto figcaption i { flex-shrink: 0; width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; font-style: normal; font-size: 12px; background: var(--rosa); border: 1.5px solid var(--tinta); }
+.foto .estrela-foto {
+  position: absolute; top: 12px; right: 12px;
+  width: 42px; height: 42px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--branco); border: 1.5px solid var(--tinta);
+  font-size: 22px; line-height: 1; color: var(--rosa-forte);
+  animation: girar 14s linear infinite;
+}
+.foto.azul { background: var(--ceu); }
+.foto.azul .estrela-foto { color: #3E8BD6; }
 .cartao {
   position: relative;
   background: var(--branco);
@@ -163,7 +201,7 @@ h1.titulo {
 .cartao-rotulo { font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--cinza); margin: 0 0 10px; }
 
 /* Tela 1: o documento com o balão sobre o trecho grifado. */
-.doc { grid-column: 1 / -1; background: var(--lilas); padding: 16px; }
+.doc { background: var(--lilas); padding: 16px; }
 .doc-folha { background: var(--branco); border: 1.5px solid var(--tinta); border-radius: 14px; padding: 18px 20px 20px; position: relative; }
 .doc-folha h4 { font-family: var(--display); font-size: 19px; margin: 0 0 8px; letter-spacing: -.02em; }
 .doc-folha p { margin: 0 0 6px; font-size: 13.5px; color: var(--cinza); line-height: 1.6; }
@@ -207,7 +245,12 @@ h1.titulo {
   font-weight: 700; font-size: 13px; line-height: 1.25;
 }
 .pilula strong { font-family: var(--display); font-size: 28px; letter-spacing: -.03em; line-height: 1; }
-.mosaico .pilula { grid-column: 1 / -1; justify-content: center; box-shadow: var(--sombra-dura); }
+.mosaico .pilula { justify-content: center; box-shadow: var(--sombra-dura); padding: 12px 16px; }
+/* O anel do Pomodoro em miniatura, dentro de uma pílula. */
+.anel.mini { width: 46px; height: 46px; flex-shrink: 0; }
+.anel.mini circle { stroke-width: 12; }
+.anel.mini b { font-size: 0; }
+.pilula-foco { background: var(--manteiga); }
 
 /* ─── As etiquetas soltas: arraste para brincar ─────────────────────── */
 .chips { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
@@ -231,7 +274,7 @@ h1.titulo {
   50% { transform: translate(var(--x, 0px), calc(var(--y, 0px) - 7px)) rotate(calc(var(--giro, 0deg) + 2deg)); }
 }
 @keyframes flutua { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-.dica-arraste { position: absolute; right: 0; bottom: -44px; font-size: 12.5px; font-weight: 700; color: var(--cinza); display: flex; align-items: center; gap: 6px; }
+.dica-arraste { position: absolute; right: 0; bottom: -80px; font-size: 12.5px; font-weight: 700; color: var(--cinza); display: flex; align-items: center; gap: 6px; }
 
 /* ─── A faixa que corre ─────────────────────────────────────────────── */
 .faixa-caixa { overflow: hidden; padding: 14px 0 6px; margin-top: -4px; }
@@ -382,13 +425,13 @@ h2 {
 .quem-lista span:hover { transform: rotate(-3deg) scale(1.05); background: var(--lima); }
 .quem-lista span:nth-child(3n+2):hover { background: var(--rosa); }
 .quem-lista span:nth-child(3n):hover { background: var(--lilas); }
-.pasta-mock { border: 2px solid var(--tinta); border-radius: var(--raio); background: var(--branco); box-shadow: var(--sombra-dura-g); padding: 22px; transform: rotate(2deg); }
-.pasta-mock .linha-arq { display: flex; align-items: center; gap: 14px; padding: 14px 6px; border-bottom: 1.5px solid var(--fio); }
-.pasta-mock .linha-arq:last-child { border-bottom: none; }
-.pasta-mock .emoji { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; font-size: 20px; border: 1.5px solid var(--tinta); }
-.pasta-mock b { display: block; font-size: 15px; }
-.pasta-mock small { color: var(--cinza); font-weight: 600; font-size: 12.5px; }
-.pasta-mock .conta { margin-left: auto; font-size: 12.5px; font-weight: 800; padding: 4px 10px; border-radius: 100px; background: var(--rosa-lavado); }
+/* Três fotos em pé, levemente tortas, como retratos presos num mural. */
+.gente { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: start; }
+.gente .foto { aspect-ratio: 5 / 6.4; }
+.gente .foto:nth-child(1) { transform: rotate(-4deg); margin-top: 30px; background: var(--lilas); }
+.gente .foto:nth-child(2) { transform: rotate(2.5deg); background: var(--manteiga); }
+.gente .foto:nth-child(3) { transform: rotate(-2deg); margin-top: 48px; background: var(--ceu); }
+.gente .foto figcaption { justify-content: center; font-size: 13px; }
 
 /* ─── O convite do fim ──────────────────────────────────────────────── */
 .convite {
@@ -411,6 +454,9 @@ h2 {
 .passo.surge.visto:nth-child(2) { transform: rotate(-4deg); }
 .passo.surge.visto:nth-child(3) { transform: rotate(3deg); }
 .passo.surge.visto:hover { transform: rotate(0) translateY(-4px); }
+.gente .foto.surge.visto:nth-child(1) { transform: rotate(-4deg); }
+.gente .foto.surge.visto:nth-child(2) { transform: rotate(2.5deg); }
+.gente .foto.surge.visto:nth-child(3) { transform: rotate(-2deg); }
 
 /* ─── Telas menores ─────────────────────────────────────────────────── */
 @media (max-width: 1020px) {
@@ -444,15 +490,22 @@ h2 {
   .demo-graus { grid-template-columns: repeat(2, 1fr); }
   .faixa span { font-size: 20px; }
   .chip { font-size: 12px; padding: 7px 12px; }
+  .gente { gap: 10px; }
+  .gente .foto figcaption { font-size: 11px; padding: 6px 8px; left: 8px; right: 8px; bottom: 8px; }
+  .foto .estrela-foto { width: 34px; height: 34px; font-size: 18px; }
 }
 @media (max-width: 420px) {
   .mosaico { grid-template-columns: 1fr; }
+  .mosaico .coluna.desce { margin-top: 0; }
+  .foto { aspect-ratio: 4 / 4.2; }
   /* Numa coluna só, as etiquetas vão para as emendas entre um cartão e outro,
      em vez de cair em cima do texto deles. */
+  .chip:nth-child(1) { left: -3% !important; top: -2.4% !important; }
+  .chip:nth-child(2) { left: 54% !important; top: 30.5% !important; }
   .chip:nth-child(3) { left: -3% !important; top: 30.5% !important; }
   .chip:nth-child(4) { left: 46% !important; top: 62.5% !important; }
   .chip:nth-child(5) { left: -2% !important; top: 99% !important; }
-  .dica-arraste { bottom: -52px; }
+  .dica-arraste { bottom: -60px; }
   .mosaico .foco, .mosaico .revisao-mini { grid-column: 1 / -1; }
   .btn { height: 48px; padding: 0 20px; }
 }
@@ -520,6 +573,25 @@ h2 {
       </div>
 
       <div class="mosaico" id="mosaico">
+        <div class="coluna">
+        <div class="pilula surge"><strong>1 clique</strong><span>do trecho grifado<br>ao flashcard pronto</span></div>
+        <figure class="foto surge">
+          <img src="/lp/estudante-rosa.jpg" alt="Estudante sorrindo com o celular na mão, sobre fundo rosa" width="600" height="720" loading="eager">
+          <span class="estrela-foto" aria-hidden="true">✳</span>
+          <figcaption><i aria-hidden="true">✓</i>Revisão de hoje, no celular</figcaption>
+        </figure>
+        <div class="cartao revisao-mini surge">
+          <p class="cartao-rotulo">Revisão de hoje</p>
+          <p class="pergunta">Qual via o TAP avalia?</p>
+          <div class="graus">
+            <span class="grau g1">Errei<small>de novo</small></span>
+            <span class="grau g2">Difícil<small>amanhã</small></span>
+            <span class="grau g3">Bom<small>em 3 dias</small></span>
+            <span class="grau g4">Fácil<small>em 8 dias</small></span>
+          </div>
+        </div>
+        </div>
+        <div class="coluna desce">
         <div class="cartao doc surge">
           <p class="cartao-rotulo">Seu resumo</p>
           <div class="doc-folha">
@@ -534,31 +606,23 @@ h2 {
             <p>Nenhum dos dois avalia a função plaquetária.</p>
           </div>
         </div>
-        <div class="cartao revisao-mini surge">
-          <p class="cartao-rotulo">Revisão de hoje</p>
-          <p class="pergunta">Qual via o TAP avalia?</p>
-          <div class="graus">
-            <span class="grau g1">Errei<small>de novo</small></span>
-            <span class="grau g2">Difícil<small>amanhã</small></span>
-            <span class="grau g3">Bom<small>em 3 dias</small></span>
-            <span class="grau g4">Fácil<small>em 8 dias</small></span>
-          </div>
+        <div class="pilula pilula-foco surge">
+          <div class="anel mini" aria-hidden="true"><svg viewBox="0 0 116 116"><circle class="trilho" cx="58" cy="58" r="48"/><circle class="arco" cx="58" cy="58" r="48"/></svg><b></b></div>
+          <strong>25:00</strong><span>de foco, com o<br>assunto do arquivo</span>
         </div>
-        <div class="cartao foco surge">
-          <div class="anel" aria-hidden="true">
-            <svg viewBox="0 0 116 116"><circle class="trilho" cx="58" cy="58" r="48"/><circle class="arco" cx="58" cy="58" r="48"/></svg>
-            <b>25:00</b>
-          </div>
-          <small>Pomodoro no mesmo lugar</small>
+        <figure class="foto azul surge">
+          <img src="/lp/estudante-azul.jpg" alt="Estudante sorrindo sobre fundo azul claro" width="600" height="720" loading="eager">
+          <span class="estrela-foto" aria-hidden="true">✳</span>
+          <figcaption><i aria-hidden="true" style="background:var(--lima)">↻</i>Esse card só volta em 8 dias</figcaption>
+        </figure>
         </div>
-        <div class="pilula surge"><strong>1 clique</strong><span>do trecho grifado<br>ao flashcard pronto</span></div>
 
         <div class="chips" id="chips" aria-label="Recursos do Sinapse">
           <span class="chip" tabindex="0" style="left:-5%;top:-5%;--giro:-8deg;background:var(--lima)">Folha A4</span>
-          <span class="chip" tabindex="0" style="left:74%;top:-6%;--giro:9deg;background:var(--manteiga);--atraso:-1s">Grifo em 7 cores</span>
+          <span class="chip" tabindex="0" style="left:64%;top:-1%;--giro:9deg;background:var(--manteiga);--atraso:-1s">Grifo em 7 cores</span>
           <span class="chip" tabindex="0" style="left:-3%;top:101%;--giro:6deg;background:var(--ceu);--atraso:-2s">Notas no trecho</span>
-          <span class="chip" tabindex="0" style="left:70%;top:82%;--giro:-7deg;background:var(--branco);--atraso:-3s">Tabelas mescláveis</span>
-          <span class="chip" tabindex="0" style="left:34%;top:103%;--giro:4deg;background:var(--lilas);--atraso:-4s">Revisão espaçada</span>
+          <span class="chip" tabindex="0" style="left:56%;top:100%;--giro:-7deg;background:var(--branco);--atraso:-3s">Tabelas mescláveis</span>
+          <span class="chip" tabindex="0" style="left:25%;top:104%;--giro:4deg;background:var(--lilas);--atraso:-4s">Revisão espaçada</span>
         </div>
         <span class="dica-arraste" aria-hidden="true">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0M14 10V4a2 2 0 0 0-4 0v2M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
@@ -710,11 +774,19 @@ h2 {
           <span>Residência médica</span><span>ENAMED</span><span>Enare</span><span>Faculdade</span><span>Concursos</span><span>Revalida</span>
         </div>
       </div>
-      <div class="pasta-mock surge" aria-hidden="true">
-        <p class="cartao-rotulo">ENAMED &amp; Enare (Temas)</p>
-        <div class="linha-arq"><span class="emoji" style="background:#FFD9D6">🫀</span><div><b>Cardiologia</b><small>9 páginas · índice com 3 seções</small></div><span class="conta">33 cards</span></div>
-        <div class="linha-arq"><span class="emoji" style="background:var(--lilas)">🤰🏻</span><div><b>GO - Ginecologia e Obstetrícia</b><small>24 páginas · 23 tabelas</small></div><span class="conta">33 cards</span></div>
-        <div class="linha-arq"><span class="emoji" style="background:var(--manteiga)">🩸</span><div><b>Hematologia</b><small>64 páginas · 37 imagens</small></div><span class="conta">revisar</span></div>
+      <div class="gente">
+        <figure class="foto surge">
+          <img src="/lp/estudante-lilas.jpg" alt="Estudante rindo, de jaqueta jeans, sobre fundo lilás" width="600" height="720" loading="lazy">
+          <figcaption>Residência</figcaption>
+        </figure>
+        <figure class="foto surge">
+          <img src="/lp/estudante-amarelo.jpg" alt="Estudante de óculos sorrindo sobre fundo amarelo" width="600" height="720" loading="lazy">
+          <figcaption>Concurso</figcaption>
+        </figure>
+        <figure class="foto surge">
+          <img src="/lp/estudante-ola.jpg" alt="Estudante acenando diante de uma parede colorida" width="600" height="720" loading="lazy">
+          <figcaption>Faculdade</figcaption>
+        </figure>
       </div>
     </div>
   </section>
