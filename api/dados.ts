@@ -11,7 +11,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 /* A extensão `.js` é obrigatória, e não enfeite. O pacote é `type: module`, então
-   na Vercel este arquivo vira `dados.js` e roda como ESM — e o carregador ESM do
+   na Vercel este arquivo vira `dados.js` e roda como ESM, e o carregador ESM do
    Node não completa extensão em caminho relativo. Sem ela o import quebra só em
    produção, no carregamento do módulo: a função morre antes do handler e a
    resposta é um 500 em texto puro, sem passar pelo try/catch daqui.
@@ -38,7 +38,7 @@ const juntar = (v: unknown) => (Array.isArray(v) ? v.filter(Boolean).join(SEPARA
 
 /* As notas de um arquivo vão como JSON numa coluna dele. Não ganham tabela
    própria porque nunca são lidas sozinhas: elas só existem com o arquivo aberto
-   e chegam junto com ele. Coluna vazia ou JSON quebrado vira lista vazia — uma
+   e chegam junto com ele. Coluna vazia ou JSON quebrado vira lista vazia, uma
    nota ilegível não pode derrubar a leitura do acervo inteiro. */
 function notas(v: unknown): unknown[] {
   const cru = texto(v);
@@ -169,7 +169,7 @@ async function lerTudo() {
  *
  * IMPORTANTE: esta função tem uma cópia no cliente (index.html,
  * `proximoIntervalo`), porque a tela de revisão precisa dizer em cada botão
- * daqui a quanto o card volta — antes de gravar, e sem uma ida de rede no meio
+ * daqui a quanto o card volta, antes de gravar, e sem uma ida de rede no meio
  * da sessão. Mexeu aqui, mexe lá.
  */
 function proximoIntervalo(grau: number, intervalo: number, facilidade: number) {
@@ -180,7 +180,7 @@ function proximoIntervalo(grau: number, intervalo: number, facilidade: number) {
   /* Cada grau tem o seu passo, e não só o empurrão na facilidade: ela varia
      0,15 de um grau para o seguinte, o que dá menos de 5% de diferença no
      intervalo. Num card de 5 dias, Difícil, Bom e Fácil devolviam 12, 13 e 13
-     dias — e a tela anunciava "em 2 semanas" nos três botões. Escolher entre
+     dias, e a tela anunciava "em 2 semanas" nos três botões. Escolher entre
      eles deixava de querer dizer alguma coisa.
      Com o passo: 6, 13 e 17 dias. O Difícil quase não estica, o Bom segue a
      facilidade e o Fácil dá o salto. */
@@ -307,7 +307,7 @@ async function gravar(corpo: Record<string, unknown>) {
       });
       /* O rascunho sai na mesma transação em que o card entra. Em duas escritas,
          uma falha no meio deixava o card salvo e o rascunho de volta na tela no
-         próximo carregamento — e salvá-lo de novo duplicava o card. */
+         próximo carregamento, e salvá-lo de novo duplicava o card. */
       for (const rid of Array.isArray(corpo.rascunhoIds) ? corpo.rascunhoIds : []) {
         escritas.push({ sql: 'DELETE FROM sinapse_rascunhos WHERE id = ?', args: [texto(rid)] });
       }

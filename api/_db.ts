@@ -98,7 +98,7 @@ const SCHEMA = [
   /* O rascunho é um card que ainda não escolheu deck. Não cabe na tabela dos
      cards porque lá o deck é obrigatório, e afrouxar isso deixaria a revisão
      tropeçar em card sem destino. Ele mora aqui até ser salvo num deck ou
-     descartado — recarregar a página não é nenhuma das duas coisas.
+     descartado, recarregar a página não é nenhuma das duas coisas.
      O arquivo apagado não leva o rascunho junto: ele continua com o trecho, e
      só perde o endereço de onde saiu. */
   `CREATE TABLE IF NOT EXISTS sinapse_rascunhos (

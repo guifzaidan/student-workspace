@@ -34,7 +34,7 @@ const remendo = `
   };
 `;
 
-const html = readFileSync('index.html', 'utf8').replace('<script>', '<script>' + remendo);
+const html = readFileSync('app/index.html', 'utf8').replace('<script>', '<script>' + remendo);
 const { window } = new JSDOM(html, {
   runScripts: 'dangerously',
   pretendToBeVisual: true,

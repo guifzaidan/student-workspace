@@ -69,8 +69,37 @@ function apiLocal(env) {
   };
 }
 
+// O app mora em /app/. Digitado sem a barra do fim, o Vite não acharia a
+// página: a barra vai junto, como a Vercel faz no deploy.
+function appSemBarra() {
+  return {
+    name: 'app-sem-barra',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (req.url !== '/app' && !req.url?.startsWith('/app?')) return next();
+        res.statusCode = 301;
+        res.setHeader('Location', '/app/' + req.url.slice(4));
+        res.end();
+      });
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => {
   // O terceiro argumento vazio lê toda variável do .env, e não só as VITE_.
   const env = loadEnv(mode, process.cwd(), '');
-  return { plugins: [apiLocal(env)] };
+  return {
+    plugins: [apiLocal(env), appSemBarra()],
+    // Duas páginas: a apresentação na raiz (index.html) e o app em /app
+    // (app/index.html). Sem a lista, o build só leva a raiz e o app some do
+    // deploy.
+    build: {
+      rollupOptions: {
+        input: {
+          landing: 'index.html',
+          app: 'app/index.html',
+        },
+      },
+    },
+  };
 });
