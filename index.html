@@ -10721,25 +10721,41 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
      embrulho e com o bloco antes dele. A margem nova conta com essa roda
      inteira para andar exatamente o empurrão. Numa coluna flex (as listas)
      nada se sobrepõe, e aí é só somar. */
-  function regraDeEmpurrar(u, empurra) {
+  /* A imagem com texto ao lado flutua: a margem dela não se sobrepõe à de
+     ninguém, e o bloco que vem depois dela divide a margem com o de antes. */
+  function flutua(el) { return getComputedStyle(el).cssFloat !== "none"; }
+  function anteriorNoFluxo(el) {
+    var a = el.previousElementSibling;
+    while (a && flutua(a)) a = a.previousElementSibling;
+    return a;
+  }
+
+  /* A medida de partida do empurrão: o respiro de cima da linha de tabela, ou
+     a margem que o bloco já anda. É lida uma vez, antes de haver regra. */
+  function baseDeEmpurrar(u) {
     if (u.el.tagName === "TR") {
       var cel = u.el.firstElementChild;
-      var pt = cel ? parseFloat(getComputedStyle(cel).paddingTop) || 0 : 0;
-      return u.sel + " > *{padding-top:" + (pt + empurra) + "px!important}";
+      return cel ? parseFloat(getComputedStyle(cel).paddingTop) || 0 : 0;
     }
     var mt = parseFloat(getComputedStyle(u.el).marginTop) || 0, roda = mt;
+    if (flutua(u.el)) return mt;
     var el = u.el, pai = el.parentElement;
     if (!/^(flex|grid|inline-flex|inline-grid)$/.test(getComputedStyle(pai).display)) {
-      while (!el.previousElementSibling && pai !== arquivoCorpo) {
+      while (!anteriorNoFluxo(el) && pai !== arquivoCorpo) {
         var sp = getComputedStyle(pai);
         if (parseFloat(sp.paddingTop) || parseFloat(sp.borderTopWidth) || sp.display !== "block" || sp.overflow !== "visible") break;
         roda = Math.max(roda, parseFloat(sp.marginTop) || 0);
         el = pai; pai = el.parentElement;
       }
-      var antes = el.previousElementSibling;
+      var antes = anteriorNoFluxo(el);
       if (antes) roda = Math.max(roda, parseFloat(getComputedStyle(antes).marginBottom) || 0);
     }
-    return u.sel + "{margin-top:" + (roda + empurra) + "px!important}";
+    return roda;
+  }
+
+  function regraDeEmpurrar(u, base, empurra) {
+    if (u.el.tagName === "TR") return u.sel + " > *{padding-top:" + (base + empurra) + "px!important}";
+    return u.sel + "{margin-top:" + (base + empurra) + "px!important}";
   }
 
   /* A altura dentro da folha, em pixels da própria folha: o zoom dela não
@@ -10785,16 +10801,41 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
        A altura mínima fica onde estava enquanto se mede: tirar os empurrões
        encolhe o texto por um instante, e a rolagem pularia para cima junto. */
     regrasPaginas.textContent = "";
-    /* A linha de tabela empurrada cresce junto (o empurrão é respiro dela),
-       então a altura que vale para a conta é a medida sem empurrão nenhum. */
+    /* A linha de tabela empurrada cresce junto (o empurrão é respiro dela), e
+       o texto ao lado de uma imagem flutuante muda de altura conforme ela
+       fica ou não ao lado dele: a altura que vale é a medida sem empurrão. */
     var temLinha = unidades.some(function (u) { return u.el.tagName === "TR"; });
-    if (temLinha) {
-      altos = unidades.map(function (u) { return u.el.offsetHeight; });
+    var flutuantes = unidades.map(function (u) { return flutua(u.el); });
+    var temFlutua = flutuantes.indexOf(true) >= 0;
+    var topos = [];
+    function medirDesde(k) {
+      for (var i = k; i < unidades.length; i++) {
+        altos[i] = unidades[i].el.offsetHeight;
+        topos[i] = alturaNaFolha(unidades[i].el);
+      }
     }
-    var topos = unidades.map(function (u) { return alturaNaFolha(u.el); });
-    var regras = [], desvio = 0, fundo = A4.margem;
-    unidades.forEach(function (u, k) {
-      var topo = topos[k] + desvio, alto = altos[k];
+    medirDesde(0);
+
+    /* A conta supõe que empurrar um bloco desce tudo o que vem depois junto.
+       A imagem flutuante quebra isso: ela sai do fluxo, e empurrá-la não desce
+       o texto; e o texto ao lado dela, empurrado, deixa de contorná-la e muda
+       de altura. Nesses dois casos a conta para, o que já se decidiu entra na
+       página, e ela é medida de novo a partir do bloco em questão — que é
+       conferido outra vez, e corrigido se o empurrão não andou o previsto. */
+    var empurroes = [], desvio = 0, fundo = A4.margem, fundoFlutua = -Infinity;
+    var remediu = false, guarda = 3 * unidades.length + 20;
+    function aplicarEmpurroes() {
+      regrasPaginas.textContent = empurroes.map(function (e, i) {
+        return e ? regraDeEmpurrar(unidades[i], e.base, e.empurra) : "";
+      }).filter(Boolean).join("\n");
+    }
+    for (var k = 0; k < unidades.length; k++) {
+      var u = unidades[k], topo = topos[k] + desvio, alto = altos[k];
+      /* Medida de novo, a linha já empurrada tem o empurrão dentro dela. */
+      if (u.el.tagName === "TR" && empurroes[k] && !desvio) {
+        topo += empurroes[k].empurra;
+        alto -= empurroes[k].empurra;
+      }
       /* Bloco maior que uma folha não tem para onde ir: ele atravessa a
          quebra, como uma tabela comprida no Docs. */
       if (alto && alto <= util) {
@@ -10804,17 +10845,29 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
         if (topo < inicio) empurra = inicio - topo;
         else if (topo + alto > limite) empurra = (pagina + 1) * passo + A4.margem - topo;
         if (empurra) {
-          regras.push(regraDeEmpurrar(u, empurra));
+          var e = empurroes[k] || (empurroes[k] = { base: baseDeEmpurrar(u), empurra: 0 });
+          e.empurra += empurra;
+          if ((flutuantes[k] || topo < fundoFlutua) && guarda-- > 0) {
+            aplicarEmpurroes();
+            medirDesde(k);
+            desvio = 0;
+            remediu = true;
+            k--;
+            continue;
+          }
           desvio += empurra;
           topo += empurra;
         }
       }
+      if (flutuantes[k]) {
+        fundoFlutua = Math.max(fundoFlutua, topo + alto + (parseFloat(getComputedStyle(u.el).marginBottom) || 0));
+      }
       fundo = Math.max(fundo, topo + alto);
-    });
-    regrasPaginas.textContent = regras.join("\n");
+    }
+    aplicarEmpurroes();
     /* O retrato guarda a altura com os empurrões postos, que é a que a próxima
-       tecla vai medir. Só a linha de tabela muda entre uma e outra. */
-    if (temLinha) altos = unidades.map(function (u) { return u.el.offsetHeight; });
+       tecla vai medir. */
+    if (temLinha || temFlutua || remediu) altos = unidades.map(function (u) { return u.el.offsetHeight; });
     retratoPaginas = { margem: A4.margem, els: unidades.map(function (u) { return u.el; }), altos: altos };
     var folhas = Math.max(1, Math.ceil((fundo + A4.margem + A4.vao) / passo));
     arquivoCorpo.style.minHeight = (folhas * passo - A4.vao) + "px";
