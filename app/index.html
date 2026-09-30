@@ -9595,7 +9595,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
 
   /* ═══ Mapa mental ════════════════════════════════════════════════════
      Um bloco do texto, como a imagem: uma <figure> que não se edita como
-     texto (contenteditable="false") e guarda o mapa inteiro num atributo —
+     texto (contenteditable="false") e guarda o mapa inteiro num atributo:
      as ideias, onde cada uma está, a cor, o zoom e se está fixado. O desenho
      é refeito a partir desse atributo toda vez que o arquivo abre; no banco
      vai só o atributo (ver `semMapaMontado`), e não centenas de linhas de
@@ -9639,7 +9639,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
   /* Uma cópia viva do mapa por <figure> (`fig._mm.d`): é nela que toda ação
      lê e escreve, e o atributo é só onde ela é guardada. Antes cada desenho
      tinha a sua cópia, e a ação de um desenho antigo gravava por cima do que
-     outra acabara de mudar — o texto editado voltava a ser "Ideia". */
+     outra acabara de mudar, o texto editado voltava a ser "Ideia". */
   function dadosDoMapa(fig) {
     var st = fig._mm || (fig._mm = { escolhido: null });
     return st.d || (st.d = lerMapa(fig));
@@ -9698,8 +9698,8 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     }
   }
 
-  /* Desenha (ou redesenha) um mapa. O estado de quem está mexendo — ideia
-     escolhida, arrasto em curso — mora no próprio elemento, e sobrevive aos
+  /* Desenha (ou redesenha) um mapa. O estado de quem está mexendo, ideia
+     escolhida, arrasto em curso, mora no próprio elemento, e sobrevive aos
      redesenhos. */
   function montarMapa(fig) {
     var d = dadosDoMapa(fig);
@@ -10136,8 +10136,8 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
        uma seleção: o `mousedown` é barrado, fora da ideia que está sendo
        editada. */
     /* Fecha a edição em curso (gravando): clicar em outra ideia ou no fundo é
-       dar a edição por terminada. O clique no fundo não tira o foco sozinho —
-       o `mousedown` é barrado para não mexer no texto em volta —, então a
+       dar a edição por terminada. O clique no fundo não tira o foco sozinho:
+       o `mousedown` é barrado para não mexer no texto em volta, então a
        edição é encerrada à mão. */
     function encerrarEdicao() {
       var t = fig.querySelector('.mapa-texto[contenteditable="true"]');
@@ -10244,7 +10244,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
 
   /* O que se prende na própria <figure> entra uma vez só: ela sobrevive aos
      redesenhos (só o miolo é refeito), e prender a cada desenho empilharia
-     o mesmo ouvinte — uma tecla viraria três ideias. O teclado chama a versão
+     o mesmo ouvinte, uma tecla viraria três ideias. O teclado chama a versão
      do desenho atual, guardada em `st.teclado`. */
   function ligarMapaUmaVez(fig) {
     if (fig._mmLigado) return;
@@ -10350,7 +10350,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
 
   /* Entra depois do bloco do cursor, ou no lugar de uma linha vazia; um
      parágrafo vem junto quando ele fica no fim, para dar onde continuar
-     escrevendo — a mesma regra da tabela. */
+     escrevendo, a mesma regra da tabela. */
   function inserirMapa(bloco) {
     var fig = document.createElement("figure");
     fig.className = "mapa-mental";
