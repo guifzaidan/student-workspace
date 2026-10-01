@@ -9884,6 +9884,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
       }
       return total;
     }
+    var dobras = [];
     d.nos.forEach(function (n) {
       var el = els[n.id];
       if (!el || !d.nos.some(function (f) { return f.pai === n.id; })) return;
@@ -9896,19 +9897,35 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
       b.title = n.recolhido ? "Mostrar as ideias de dentro" : "Recolher as ideias de dentro";
       b.setAttribute("aria-label", b.title);
       b.setAttribute("aria-expanded", String(!n.recolhido));
-      if (!n.pai) {
-        /* A central tem filhos dos dois lados: o botão fica embaixo dela. */
-        b.classList.add("baixo");
-        b.style.left = n.x + "px";
-        b.style.top = (n.y + el.offsetHeight / 2) + "px";
-      } else {
-        var ld = ladoDosFilhos(n);
-        if (ld < 0) b.classList.add("esquerda");
-        b.style.left = (n.x + ld * el.offsetWidth / 2) + "px";
-        b.style.top = n.y + "px";
-      }
+      /* A central tem filhos dos dois lados: o botão fica embaixo dela. */
+      var ld = n.pai ? ladoDosFilhos(n) : 0;
+      if (!n.pai) b.classList.add("baixo");
+      else if (ld < 0) b.classList.add("esquerda");
+      dobras.push({ b: b, n: n, el: el, ld: ld });
       mundo.appendChild(b);
     });
+    /* O botão vai na borda da ideia, e a borda depende do tamanho dela, que
+       só se sabe com o mapa na página e a fonte carregada. Medido cedo demais
+       (largura zero), o botão caía no meio da ideia. Ele se reposiciona toda
+       vez que a ideia muda de tamanho. */
+    function posicionarDobras() {
+      dobras.forEach(function (o) {
+        if (!o.ld) {
+          o.b.style.left = o.n.x + "px";
+          o.b.style.top = (o.n.y + o.el.offsetHeight / 2) + "px";
+        } else {
+          o.b.style.left = (o.n.x + o.ld * o.el.offsetWidth / 2) + "px";
+          o.b.style.top = o.n.y + "px";
+        }
+      });
+    }
+    posicionarDobras();
+    if (st.olhoDobras) st.olhoDobras.disconnect();
+    st.olhoDobras = null;
+    if (dobras.length && typeof ResizeObserver === "function") {
+      st.olhoDobras = new ResizeObserver(posicionarDobras);
+      dobras.forEach(function (o) { st.olhoDobras.observe(o.el); });
+    }
     function alternarRecolher(id) {
       var n = porId[id];
       if (!n) return;
@@ -10225,6 +10242,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
         arrasto.el.style.left = arrasto.n.x + "px";
         arrasto.el.style.top = arrasto.n.y + "px";
         desenharFios();
+        posicionarDobras();
         posicionarAcoes();
       } else {
         d.px = arrasto.px + dx;
