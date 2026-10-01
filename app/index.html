@@ -1457,10 +1457,6 @@ body.puxando-coluna * { cursor: col-resize !important; }
 .mapa-dobra:hover { transform: var(--mm-dobra) scale(calc(var(--mm-inv, 1) * 1.15)); }
 .mapa-dobra.fechada { background: var(--mm-tinta); color: #fff; font-size: 11px; box-shadow: 2px 2px 0 #F2A0C0; }
 .mapa-mental.fixo .mapa-dobra { pointer-events: none; }
-/* Recolher: as ideias de dentro voltam para a de cima, encolhendo. */
-.mapa-no.recolhendo { animation: mmRecolher .3s cubic-bezier(.5, 0, .75, 0) forwards; pointer-events: none; }
-@keyframes mmRecolher { to { transform: translate(-50%, -50%) rotate(var(--mm-giro, 0deg)) scale(0); opacity: 0; } }
-.mapa-fios path.recolhendo { stroke-dasharray: 1; animation: mmFioSome .25s ease-in forwards; }
 
 /* Os botões da ideia escolhida: "+" e lixeira, colados nela do lado de fora.
    Moram no mundo (andam junto com a ideia) e desfazem o zoom (`--mm-inv`),
@@ -1509,6 +1505,32 @@ body.puxando-coluna * { cursor: col-resize !important; }
 .mapa-fios path.morrendo { stroke-dasharray: 1; stroke-dashoffset: 0; animation: mmFioSome .36s ease-in forwards; }
 @keyframes mmFioSome { to { stroke-dashoffset: -1; opacity: 0; } }
 
+/* Recolher: o avesso do nascer. As ideias de dentro tomam impulso, voltam
+   voando para a de cima girando e encolhendo, e o fio se enrola de volta até
+   ela. Fica depois do nascer de propósito: uma ideia que acabou de voltar
+   ainda carrega o `.nascendo`, e com a mesma força a regra de baixo vence.
+   `--mm-vx`/`--mm-vy` é o caminho até a ideia que recolhe. */
+.mapa-no.recolhendo { animation: mmRecolher .42s cubic-bezier(.45, 0, .7, .2) forwards; pointer-events: none; }
+@keyframes mmRecolher {
+  0% { transform: translate(-50%, -50%) rotate(var(--mm-giro, 0deg)) scale(1); }
+  22% { transform: translate(-50%, -50%) rotate(calc(var(--mm-giro, 0deg) - 6deg)) scale(1.1); opacity: 1; }
+  100% {
+    transform: translate(calc(-50% + var(--mm-vx, 0px)), calc(-50% + var(--mm-vy, 0px)))
+      rotate(calc(var(--mm-giro, 0deg) + 40deg)) scale(0);
+    opacity: 0;
+  }
+}
+.mapa-fios path.recolhendo { stroke-dasharray: 1; stroke-dashoffset: 0; animation: mmFioVolta .36s cubic-bezier(.5, 0, .75, 0) forwards; }
+@keyframes mmFioVolta { 90% { opacity: 1; } to { stroke-dashoffset: 1; opacity: 0; } }
+.mapa-dobra.recolhendo { animation: mmDobraSome .2s ease-in forwards; pointer-events: none; }
+@keyframes mmDobraSome { to { opacity: 0; scale: .3; } }
+/* A que recolheu engole as de dentro: um tranco elástico quando elas chegam. */
+.mapa-no.engoliu { animation: mmEngolir .45s cubic-bezier(.2, 1.5, .35, 1); }
+@keyframes mmEngolir {
+  0% { transform: translate(-50%, -50%) rotate(var(--mm-giro, 0deg)) scale(1.16); }
+  100% { transform: translate(-50%, -50%) rotate(var(--mm-giro, 0deg)) scale(1); }
+}
+
 /* As faíscas: estrelinhas que espirram da ideia que nasce ou que some. */
 /* Confete no estilo da apresentação: quadradinhos e bolinhas de contorno
    preto, cheios de cor, girando para fora. */
@@ -1529,7 +1551,7 @@ body.puxando-coluna * { cursor: col-resize !important; }
   100% { transform: translate(var(--dx), var(--dy)) scale(1) rotate(160deg); opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .mapa-no.recolhendo, .mapa-fios path.recolhendo,
+  .mapa-no.recolhendo, .mapa-fios path.recolhendo, .mapa-dobra.recolhendo, .mapa-no.engoliu,
   .mapa-no.nascendo, .mapa-no.morrendo, .mapa-fios path.nascendo, .mapa-fios path.morrendo,
   .mapa-acoes-no, .mm-faisca { animation: none !important; }
   .mm-faisca { display: none; }
@@ -9916,16 +9938,30 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
         while (a) { if (a === id) { vao.push(k); break; } a = porId[a] && porId[a].pai; }
       });
       vao.forEach(function (k) {
-        els[k].classList.add("recolhendo");
+        var el = els[k];
+        el.classList.remove("nascendo");
+        el.style.setProperty("--mm-vx", (n.x - porId[k].x) + "px");
+        el.style.setProperty("--mm-vy", (n.y - porId[k].y) + "px");
+        el.classList.add("recolhendo");
         var fio = svg.querySelector('path[data-de="' + k + '"]');
-        if (fio) fio.classList.add("recolhendo");
+        if (fio) { fio.classList.remove("nascendo"); fio.classList.add("recolhendo"); }
+        var dobra = mundo.querySelector('.mapa-dobra[data-id="' + k + '"]');
+        if (dobra) dobra.classList.add("recolhendo");
       });
-      if (st.escolhido && vao.indexOf(st.escolhido) >= 0) st.escolhido = id;
+      if (st.escolhido && vao.indexOf(st.escolhido) >= 0) {
+        st.escolhido = id;
+        if (acoes) acoes.hidden = true;
+      }
       setTimeout(function () {
         n.recolhido = true;
         gravarMapa(fig, d);
         montarMapa(fig);
-      }, mmSemMovimento.matches ? 0 : 300);
+        var dona = fig.querySelector('.mapa-no[data-id="' + id + '"]');
+        if (dona && !mmSemMovimento.matches) {
+          dona.classList.add("engoliu");
+          dona.addEventListener("animationend", function () { dona.classList.remove("engoliu"); }, { once: true });
+        }
+      }, mmSemMovimento.matches ? 0 : 400);
     }
     mundo.addEventListener("click", function (e) {
       var b = e.target.closest(".mapa-dobra");
