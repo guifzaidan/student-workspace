@@ -185,11 +185,10 @@ body {
 }
 .revelar > * { overflow: hidden; min-height: 0; }
 .revelar.aberto { grid-template-rows: 1fr; opacity: 1; }
-.lista-anima > * { animation: entraLista .2s var(--curva-anti) backwards; }
 .surge { animation: entraLista .18s var(--curva-anti) backwards; }
 
 @media (prefers-reduced-motion: reduce) {
-  .lista-anima > *, .surge, .qs-panel, .toast-balao, .conta-menu { animation: none; }
+  .surge, .qs-panel, .toast-balao, .conta-menu { animation: none; }
   .painel.entrando, .painel.saindo { animation: none; }
   /* O ponto que pisca vira um ponto aceso: quem desligou movimento não quer
      um pisca-pisca eterno na quina da tela. */
@@ -4249,7 +4248,6 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 }
 .inbox-bloco-topo b { font-size: 12px; color: var(--black); letter-spacing: 0; font-variant-numeric: tabular-nums; }
 .inbox-lista { display: flex; flex-direction: column; gap: 6px; }
-.inbox-lista > * { animation: entraLista .22s var(--curva-anti) backwards; }
 
 /* Cada linha é um botão inteiro: o alvo é a linha, e não um "abrir" escondido
    na ponta. O ícone à esquerda diz de que tipo é o item sem precisar de rótulo
@@ -4306,9 +4304,6 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 
 @media (max-width: 1080px) {
   .inbox-grade { grid-template-columns: minmax(0, 1fr); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .inbox-lista > * { animation: none; }
 }
 
 /* ─── Revisão ────────────────────────────────────────────────────────── */
@@ -4983,6 +4978,187 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
   .anel.grande { width: 200px; height: 200px; }
   .anel.grande .tempo { font-size: 44px; }
   .tempo { font-size: 36px; }
+}
+
+/* ─── Obra: tudo que chega se ergue, tudo que sai se desmonta ─────────────
+   Uma linguagem só para o sistema inteiro. O que aparece, uma tela, uma
+   gaveta, um menu, um cartão recém-criado, sobe do chão e se assenta com uma
+   mola: o recorte abre de baixo para cima, como parede subindo, e a peça passa
+   um pouco do ponto antes de parar. O que some faz o contrário: dá um tranco,
+   tomba de leve, desfoca e é recortado de cima para baixo até virar nada.
+
+   Fica no fim da folha de propósito: as peças que já tinham entrada e saída
+   próprias (o diálogo, a gaveta, a busca, os menus) passam a usar estas, e a
+   regra que vem depois é a que vale.
+
+   A saída é mais curta que a entrada pela mesma razão de sempre: quem sai já
+   foi decidido, quem chega é que precisa assentar. Os 260ms da saída estão
+   espelhados em `OBRA_SAIDA`, no script. */
+:root {
+  --obra-entrada: .5s;
+  --obra-saida: .26s;
+  --obra-passo: 42ms;
+  --obra-mola: cubic-bezier(.2, 1.3, .35, 1);
+  --obra-queda: cubic-bezier(.55, 0, .8, .25);
+}
+
+@keyframes obra-ergue {
+  0%   { opacity: 0; transform: translateY(18px) scale(.92); clip-path: inset(100% 0 0 0); filter: blur(4px); }
+  45%  { opacity: 1; clip-path: inset(0 0 0 0); filter: blur(0); }
+  70%  { transform: translateY(-3px) scale(1.012); }
+  100% { opacity: 1; transform: none; clip-path: inset(0 0 0 0); filter: none; }
+}
+@keyframes obra-desmonta {
+  0%   { opacity: 1; transform: none; clip-path: inset(0 0 0 0); filter: none; }
+  28%  { opacity: 1; transform: translateY(-3px) scale(1.02) rotate(-.6deg); }
+  100% { opacity: 0; transform: translateY(16px) scale(.88) rotate(1.4deg); clip-path: inset(0 0 100% 0); filter: blur(5px); }
+}
+/* A peça de uma tela que chega: sem recorte, porque a tela inteira sobe em
+   camadas, e recortar cada camada piscaria. Cada uma vem um passo depois da
+   anterior, e a inclinação muda de sinal para elas não subirem em fila. */
+@keyframes obra-peca {
+  0%   { opacity: 0; transform: translateY(22px) scale(.95) rotate(var(--obra-giro, -.8deg)); filter: blur(3px); }
+  55%  { opacity: 1; filter: blur(0); }
+  75%  { transform: translateY(-3px) scale(1.008) rotate(0deg); }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+/* Menus e listas suspensas se desdobram a partir do gatilho, e se dobram de
+   volta para ele. */
+@keyframes obra-desdobra {
+  0%   { opacity: 0; transform: translateY(-6px) scaleY(.7); clip-path: inset(0 0 100% 0 round 12px); }
+  60%  { opacity: 1; clip-path: inset(0 0 0 0 round 12px); }
+  80%  { transform: translateY(1px) scaleY(1.02); }
+  100% { opacity: 1; transform: none; clip-path: inset(0 0 0 0 round 12px); }
+}
+@keyframes obra-dobra {
+  0%   { opacity: 1; transform: none; clip-path: inset(0 0 0 0 round 12px); }
+  100% { opacity: 0; transform: translateY(-8px) scaleY(.6); clip-path: inset(0 0 100% 0 round 12px); filter: blur(3px); }
+}
+/* A gaveta é construída a partir da borda de onde vem, e desmontada de volta
+   para ela. */
+@keyframes obra-gaveta-entra {
+  0%   { opacity: 0; transform: translateX(60px) skewX(-2deg); clip-path: inset(0 0 0 100%); }
+  50%  { opacity: 1; clip-path: inset(0 0 0 0); }
+  75%  { transform: translateX(-6px) skewX(.4deg); }
+  100% { opacity: 1; transform: none; clip-path: inset(0 0 0 0); }
+}
+@keyframes obra-gaveta-sai {
+  0%   { opacity: 1; transform: none; clip-path: inset(0 0 0 0); filter: none; }
+  30%  { transform: translateX(-8px); }
+  100% { opacity: 0; transform: translateX(70px) skewX(2deg); clip-path: inset(0 0 0 100%); filter: blur(4px); }
+}
+@keyframes obra-fundo-sai { from { opacity: 1; } to { opacity: 0; } }
+
+.obra-ergue {
+  animation: obra-ergue var(--obra-entrada) var(--obra-mola) backwards;
+  animation-delay: var(--obra-atraso, 0ms);
+}
+.obra-desmonta {
+  animation: obra-desmonta var(--obra-saida) var(--obra-queda) forwards !important;
+  pointer-events: none;
+}
+.obra-peca {
+  animation: obra-peca var(--obra-entrada) var(--obra-mola) backwards;
+  animation-delay: calc(var(--obra-i, 0) * var(--obra-passo) + 30ms);
+  transform-origin: 50% 100%;
+}
+.obra-peca:nth-of-type(even) { --obra-giro: .8deg; }
+/* O cartão que acabou de sair já não é de ninguém: ele ocupa o lugar só o
+   tempo de cair, e não recebe clique nem foco. */
+.obra-fantasma { pointer-events: none; }
+
+/* ── Telas: a que sai desmonta, a que chega se ergue em camadas ── */
+@keyframes nivel-sai-fundo {
+  to { opacity: 0; transform: translateX(-24px) scale(.97); filter: blur(4px); }
+}
+@keyframes nivel-sai-volta {
+  to { opacity: 0; transform: translateX(24px) scale(.97); filter: blur(4px); }
+}
+@keyframes nivel-sai-lado {
+  30%  { opacity: 1; transform: scale(1.006); }
+  100% { opacity: 0; transform: translateY(12px) scale(.965); filter: blur(4px); }
+}
+@keyframes nivel-entra-fundo { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+@keyframes nivel-entra-volta { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+@keyframes nivel-entra-lado  { from { opacity: 0; } to { opacity: 1; } }
+.nivel-sai-fundo, .nivel-sai-volta, .nivel-sai-lado { animation-duration: .22s; animation-timing-function: var(--obra-queda); }
+.nivel-entra-fundo, .nivel-entra-volta { animation-duration: .4s; animation-timing-function: var(--obra-mola); }
+.nivel-entra-lado { animation-duration: .2s; }
+
+/* ── O diálogo: a caixa se ergue, e as linhas sobem uma a uma ── */
+.delete-confirm-modal {
+  animation: obra-ergue var(--obra-entrada) var(--obra-mola) backwards;
+}
+.delete-confirm-modal > * { animation: obra-peca var(--obra-entrada) var(--obra-mola) backwards; }
+.delete-confirm-modal > :nth-child(1) { animation-delay: 90ms; }
+.delete-confirm-modal > :nth-child(2) { animation-delay: 130ms; --obra-giro: .8deg; }
+.delete-confirm-modal > :nth-child(3) { animation-delay: 170ms; }
+.delete-confirm-modal > :nth-child(4) { animation-delay: 210ms; --obra-giro: .8deg; }
+.admin-modal-overlay.saindo { animation: obra-fundo-sai var(--obra-saida) ease-in both; }
+.admin-modal-overlay.saindo .delete-confirm-modal {
+  animation: obra-desmonta var(--obra-saida) var(--obra-queda) forwards;
+}
+.admin-modal-overlay.saindo .delete-confirm-modal > * { animation: none; }
+
+/* ── A gaveta: o painel vem da borda, e o que está dentro sobe em camadas ── */
+.admin-modal { animation: obra-gaveta-entra .52s var(--obra-mola) backwards; }
+.admin-modal-overlay.saindo .admin-modal {
+  animation: obra-gaveta-sai var(--obra-saida) var(--obra-queda) forwards;
+}
+.painel-gaveta > .admin-modal-header,
+.painel-gaveta > .painel-rodape { animation: obra-peca var(--obra-entrada) var(--obra-mola) backwards; }
+.painel-gaveta > .admin-modal-header { animation-delay: 80ms; }
+.painel-gaveta > .painel-rodape { animation-delay: 220ms; --obra-giro: .8deg; }
+.admin-modal-overlay.saindo .painel-gaveta > .admin-modal-header,
+.admin-modal-overlay.saindo .painel-gaveta > .painel-rodape,
+.admin-modal-overlay.saindo .obra-peca { animation: none; }
+
+/* ── A busca rápida ── */
+.qs-panel { animation: obra-ergue var(--obra-entrada) var(--obra-mola) backwards; }
+.qs-overlay.saindo { animation: obra-fundo-sai var(--obra-saida) ease-in both; pointer-events: none; }
+.qs-overlay.saindo .qs-panel { animation: obra-desmonta var(--obra-saida) var(--obra-queda) forwards; }
+
+/* ── A prévia em tela cheia ── */
+.previa-tela.saindo { animation: obra-fundo-sai var(--obra-saida) ease-in both; }
+.previa-tela > * { animation: obra-ergue var(--obra-entrada) var(--obra-mola) backwards; }
+.previa-tela.saindo > * { animation: obra-desmonta var(--obra-saida) var(--obra-queda) forwards; }
+
+/* ── Menus e listas suspensas ── */
+.conta-menu, .status-select-dropdown, .filter-dropdown-list {
+  animation: obra-desdobra .34s var(--obra-mola) backwards;
+  transform-origin: 50% 0;
+}
+.conta-menu.obra-dobra, .status-select-dropdown.obra-dobra,
+.filter-dropdown-list.obra-dobra, .obra-dobra {
+  animation: obra-dobra .2s var(--obra-queda) forwards;
+  transform-origin: 50% 0;
+  pointer-events: none;
+}
+
+/* ── O aviso do canto: chega se erguendo de lado, e sai desmontando ── */
+.toast-balao.saindo { animation: obra-desmonta .32s var(--obra-queda) forwards; }
+
+/* ── As abas do trilho e as mensagens da IA ── */
+.painel.entrando { animation: obra-ergue .42s var(--obra-mola) backwards; }
+.painel.saindo { animation: obra-desmonta .16s var(--obra-queda) forwards; }
+.ia-msg { animation: obra-ergue .42s var(--obra-mola) backwards; }
+
+/* O vazio de uma lista também chega se erguendo, quando o último item cai. */
+.admin-empty:not([hidden]) { animation: obra-ergue var(--obra-entrada) var(--obra-mola) backwards; animation-delay: .12s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .obra-ergue, .obra-desmonta, .obra-peca, .obra-dobra,
+  .delete-confirm-modal, .delete-confirm-modal > *,
+  .admin-modal-overlay.saindo, .admin-modal-overlay.saindo .delete-confirm-modal,
+  .admin-modal, .admin-modal-overlay.saindo .admin-modal,
+  .painel-gaveta > .admin-modal-header, .painel-gaveta > .painel-rodape,
+  .qs-panel, .qs-overlay.saindo, .qs-overlay.saindo .qs-panel,
+  .previa-tela.saindo, .previa-tela > *, .previa-tela.saindo > *,
+  .conta-menu, .status-select-dropdown, .filter-dropdown-list,
+  .toast-balao.saindo, .painel.entrando, .painel.saindo, .ia-msg,
+  .admin-empty:not([hidden]),
+  .nivel-sai-fundo, .nivel-sai-volta, .nivel-sai-lado,
+  .nivel-entra-fundo, .nivel-entra-volta, .nivel-entra-lado { animation: none !important; }
 }
 </style>
 </head>
@@ -6060,7 +6236,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
       </button>
     </div>
-    <div class="admin-modal-body" id="gavetaCorpo"></div>
+    <div class="admin-modal-body obra-camada" id="gavetaCorpo"></div>
     <div class="painel-rodape">
       <!-- A lixeira da gaveta: a mesma em toda gaveta que edita algo que já
            existe. Aparece quando quem abre passa `excluir`, e o nome da ação
@@ -6117,6 +6293,222 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
   var $ = function (id) { return document.getElementById(id); };
   var casca = $("casca"), editor = $("editor"), arquivoCorpo = $("arquivoCorpo");
   var area = $("estudoArea");
+
+  /* ═══ Obra: erguer e desmontar ═══════════════════════════════════════
+     Tudo que chega se ergue e tudo que sai se desmonta, com o desenho da
+     seção "Obra" do estilo. Aqui ficam as três mãos que o resto do app usa:
+
+       erguer(el)            a peça sobe do chão e se assenta
+       erguerPecas(raiz)     as camadas de uma tela ou painel sobem uma a uma
+       desmontar(el, depois) a peça cai e se desfaz, e só então `depois` roda
+
+     E o vigia, que cuida sozinho das listas: o cartão que nasce se ergue, e o
+     que some é devolvido ao lugar só o tempo de cair, para os vizinhos então
+     deslizarem até o vão. As listas são repintadas do zero a cada mudança, por
+     isso quem diz "é o mesmo item" é a chave em `data-obra`, e não o nó. */
+  var OBRA_SAIDA = 260; /* espelhado em `--obra-saida`, no estilo */
+  var OBRA_ENTRADA = 500;
+  var OBRA_PASSO = 42;
+  var OBRA_MAX_PASSOS = 14;
+  var semMovimento = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  function erguer(el, atraso) {
+    if (!el || semMovimento.matches) return;
+    pararDesmonte(el);
+    el.classList.remove("obra-ergue");
+    void el.offsetWidth;
+    if (atraso) el.style.setProperty("--obra-atraso", atraso + "ms");
+    el.classList.add("obra-ergue");
+    var vez = el._obraVez = (el._obraVez || 0) + 1;
+    setTimeout(function () {
+      if (el._obraVez !== vez) return;
+      el.classList.remove("obra-ergue");
+      el.style.removeProperty("--obra-atraso");
+    }, OBRA_ENTRADA + (atraso || 0) + 60);
+  }
+
+  /* As camadas que contam como peça: os blocos de cima de cada tela, as
+     colunas do estudo, e os itens das listas. A ordem do documento é a ordem
+     da subida, e o que está escondido não gasta passo. */
+  var OBRA_PECAS = ".admin-content-wrap > *, .estudo-area > *, [data-obra], .obra-camada > *";
+  function erguerPecas(raiz) {
+    if (!raiz || semMovimento.matches) return;
+    var pecas = [];
+    Array.prototype.forEach.call(raiz.querySelectorAll(OBRA_PECAS), function (p) {
+      if (p.hidden) return;
+      /* Coluna fechada tem largura zero, e painel flutuante fechado mora fora
+         da tela num `transform`: animá-lo trocaria esse transform pelo da
+         subida, e o painel atravessaria a tela antes de voltar a se esconder. */
+      var r = p.getBoundingClientRect();
+      if (!r.width || !r.height || getComputedStyle(p).position === "fixed") return;
+      pecas.push(p);
+    });
+    pecas.forEach(function (p, i) {
+      p.classList.remove("obra-peca");
+      p.style.setProperty("--obra-i", Math.min(i, OBRA_MAX_PASSOS));
+    });
+    if (pecas.length) void raiz.offsetWidth;
+    pecas.forEach(function (p) { p.classList.add("obra-peca"); });
+    var vez = raiz._obraPecas = (raiz._obraPecas || 0) + 1;
+    setTimeout(function () {
+      if (raiz._obraPecas !== vez) return;
+      pecas.forEach(function (p) {
+        p.classList.remove("obra-peca");
+        p.style.removeProperty("--obra-i");
+      });
+    }, OBRA_ENTRADA + OBRA_MAX_PASSOS * OBRA_PASSO + 80);
+  }
+
+  /* Reabrir no meio da saída cancela a saída: o `depois`, que esconderia a
+     peça, não roda mais. */
+  function pararDesmonte(el) {
+    if (!el || !el._obraSaida) return;
+    clearTimeout(el._obraSaida.relogio);
+    el.classList.remove(el._obraSaida.classe);
+    el._obraSaida = null;
+  }
+  function desmontar(el, depois, classe) {
+    if (!el || semMovimento.matches || !el.getClientRects().length) {
+      if (depois) depois();
+      return;
+    }
+    classe = classe || "obra-desmonta";
+    pararDesmonte(el);
+    el.classList.remove("obra-ergue", "obra-peca");
+    el.classList.add(classe);
+    el._obraSaida = {
+      classe: classe,
+      relogio: setTimeout(function () {
+        el._obraSaida = null;
+        el.classList.remove(classe);
+        if (depois) depois();
+      }, classe === "obra-dobra" ? 200 : OBRA_SAIDA)
+    };
+  }
+  /* Para o que é criado na hora e jogado fora depois: menus e listas que moram
+     num portal no body. Quem chamou já esqueceu a peça; ela sai sozinha. */
+  function desmontarESumir(el, classe) {
+    if (!el) return;
+    el.inert = true;
+    desmontar(el, function () { el.remove(); }, classe);
+  }
+
+  /* ── O vigia das listas ── */
+  var obraFantasmas = new WeakSet();
+  function chaveObra(n) {
+    return n && n.nodeType === 1 && !obraFantasmas.has(n) && n.dataset && n.dataset.obra != null
+      ? n.dataset.obra : null;
+  }
+  function posicoesObra(pai) {
+    var mapa = new Map();
+    Array.prototype.forEach.call(pai.children, function (f) {
+      if (chaveObra(f) != null) mapa.set(f, f.getBoundingClientRect());
+    });
+    return mapa;
+  }
+  /* Os vizinhos saem de onde estavam e deslizam até o lugar novo. */
+  function deslizarObra(antes) {
+    antes.forEach(function (r, el) {
+      if (!el.isConnected || !el.animate) return;
+      var n = el.getBoundingClientRect();
+      var dx = r.left - n.left, dy = r.top - n.top;
+      if (!dx && !dy) return;
+      el.animate([
+        { transform: "translate(" + dx + "px," + dy + "px)" },
+        { transform: "none" }
+      ], { duration: 340, easing: "cubic-bezier(.2, 1.15, .35, 1)" });
+    });
+  }
+  function fantasmaObra(no, pai, depoisDe) {
+    obraFantasmas.add(no);
+    no.classList.remove("obra-ergue", "obra-peca");
+    no.classList.add("obra-fantasma");
+    no.inert = true;
+    no.setAttribute("aria-hidden", "true");
+    pai.insertBefore(no, depoisDe ? depoisDe.nextSibling : pai.firstChild);
+    desmontar(no, function () {
+      if (no.parentNode !== pai) return;
+      var antes = posicoesObra(pai);
+      no.remove();
+      deslizarObra(antes);
+    });
+  }
+
+  /* A chave de um item é a do objeto que ele desenha: renomear um card não o
+     faz cair e nascer de novo, ele continua sendo o mesmo. */
+  var obraIds = new WeakMap(), obraConta = 0;
+  function chaveDe(obj) {
+    if (!obraIds.has(obj)) obraIds.set(obj, "o" + (++obraConta));
+    return obraIds.get(obj);
+  }
+
+  var vigiaObra = new MutationObserver(function (registros) {
+    if (semMovimento.matches) return;
+    var porPai = new Map();
+    registros.forEach(function (r) {
+      var g = porPai.get(r.target);
+      var removidos = r.removedNodes, k;
+      for (k = 0; k < removidos.length; k++) {
+        if (chaveObra(removidos[k]) == null) continue;
+        if (!g) { g = { novos: [], idos: [] }; porPai.set(r.target, g); }
+        /* O vizinho de cima é quem diz onde o fantasma volta a cair. */
+        var ant = null;
+        for (var j = k - 1; j >= 0 && ant == null; j--) ant = chaveObra(removidos[j]);
+        if (ant == null) ant = chaveObra(r.previousSibling);
+        g.idos.push({ no: removidos[k], ant: ant });
+      }
+      Array.prototype.forEach.call(r.addedNodes, function (n) {
+        if (chaveObra(n) == null) return;
+        if (!g) { g = { novos: [], idos: [] }; porPai.set(r.target, g); }
+        g.novos.push(n);
+      });
+    });
+
+    porPai.forEach(function (g, pai) {
+      /* Lista que mudou fora de vista não tem o que mostrar: quem a revela é a
+         troca de tela, que ergue tudo em camadas. */
+      if (!pai.isConnected || !pai.getClientRects().length) return;
+      if (pai.closest(".nivel-sai-fundo, .nivel-sai-volta, .nivel-sai-lado")) return;
+      var nasceuAgora = new Set(g.novos);
+      var ficaram = [];
+      var chavesFinais = new Set();
+      Array.prototype.forEach.call(pai.children, function (f) {
+        var c = chaveObra(f);
+        if (c == null) return;
+        ficaram.push(f);
+        chavesFinais.add(c);
+      });
+      var chavesDeAntes = new Set();
+      g.idos.forEach(function (i) { if (!nasceuAgora.has(i.no)) chavesDeAntes.add(chaveObra(i.no)); });
+      ficaram.forEach(function (f) { if (!nasceuAgora.has(f)) chavesDeAntes.add(chaveObra(f)); });
+
+      var passo = 0;
+      ficaram.forEach(function (f) {
+        if (!nasceuAgora.has(f) || chavesDeAntes.has(chaveObra(f))) return;
+        erguer(f, Math.min(passo++, OBRA_MAX_PASSOS) * OBRA_PASSO);
+      });
+
+      /* Uma limpeza grande (um filtro que esvaziou a lista) não vira chuva de
+         fantasmas: acima de doze, quem sai, sai sem cerimônia. */
+      var idos = g.idos.filter(function (i) {
+        return !nasceuAgora.has(i.no) && !i.no.isConnected && !chavesFinais.has(chaveObra(i.no));
+      });
+      if (!idos.length || idos.length > 12) return;
+      /* Dois vizinhos que saem juntos: o de baixo cai depois do fantasma do de
+         cima, e não no começo da lista. */
+      var postos = new Map();
+      idos.forEach(function (i) {
+        var ancora = null;
+        if (i.ant != null) {
+          ancora = postos.get(i.ant) || null;
+          for (var a = 0; !ancora && a < ficaram.length; a++) if (chaveObra(ficaram[a]) === i.ant) ancora = ficaram[a];
+        }
+        postos.set(chaveObra(i.no), i.no);
+        fantasmaObra(i.no, pai, ancora);
+      });
+    });
+  });
+  vigiaObra.observe(document.body, { childList: true, subtree: true });
 
 
   /* ═══ Dados ══════════════════════════════════════════════════════════
@@ -6720,7 +7112,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
   var btnConta = $("btnConta"), menuConta = null;
   function fecharConta() {
     if (!menuConta) return;
-    menuConta.remove();
+    desmontarESumir(menuConta, "obra-dobra");
     menuConta = null;
     btnConta.setAttribute("aria-expanded", "false");
     document.removeEventListener("mousedown", foraDaConta);
@@ -8744,7 +9136,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     clearTimeout(aberta.relogio);
     if (agora) { aberta.tela.remove(); return; }
     aberta.tela.classList.add("saindo");
-    aberta.relogio = setTimeout(function () { aberta.tela.remove(); }, 180);
+    aberta.relogio = setTimeout(function () { aberta.tela.remove(); }, OBRA_SAIDA);
   }
 
   /* O nome do arquivo vem do `download`, e o endereço é do próprio sistema:
@@ -11231,7 +11623,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
 
   function fecharMenuBarra() {
     if (!menuAberto) return;
-    barraMenu.hidden = true;
+    desmontar(barraMenu, function () { barraMenu.hidden = true; }, "obra-dobra");
     menuAberto.botao.setAttribute("aria-expanded", "false");
     menuAberto = null;
     document.removeEventListener("mousedown", foraDoMenuBarra, true);
@@ -11247,6 +11639,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     var mesmo = menuAberto && menuAberto.nome === nome && menuAberto.botao === botao;
     fecharMenuBarra();
     if (mesmo) return;
+    pararDesmonte(barraMenu);
     barraMenu.innerHTML = "";
     montar(barraMenu);
     barraMenu.hidden = false;
@@ -12145,6 +12538,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     todos.forEach(function (c) {
       var cartao = document.createElement("div");
       cartao.className = "comentario" + (c.id === comentarioAtivo ? " ativo" : "");
+      cartao.dataset.obra = chaveDe(c);
       cartao.innerHTML =
         '<div class="comentario-topo">' +
           '<p class="comentario-trecho"></p>' +
@@ -12325,7 +12719,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
 
   function fecharLista() {
     if (!listaAberta) return;
-    listaAberta.remove();
+    desmontarESumir(listaAberta, "obra-dobra");
     listaAberta = null;
     if (gatilhoAberto) gatilhoAberto.setAttribute("aria-expanded", "false");
     gatilhoAberto = null;
@@ -12550,6 +12944,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     meus.forEach(function (d) {
       var el = document.createElement("article");
       el.className = "fcard";
+      el.dataset.obra = chaveDe(d);
       el.setAttribute("role", "button");
       el.setAttribute("tabindex", "0");
       el.innerHTML =
@@ -13295,8 +13690,13 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     /* Sem campo de título não há campo para segurar o botão, então quem decide
        é a gaveta. */
     podeGravarAtual = cfg.podeGravar || null;
+    /* Abrir outra gaveta no meio da saída da anterior: a saída para, e a
+       nova não some quando o relógio da velha vencer. */
+    clearTimeout(gavetaSaida);
     gavetaOverlay.hidden = false;
     gavetaOverlay.classList.remove("saindo");
+    /* Os campos sobem um a um depois do painel. */
+    erguerPecas(corpo);
     /* O título nasce em foco e marcado: a primeira tecla substitui o texto de
        partida em vez de escrever depois dele. */
     requestAnimationFrame(function () {
@@ -13323,18 +13723,20 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
 
   /* Sem o atraso o painel sumiria de estalo: é o tempo que a animação de saída
      precisa, o mesmo papel do useSaidaSuave no portal. */
+  var gavetaSaida = null;
   function fecharGaveta() {
-    if (gavetaOverlay.hidden) return;
+    if (gavetaOverlay.hidden || gavetaOverlay.classList.contains("saindo")) return;
     fecharLista();
     /* O menu mora num portal no body: sem isto ele ficaria boiando na tela
        depois que a gaveta que o abriu já saiu. */
     fecharFiltro();
     gavetaOverlay.classList.add("saindo");
-    setTimeout(function () {
+    clearTimeout(gavetaSaida);
+    gavetaSaida = setTimeout(function () {
       gavetaOverlay.hidden = true;
       gavetaOverlay.classList.remove("saindo");
       gravarAtual = null;
-    }, 180);
+    }, OBRA_SAIDA);
   }
   var excluirAtual = null;
   $("gavetaExcluir").addEventListener("click", function () {
@@ -13850,7 +14252,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
       if (volta && document.contains(volta)) volta.focus();
       if (aoTerminar) aoTerminar();
       if (desistiu) desistiu();
-    }, 180);
+    }, OBRA_SAIDA);
   }
 
   /* `descricao` é uma lista de pedaços, e não um texto só: o nome do que vai
@@ -14900,13 +15302,24 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     }
   }
   function abrirBusca() {
+    clearTimeout(buscaSaida);
+    qsOverlay.classList.remove("saindo");
     qsOverlay.hidden = false;
     qsInput.value = "";
     qsAtivo = 0;
     pintarBusca();
     qsInput.focus();
   }
-  function fecharBusca() { qsOverlay.hidden = true; }
+  var buscaSaida = null;
+  function fecharBusca() {
+    if (qsOverlay.hidden || qsOverlay.classList.contains("saindo")) return;
+    if (semMovimento.matches) { qsOverlay.hidden = true; return; }
+    qsOverlay.classList.add("saindo");
+    buscaSaida = setTimeout(function () {
+      qsOverlay.hidden = true;
+      qsOverlay.classList.remove("saindo");
+    }, OBRA_SAIDA);
+  }
   $("btnBusca").addEventListener("click", abrirBusca);
   $("qsEsc").addEventListener("click", fecharBusca);
   qsOverlay.addEventListener("mousedown", function (e) { if (e.target === qsOverlay) fecharBusca(); });
@@ -14938,7 +15351,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
      Quem sai roda a saída e só então quem chega aparece com a entrada. A
      direção vem da profundidade: descer é `fundo`, voltar é `volta`, e mesmo
      andar é `lado`. Profundidade nula tira aquela troca da animação. */
-  var NIVEL_SAIDA = 130; /* espelhado em `.nivel-sai-*`, no estilo */
+  var NIVEL_SAIDA = 220; /* espelhado em `.nivel-sai-*`, no estilo */
   var NIVEL_CLASSES = ["nivel-sai-fundo", "nivel-sai-volta", "nivel-sai-lado",
                        "nivel-entra-fundo", "nivel-entra-volta", "nivel-entra-lado"];
   function limparNivel(el) {
@@ -14973,6 +15386,8 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
       limparNivel(entra);
       void entra.offsetWidth;
       entra.classList.add("nivel-entra-" + direcao);
+      /* A tela chega em camadas: o cabeçalho, a barra, e então cada cartão. */
+      erguerPecas(entra);
     };
     nivelPendente = {
       fim: fim,
@@ -15072,6 +15487,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     corpo.innerHTML = "";
     linhas.forEach(function (c) {
       var tr = document.createElement("tr");
+      tr.dataset.obra = chaveDe(c);
       tr.innerHTML =
         '<td><div class="td-frente"></div><div class="td-sub"></div></td>' +
         '<td><span class="estado ' + c.estado + '"></span></td>' +
@@ -15588,6 +16004,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     var el = document.createElement("button");
     el.type = "button";
     el.className = "inbox-item";
+    el.dataset.obra = "inbox:" + o.nome;
     el.innerHTML =
       '<span class="inbox-item-ico' + (o.tom ? " " + o.tom : "") + '">' + o.ico + '</span>' +
       '<span class="inbox-item-texto">' +
@@ -15802,6 +16219,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
   function cartaoDeDeck(d) {
     var el = document.createElement("article");
     el.className = "deck-card";
+    el.dataset.obra = chaveDe(d);
     var sit = situacaoDoDeck(d);
     var selo = sit === "fila" ? '<span class="estado hoje">' + d.hoje + ' na fila</span>'
       : sit === "novo" ? '<span class="estado novo">Vazio</span>'
@@ -16196,7 +16614,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
 
   function fecharFiltro() {
     if (!filtroAberto) return;
-    filtroAberto.remove();
+    desmontarESumir(filtroAberto, "obra-dobra");
     filtroAberto = null;
     if (gatilhoFiltro) gatilhoFiltro.setAttribute("aria-expanded", "false");
     gatilhoFiltro = null;
@@ -16647,6 +17065,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     visiveis.forEach(function (c) {
       var el = document.createElement("article");
       el.className = "pasta-card";
+      el.dataset.obra = chaveDe(c);
       /* Abrir vem primeiro no DOM para o Tab chegar nele antes das ações: a
          ação principal do cartão é entrar nele. A posição absoluta faz a ordem
          do DOM não mexer no desenho. */
@@ -16870,6 +17289,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     visiveis.forEach(function (d) {
       var linha = document.createElement("div");
       linha.className = "arquivo-linha";
+      linha.dataset.obra = chaveDe(d);
       /* Abrir vem primeiro no DOM para o Tab chegar nele antes da lixeira: a
          ação principal da linha é entrar no texto. */
       linha.innerHTML =
