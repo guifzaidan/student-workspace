@@ -14,13 +14,13 @@
 
    Três referências costuradas na paleta da casa: a tipografia enorme com uma
    palavra grifada (é literalmente o que o app faz com o texto), as peças de
-   contorno preto com sombra dura, e as etiquetas tortas que se arrastam por
+   contorno preto com sombra dura, e os adesivos tortos que boiam por
    cima de uma folha pontilhada. O rosa é o mesmo acento do app; lilás, lima e
    manteiga são as cores de grifo que ele já oferece.
 
-   Nada aqui é imagem: as telas do produto são desenhadas em HTML, e por isso
-   mostram o que o app faz de verdade: o balão do trecho, os quatro botões da
-   revisão com os intervalos, o anel do Pomodoro.
+   Na abertura, só gente: quatro fotos e uns poucos adesivos soltos. As telas
+   do produto aparecem mais abaixo, desenhadas em HTML, mostrando o que o app
+   faz de verdade.
    ───────────────────────────────────────────────────────────────────────── */
 :root {
   --papel: #F8F8F6;
@@ -87,7 +87,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .btn-vazio { background: var(--branco); }
 .btn-vazio:hover { background: var(--rosa-lavado); }
 .btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--tinta); }
-.btn:focus-visible, .chip:focus-visible, .nav a:focus-visible { outline: 3px solid var(--rosa-forte); outline-offset: 3px; }
+.btn:focus-visible, .nav a:focus-visible { outline: 3px solid var(--rosa-forte); outline-offset: 3px; }
 
 /* ─── Topo ───────────────────────────────────────────────────────────── */
 .topo {
@@ -121,12 +121,14 @@ button { font: inherit; color: inherit; cursor: pointer; }
 h1.titulo {
   font-family: var(--display);
   font-weight: 800;
-  font-size: clamp(46px, 7.4vw, 104px);
-  line-height: .95;
-  letter-spacing: -.045em;
+  /* Duas frases curtas, cada uma numa linha só: o tamanho acompanha a
+     coluna do texto para nenhuma quebrar no meio. */
+  font-size: clamp(44px, 6.1vw, 96px);
+  line-height: 1.02;
+  letter-spacing: -.035em;
   margin: 22px 0 22px;
 }
-.titulo .linha { display: block; }
+.titulo .linha { display: block; white-space: nowrap; }
 /* A palavra grifada: a marca-texto passa por baixo dela quando a página abre,
    do mesmo jeito que o grifo entra no texto do app. */
 .grifada { position: relative; display: inline-block; z-index: 0; }
@@ -138,28 +140,33 @@ h1.titulo {
   animation: grifar .9s .5s var(--curva) forwards;
 }
 @keyframes grifar { to { transform: scaleX(1) skewX(-8deg); } }
-.italico { font-style: italic; font-weight: 700; }
 .abertura p.chamada { font-size: clamp(17px, 1.6vw, 19.5px); color: var(--cinza); max-width: 520px; margin: 0 0 30px; }
 .chamada b { color: var(--tinta); }
 .acoes { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
-.nota-pe { margin-top: 18px; font-size: 13px; color: var(--cinza2); font-weight: 600; }
 
-/* O mosaico, à direita: duas colunas desencontradas, com gente e telas do
-   produto se alternando (a referência da Caima). A coluna da direita desce um
-   pouco, e é esse degrau que tira o ar de tabela. */
+/* O mosaico, à direita: quatro fotos em duas colunas desencontradas, e mais
+   nada, com os adesivos boiando por cima. A coluna da direita desce, e é
+   esse degrau que tira o ar de tabela. */
 .mosaico {
   position: relative;
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 18px;
   align-items: start;
+  padding: 10px 0 30px;
 }
-.mosaico .coluna { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
-.mosaico .coluna.desce { margin-top: 46px; }
+.mosaico .coluna { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.mosaico .coluna.desce { margin-top: 70px; }
+.mosaico .foto { aspect-ratio: 5 / 5.6; }
+.mosaico .coluna .foto:nth-child(1) { transform: rotate(-2deg); }
+.mosaico .coluna .foto:nth-child(2) { transform: rotate(1.5deg); }
+.mosaico .coluna.desce .foto:nth-child(1) { transform: rotate(2deg); }
+.mosaico .coluna.desce .foto:nth-child(2) { transform: rotate(-1.5deg); }
+.mosaico .foto.surge:not(.visto) { transform: translateY(28px); }
 
 /* As fotos: gente de verdade, cada uma no fundo de uma cor, na moldura das
-   outras peças. O selo embaixo diz o que ela está fazendo, e a estrela no
-   canto é o enfeite da referência. */
+   outras peças. Nas da abertura, o fundo leva os asteriscos da marca,
+   esbranquiçados, atrás da pessoa (gravados na própria imagem). */
 .foto {
   position: relative;
   margin: 0;
@@ -180,106 +187,35 @@ h1.titulo {
   font-size: 12.5px; font-weight: 700; line-height: 1.3;
 }
 .foto figcaption i { flex-shrink: 0; width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; font-style: normal; font-size: 12px; background: var(--rosa); border: 1.5px solid var(--tinta); }
-.foto .estrela-foto {
-  position: absolute; top: 12px; right: 12px;
-  width: 42px; height: 42px; border-radius: 50%;
-  display: grid; place-items: center;
-  background: var(--branco); border: 1.5px solid var(--tinta);
-  font-size: 22px; line-height: 1; color: var(--rosa-forte);
-  animation: girar 14s linear infinite;
-}
 .foto.azul { background: var(--ceu); }
-.foto.azul .estrela-foto { color: #3E8BD6; }
-.cartao {
-  position: relative;
-  background: var(--branco);
-  border: 2px solid var(--tinta);
-  border-radius: var(--raio);
-  box-shadow: var(--sombra-dura-g);
-  padding: 18px;
-}
-.cartao-rotulo { font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--cinza); margin: 0 0 10px; }
+.foto.mostarda { background: #F2E23A; }
+.foto.laranja { background: #EB9B0E; }
 
-/* Tela 1: o documento com o balão sobre o trecho grifado. */
-.doc { background: var(--lilas); padding: 16px; }
-.doc-folha { background: var(--branco); border: 1.5px solid var(--tinta); border-radius: 14px; padding: 18px 20px 20px; position: relative; }
-.doc-folha h4 { font-family: var(--display); font-size: 19px; margin: 0 0 8px; letter-spacing: -.02em; }
-.doc-folha p { margin: 0 0 6px; font-size: 13.5px; color: var(--cinza); line-height: 1.6; }
-.doc-folha mark { background: var(--rosa-lavado); color: var(--tinta); padding: 1px 3px; border-radius: 4px; box-shadow: inset 0 -2px 0 var(--rosa); font-weight: 700; }
-.balao {
-  position: absolute; top: -20px; left: 48%;
-  display: flex; gap: 4px; padding: 6px;
-  background: var(--branco); border: 1.5px solid var(--tinta); border-radius: 14px;
-  box-shadow: var(--sombra-dura);
-  animation: flutua 5s ease-in-out infinite;
-}
-.balao span { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; }
-.balao span.aceso { background: var(--rosa); }
-.balao::after { content: ""; position: absolute; bottom: -7px; left: 50%; width: 12px; height: 12px; background: var(--branco); border-right: 1.5px solid var(--tinta); border-bottom: 1.5px solid var(--tinta); transform: translateX(-50%) rotate(45deg); }
-
-/* Tela 2: o card na revisão, com os quatro botões de verdade. */
-.revisao-mini { background: var(--branco); }
-.revisao-mini .pergunta { font-family: var(--display); font-weight: 700; font-size: 17px; line-height: 1.25; margin: 0 0 12px; letter-spacing: -.01em; }
-.graus { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
-.grau { border: 1.5px solid var(--tinta); border-radius: 12px; padding: 6px 8px; font-size: 12px; font-weight: 800; line-height: 1.2; background: var(--papel); }
-.grau small { display: block; font-weight: 600; color: var(--cinza); font-size: 11px; }
-.grau.g1 { background: #FFD9D6; } .grau.g2 { background: var(--manteiga); } .grau.g3 { background: var(--lima); } .grau.g4 { background: var(--ceu); }
-
-/* Tela 3: o anel do Pomodoro contando. */
-.foco { background: var(--manteiga); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 6px; }
-.anel { position: relative; width: 116px; height: 116px; }
-.anel svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-.anel circle { fill: none; stroke-width: 9; }
-.anel .trilho { stroke: rgba(18, 19, 22, .12); }
-.anel .arco { stroke: var(--tinta); stroke-linecap: round; stroke-dasharray: 302; stroke-dashoffset: 302; animation: contar 14s linear infinite; }
-@keyframes contar { to { stroke-dashoffset: 0; } }
-.anel b { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--display); font-size: 25px; font-weight: 800; letter-spacing: -.02em; }
-.foco small { font-weight: 800; font-size: 12px; }
-
-/* Pílulas de fato, com o número de ordem no canto (a referência da Caima). */
-.pilula {
-  position: relative;
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 20px; border-radius: 100px;
-  border: 2px solid var(--tinta); background: var(--branco);
-  font-weight: 700; font-size: 13px; line-height: 1.25;
-}
-.pilula strong { font-family: var(--display); font-size: 28px; letter-spacing: -.03em; line-height: 1; }
-.mosaico .pilula { justify-content: center; box-shadow: var(--sombra-dura); padding: 12px 16px; }
-/* O anel do Pomodoro em miniatura, dentro de uma pílula. */
-.anel.mini { width: 46px; height: 46px; flex-shrink: 0; }
-.anel.mini circle { stroke-width: 12; }
-.anel.mini b { font-size: 0; }
-.pilula-foco { background: var(--manteiga); }
-
-/* ─── As etiquetas soltas: arraste para brincar ─────────────────────── */
-.chips { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
-.chip {
+/* ─── Os adesivos soltos: boiam por cima das fotos ───────────────────── */
+/* Alfinete, estrela, brilho e coração, no traço das outras peças: contorno
+   preto grosso e a sombra dura, que no SVG vem do drop-shadow. */
+.adesivos { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+.adesivo {
   position: absolute;
-  pointer-events: auto;
-  padding: 9px 16px; border-radius: 100px;
-  border: 2px solid var(--tinta);
-  font-weight: 800; font-size: 13.5px;
-  white-space: nowrap;
-  box-shadow: var(--sombra-dura);
-  cursor: grab; touch-action: none; user-select: none;
+  width: var(--tam, 56px); height: var(--tam, 56px);
+  filter: drop-shadow(3px 3px 0 var(--tinta));
   transform: translate(var(--x, 0px), var(--y, 0px)) rotate(var(--giro, 0deg));
   animation: balanca 6s ease-in-out infinite;
   animation-delay: var(--atraso, 0s);
-  transition: box-shadow .15s;
 }
-.chip.pegando { cursor: grabbing; animation: none; box-shadow: 6px 8px 0 var(--tinta); z-index: 10; }
 @keyframes balanca {
   0%, 100% { transform: translate(var(--x, 0px), var(--y, 0px)) rotate(var(--giro, 0deg)); }
   50% { transform: translate(var(--x, 0px), calc(var(--y, 0px) - 7px)) rotate(calc(var(--giro, 0deg) + 2deg)); }
 }
 @keyframes flutua { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-.dica-arraste { position: absolute; right: 0; bottom: -80px; font-size: 12.5px; font-weight: 700; color: var(--cinza); display: flex; align-items: center; gap: 6px; }
 
 /* ─── A faixa que corre ─────────────────────────────────────────────── */
-.faixa-caixa { overflow: hidden; padding: 14px 0 6px; margin-top: -4px; }
+/* A faixa é torta (-1,4°): cada ponta sobe ou desce cerca de 1,25% da largura
+   da tela. A folga em cima e embaixo cresce junto, para nenhuma ponta ser
+   cortada em tela larga. */
+.faixa-caixa { overflow: hidden; padding: calc(1.25vw + 8px) 0; margin-block: calc(-1.25vw - 4px) calc(-1.25vw + 4px); }
 .faixa { border-block: 2px solid var(--tinta); background: var(--tinta); color: var(--branco); overflow: hidden; transform: rotate(-1.4deg); margin: 0 -20px; }
-.faixa-trilho { display: flex; gap: 36px; padding: 16px 0; width: max-content; animation: correr 38s linear infinite; }
+.faixa-trilho { display: flex; gap: 36px; padding: 16px 0; width: max-content; animation: correr 48s linear infinite; }
 .faixa span { font-family: var(--display); font-weight: 800; font-size: 26px; letter-spacing: -.02em; display: flex; align-items: center; gap: 36px; }
 .faixa span::after { content: "✳"; color: var(--rosa); font-size: 22px; }
 @keyframes correr { to { transform: translateX(-50%); } }
@@ -461,6 +397,7 @@ h2 {
 /* ─── Telas menores ─────────────────────────────────────────────────── */
 @media (max-width: 1020px) {
   .abertura-grade { grid-template-columns: 1fr; }
+  h1.titulo { font-size: clamp(44px, 11.5vw, 96px); }
   .mosaico { max-width: 620px; margin: 30px auto 0; width: 100%; }
   .demo { grid-template-columns: 1fr; }
   .recursos { grid-template-columns: repeat(2, 1fr); }
@@ -489,24 +426,13 @@ h2 {
   .demo-folha { padding: 24px 20px 26px; }
   .demo-graus { grid-template-columns: repeat(2, 1fr); }
   .faixa span { font-size: 20px; }
-  .chip { font-size: 12px; padding: 7px 12px; }
+  .adesivo { width: calc(var(--tam, 56px) * .75); height: calc(var(--tam, 56px) * .75); }
   .gente { gap: 10px; }
   .gente .foto figcaption { font-size: 11px; padding: 6px 8px; left: 8px; right: 8px; bottom: 8px; }
-  .foto .estrela-foto { width: 34px; height: 34px; font-size: 18px; }
 }
 @media (max-width: 420px) {
-  .mosaico { grid-template-columns: 1fr; }
-  .mosaico .coluna.desce { margin-top: 0; }
-  .foto { aspect-ratio: 4 / 4.2; }
-  /* Numa coluna só, as etiquetas vão para as emendas entre um cartão e outro,
-     em vez de cair em cima do texto deles. */
-  .chip:nth-child(1) { left: -3% !important; top: -2.4% !important; }
-  .chip:nth-child(2) { left: 54% !important; top: 30.5% !important; }
-  .chip:nth-child(3) { left: -3% !important; top: 30.5% !important; }
-  .chip:nth-child(4) { left: 46% !important; top: 62.5% !important; }
-  .chip:nth-child(5) { left: -2% !important; top: 99% !important; }
-  .dica-arraste { bottom: -60px; }
-  .mosaico .foco, .mosaico .revisao-mini { grid-column: 1 / -1; }
+  .mosaico, .mosaico .coluna { gap: 12px; }
+  .mosaico .coluna.desce { margin-top: 44px; }
   .btn { height: 48px; padding: 0 20px; }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -557,9 +483,8 @@ h2 {
       <div>
         <span class="selo-topo"><i>✓</i> Resumo, flashcard e revisão no mesmo lugar</span>
         <h1 class="titulo">
-          <span class="linha">Estude o texto.</span>
-          <span class="linha"><span class="grifada">Lembre</span> na</span>
-          <span class="linha italico">hora da prova.</span>
+          <span class="linha">Estude menos.</span>
+          <span class="linha"><span class="grifada">Lembre mais.</span></span>
         </h1>
         <p class="chamada">Escreva e grife seus resumos numa folha de verdade, transforme <b>qualquer trecho em flashcard com um clique</b> e deixe a revisão espaçada decidir o que volta amanhã, e o que só volta daqui a uma semana.</p>
         <div class="acoes">
@@ -569,72 +494,53 @@ h2 {
           </a>
           <a class="btn btn-vazio" href="#como">Ver como funciona</a>
         </div>
-        <p class="nota-pe">Funciona no computador e no celular.</p>
       </div>
 
       <div class="mosaico" id="mosaico">
         <div class="coluna">
-        <div class="pilula surge"><strong>1 clique</strong><span>do trecho grifado<br>ao flashcard pronto</span></div>
-        <figure class="foto surge">
-          <img src="/lp/estudante-rosa.jpg" alt="Estudante sorrindo com o celular na mão, sobre fundo rosa" width="600" height="720" loading="eager">
-          <span class="estrela-foto" aria-hidden="true">✳</span>
-          <figcaption><i aria-hidden="true">✓</i>Revisão de hoje, no celular</figcaption>
-        </figure>
-        <div class="cartao revisao-mini surge">
-          <p class="cartao-rotulo">Revisão de hoje</p>
-          <p class="pergunta">Qual via o TAP avalia?</p>
-          <div class="graus">
-            <span class="grau g1">Errei<small>de novo</small></span>
-            <span class="grau g2">Difícil<small>amanhã</small></span>
-            <span class="grau g3">Bom<small>em 3 dias</small></span>
-            <span class="grau g4">Fácil<small>em 8 dias</small></span>
-          </div>
-        </div>
+          <figure class="foto surge">
+            <img src="/lp/estudante-rosa-asteriscos.jpg" alt="Estudante sorrindo com o celular na mão, sobre fundo rosa" width="600" height="720" loading="eager">
+          </figure>
+          <figure class="foto mostarda surge">
+            <img src="/lp/estudante-mostarda-asteriscos.jpg" alt="Estudante pensativa, de suéter, sobre fundo amarelo" width="600" height="720" loading="eager">
+          </figure>
         </div>
         <div class="coluna desce">
-        <div class="cartao doc surge">
-          <p class="cartao-rotulo">Seu resumo</p>
-          <div class="doc-folha">
-            <div class="balao" aria-hidden="true">
-              <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11-6 6v3h9l3-3"/><path d="m22 12-4.6 4.6a2 2 0 0 1-2.8 0l-5.2-5.2a2 2 0 0 1 0-2.8L14 4"/></svg></span>
-              <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg></span>
-              <span class="aceso"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="14" height="13" rx="2.5"/><path d="M8 3h10a3 3 0 0 1 3 3v10"/></svg></span>
-              <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg></span>
-            </div>
-            <h4>🩸 Hemostasia</h4>
-            <p>O TAP avalia a <mark>via extrínseca e a via comum</mark>; o TTPA, a intrínseca e a comum.</p>
-            <p>Nenhum dos dois avalia a função plaquetária.</p>
-          </div>
-        </div>
-        <div class="pilula pilula-foco surge">
-          <div class="anel mini" aria-hidden="true"><svg viewBox="0 0 116 116"><circle class="trilho" cx="58" cy="58" r="48"/><circle class="arco" cx="58" cy="58" r="48"/></svg><b></b></div>
-          <strong>25:00</strong><span>de foco, com o<br>assunto do arquivo</span>
-        </div>
-        <figure class="foto azul surge">
-          <img src="/lp/estudante-azul.jpg" alt="Estudante sorrindo sobre fundo azul claro" width="600" height="720" loading="eager">
-          <span class="estrela-foto" aria-hidden="true">✳</span>
-          <figcaption><i aria-hidden="true" style="background:var(--lima)">↻</i>Esse card só volta em 8 dias</figcaption>
-        </figure>
+          <figure class="foto azul surge">
+            <img src="/lp/estudante-azul-asteriscos.jpg" alt="Estudante sorrindo sobre fundo azul claro" width="600" height="720" loading="eager">
+          </figure>
+          <figure class="foto laranja surge">
+            <img src="/lp/estudante-laranja-asteriscos.jpg" alt="Estudante surpresa olhando o celular, sobre fundo laranja" width="600" height="720" loading="eager">
+          </figure>
         </div>
 
-        <div class="chips" id="chips" aria-label="Recursos do Sinapse">
-          <span class="chip" tabindex="0" style="left:-5%;top:-5%;--giro:-8deg;background:var(--lima)">Folha A4</span>
-          <span class="chip" tabindex="0" style="left:64%;top:-1%;--giro:9deg;background:var(--manteiga);--atraso:-1s">Grifo em 7 cores</span>
-          <span class="chip" tabindex="0" style="left:-3%;top:101%;--giro:6deg;background:var(--ceu);--atraso:-2s">Notas no trecho</span>
-          <span class="chip" tabindex="0" style="left:56%;top:100%;--giro:-7deg;background:var(--branco);--atraso:-3s">Tabelas mescláveis</span>
-          <span class="chip" tabindex="0" style="left:25%;top:104%;--giro:4deg;background:var(--lilas);--atraso:-4s">Revisão espaçada</span>
+        <div class="adesivos" aria-hidden="true">
+          <svg class="adesivo" viewBox="0 0 64 64" style="left:21%;top:0%;--giro:-14deg;--tam:74px">
+            <path d="M32 44v17" stroke="#121316" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" stroke-width="3.5"/>
+            <path d="M22 6h20a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3h-2l2 14c6 2 9 6 9 10a3 3 0 0 1-3 3H17a3 3 0 0 1-3-3c0-4 3-8 9-10l2-14h-2a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3z" style="fill:var(--rosa)" stroke="#121316" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+            <path d="M28.5 19l-1.2 8.5" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+          <svg class="adesivo" viewBox="0 0 64 64" style="left:86%;top:4%;--giro:12deg;--tam:78px;--atraso:-1.5s">
+            <path d="M32 6l7.1 17.3 18.6 1.4-14.3 12 4.5 18.1L32 45l-15.9 9.8 4.5-18.1-14.3-12 18.6-1.4z" style="fill:var(--manteiga)" stroke="#121316" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+          </svg>
+          <svg class="adesivo" viewBox="0 0 64 64" style="left:47%;top:3%;--giro:0deg;--tam:42px;--atraso:-3s">
+            <path d="M32 4C34 22 42 30 60 32 42 34 34 42 32 60 30 42 22 34 4 32 22 30 30 22 32 4z" style="fill:var(--ceu)" stroke="#121316" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+          </svg>
+          <svg class="adesivo" viewBox="0 0 64 64" style="left:-7%;top:45%;--giro:-8deg;--tam:70px;--atraso:-2s">
+            <path d="M32 4C34 22 42 30 60 32 42 34 34 42 32 60 30 42 22 34 4 32 22 30 30 22 32 4z" style="fill:var(--lima)" stroke="#121316" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+          </svg>
+          <svg class="adesivo" viewBox="0 0 64 64" style="left:43%;top:90%;--giro:10deg;--tam:68px;--atraso:-4s">
+            <path d="M32 54C14 42 6 32 6 22c0-9 7-15 15-15 5 0 9 3 11 7 2-4 6-7 11-7 8 0 15 6 15 15 0 10-8 20-26 32z" style="fill:var(--lilas)" stroke="#121316" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+            <path d="M15 19c1-4 4-6 7-6" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>
+          </svg>
         </div>
-        <span class="dica-arraste" aria-hidden="true">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 11V6a2 2 0 0 0-4 0M14 10V4a2 2 0 0 0-4 0v2M10 10.5V6a2 2 0 0 0-4 0v8"/><path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15"/></svg>
-          arraste as etiquetas
-        </span>
       </div>
     </div>
   </section>
 
   <div class="faixa-caixa"><div class="faixa" aria-hidden="true">
     <div class="faixa-trilho" id="faixa">
-      <span>Cardiologia</span><span>Hematologia</span><span>Ginecologia e Obstetrícia</span><span>Pediatria</span><span>Cirurgia</span><span>Preventiva</span><span>Urgência e Emergência</span><span>Oncologia</span>
+      <span>Medicina</span><span>Direito</span><span>Engenharia</span><span>Enfermagem</span><span>Psicologia</span><span>Odontologia</span><span>Administração</span><span>Arquitetura</span><span>Farmácia</span><span>Pedagogia</span><span>Concursos públicos</span><span>Residência médica</span><span>OAB</span><span>ENEM e vestibular</span>
     </div>
   </div></div>
 
@@ -854,41 +760,10 @@ h2 {
     });
   }
 
-  /* As etiquetas se arrastam com o dedo ou o mouse, e ficam onde foram soltas. */
-  document.querySelectorAll(".chip").forEach(function (chip) {
-    var inicio = null;
-    /* O lugar de partida é o `left`/`top` da etiqueta; o arrasto soma um
-       deslocamento em pixels por cima dele. */
-    function lerPx(prop) { return parseFloat(chip.style.getPropertyValue(prop)) || 0; }
-    chip.addEventListener("pointerdown", function (e) {
-      chip.setPointerCapture(e.pointerId);
-      chip.dataset.movida = "1";
-      inicio = { px: e.clientX, py: e.clientY, x: lerPx("--x"), y: lerPx("--y") };
-      chip.classList.add("pegando");
-    });
-    chip.addEventListener("pointermove", function (e) {
-      if (!inicio) return;
-      chip.style.setProperty("--x", inicio.x + e.clientX - inicio.px + "px");
-      chip.style.setProperty("--y", inicio.y + e.clientY - inicio.py + "px");
-    });
-    function soltar() { inicio = null; chip.classList.remove("pegando"); }
-    chip.addEventListener("pointerup", soltar);
-    chip.addEventListener("pointercancel", soltar);
-    /* No teclado, as setas movem a etiqueta. */
-    chip.addEventListener("keydown", function (e) {
-      var d = { ArrowLeft: [-12, 0], ArrowRight: [12, 0], ArrowUp: [0, -12], ArrowDown: [0, 12] }[e.key];
-      if (!d) return;
-      e.preventDefault();
-      chip.style.setProperty("--x", lerPx("--x") + d[0] + "px");
-      chip.style.setProperty("--y", lerPx("--y") + d[1] + "px");
-    });
-  });
-
-  /* Na tela estreita, uma etiqueta posta em porcentagem pode sobrar para fora
-     da borda: ela volta para dentro. A que alguém já arrastou fica onde está. */
+  /* Na tela estreita, um adesivo posto em porcentagem pode sobrar para fora
+     da borda: ele volta para dentro. */
   function encaixar() {
-    document.querySelectorAll(".chip").forEach(function (chip) {
-      if (chip.dataset.movida) return;
+    document.querySelectorAll(".adesivo").forEach(function (chip) {
       chip.style.setProperty("--x", "0px");
       var r = chip.getBoundingClientRect(), dx = 0;
       if (r.right > window.innerWidth - 10) dx = window.innerWidth - 10 - r.right;
