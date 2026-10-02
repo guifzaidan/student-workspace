@@ -7,20 +7,19 @@
 <meta name="description" content="Escreva e grife seus resumos numa folha de verdade, transforme qualquer trecho em flashcard com um clique e revise na hora certa. Feito para quem estuda para prova longa.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Manrope:wght@400;500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Caveat:wght@600;700&family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@700&display=swap">
 <style>
 /* ─────────────────────────────────────────────────────────────────────────
    A página de apresentação do Sinapse.
 
-   Três referências costuradas na paleta da casa: a tipografia enorme com uma
-   palavra grifada (é literalmente o que o app faz com o texto), as peças de
-   contorno preto com sombra dura, e os adesivos tortos que boiam por
-   cima de uma folha pontilhada. O rosa é o mesmo acento do app; lilás, lima e
-   manteiga são as cores de grifo que ele já oferece.
+   A ordem das seções segue a da Tinker: a barra que flutua, o título enorme
+   numa linha, o computador que a rolagem traz para o centro (onde o card nasce
+   na frente de quem lê), o mosaico de ferramentas, o caso na prática, a faixa
+   colorida com a demonstração, as perguntas, e o convite com a marca gigante.
 
-   Na abertura, só gente: quatro fotos e uns poucos adesivos soltos. As telas
-   do produto aparecem mais abaixo, desenhadas em HTML, mostrando o que o app
-   faz de verdade.
+   A pele é a da casa: contorno preto grosso com sombra dura, adesivos tortos
+   que boiam, a folha pontilhada, o rosa do app de acento, e lilás, lima e
+   manteiga, que são as cores de grifo que ele já oferece.
    ───────────────────────────────────────────────────────────────────────── */
 :root {
   --papel: #F8F8F6;
@@ -33,19 +32,29 @@
   --rosa-forte: #E07AA3;
   --rosa-lavado: #FCE3EC;
   --lilas: #DCCBFF;
+  --lilas-forte: #C2ABF7;
   --lima: #C6F36B;
+  --lima-funda: #A9D84A;
+  --lima-lavado: #EEFBD3;
+  --lima-tinta: #4F7A12;
   --manteiga: #FFE27A;
   --ceu: #CFE3FF;
   --sombra-dura: 3px 3px 0 var(--tinta);
   --sombra-dura-g: 6px 6px 0 var(--tinta);
   --raio: 22px;
   --curva: cubic-bezier(.2, .8, .2, 1);
+  --mola: cubic-bezier(.2, 1.3, .35, 1);
   --display: "Bricolage Grotesque", "Manrope", system-ui, sans-serif;
   --texto: "Manrope", system-ui, sans-serif;
+  --mao: "Caveat", "Bricolage Grotesque", cursive;
   color-scheme: light;
 }
 *, *::before, *::after { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
+/* O link de uma seção para logo abaixo da barra fixa, não embaixo dela. O
+   palco não: a cena começa no topo da janela. */
+section[id] { scroll-margin-top: 88px; }
+section#palco { scroll-margin-top: 0; }
 body {
   margin: 0;
   background: var(--papel);
@@ -54,24 +63,26 @@ body {
   font-size: 16px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 img, svg { display: block; }
+img { max-width: 100%; height: auto; }
+figure { margin: 0; }
 a { color: inherit; }
 button { font: inherit; color: inherit; cursor: pointer; }
 [hidden] { display: none !important; }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-/* A folha pontilhada do fundo, como papel de caderno quadriculado. */
+/* A folha pontilhada, como papel de caderno. */
 .pontilhado {
   background-image: radial-gradient(circle, rgba(18, 19, 22, .13) 1.1px, transparent 1.2px);
   background-size: 22px 22px;
 }
-.moldura { width: min(1200px, 100% - 40px); margin-inline: auto; }
+.moldura { width: min(1280px, 100% - 40px); margin-inline: auto; }
 
 /* ─── Botões ─────────────────────────────────────────────────────────── */
 .btn {
-  display: inline-flex; align-items: center; gap: 10px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
   height: 52px; padding: 0 26px;
   border-radius: 100px;
   border: 2px solid var(--tinta);
@@ -80,202 +91,753 @@ button { font: inherit; color: inherit; cursor: pointer; }
   transition: transform .15s var(--curva), box-shadow .15s var(--curva), background .15s;
   white-space: nowrap;
 }
-.btn-cheio { background: var(--tinta); color: var(--branco); box-shadow: 4px 4px 0 var(--rosa); }
-.btn-cheio:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--rosa); }
-.btn-rosa { background: var(--rosa); box-shadow: var(--sombra-dura); }
+.btn-cheio { background: var(--tinta); color: var(--branco); box-shadow: 4px 4px 0 var(--lima); }
+.btn-cheio:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--lima); }
+.btn-rosa { background: var(--lima); box-shadow: var(--sombra-dura); }
 .btn-rosa:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--tinta); }
-.btn-vazio { background: var(--branco); }
-.btn-vazio:hover { background: var(--rosa-lavado); }
+.btn-vazio { background: var(--branco); box-shadow: var(--sombra-dura); }
+.btn-vazio:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--tinta); background: var(--lima-lavado); }
+.btn-lima { background: var(--lima); box-shadow: var(--sombra-dura); }
+.btn-lima:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--tinta); }
+/* O botão da barra acompanha a cor do grifo do título: quando a frase troca
+   e o grifo muda de cor, ele muda junto. */
+.btn-grifo { background: var(--grifo-cor, var(--lima)); color: var(--tinta); box-shadow: var(--sombra-dura); transition: transform .15s var(--curva), box-shadow .15s var(--curva), background .6s var(--curva); }
+.btn-grifo:hover { transform: translate(-2px, -2px); box-shadow: 5px 5px 0 var(--tinta); }
+.btn-pequeno { height: 42px; padding: 0 18px; font-size: 14px; }
 .btn:active { transform: translate(1px, 1px); box-shadow: 1px 1px 0 var(--tinta); }
-.btn:focus-visible, .nav a:focus-visible { outline: 3px solid var(--rosa-forte); outline-offset: 3px; }
+.btn:focus-visible, .barra a:focus-visible, summary:focus-visible { outline: 3px solid var(--lima-tinta); outline-offset: 3px; }
 
-/* ─── Topo ───────────────────────────────────────────────────────────── */
-.topo {
-  position: sticky; top: 0; z-index: 50;
-  transition: background .2s, box-shadow .2s;
+/* ─── A barra que flutua ─────────────────────────────────────────────── */
+/* A barra fixa: a marca na esquerda e o botão na direita. */
+.barra {
+  position: fixed; top: 18px; left: 20px; right: 20px; z-index: 60;
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  pointer-events: none;
 }
-.topo.rolou { background: rgba(248, 248, 246, .86); backdrop-filter: blur(12px); box-shadow: 0 1px 0 var(--fio); }
-.topo-dentro { height: 76px; display: flex; align-items: center; gap: 20px; }
-.marca { display: flex; align-items: center; gap: 10px; text-decoration: none; font-family: var(--display); font-weight: 800; font-size: 22px; letter-spacing: -.02em; }
-.marca-chapa {
-  width: 38px; height: 38px; border-radius: 12px;
-  display: grid; place-items: center;
-  background: var(--rosa); border: 2px solid var(--tinta); box-shadow: 2px 2px 0 var(--tinta);
+.barra > * { pointer-events: auto; }
+/* A marca: o símbolo preto (um núcleo com seis ligações, a sinapse) e o nome
+   em minúsculas, sem cor nenhuma. No alto da página ela fica solta no fundo;
+   quando a página rola, ganha a pílula branca, para não sumir por cima das
+   partes escuras. O espaço é o mesmo nos dois jeitos, e a marca não pula. */
+.marca {
+  display: flex; align-items: center; gap: 7px; text-decoration: none; color: var(--tinta);
+  font-family: var(--display); font-weight: 800; font-size: 25px; letter-spacing: -.055em; line-height: 1;
 }
-.nav { display: flex; gap: 6px; margin-left: auto; }
-.nav a { text-decoration: none; font-weight: 600; font-size: 14.5px; color: var(--cinza); padding: 8px 14px; border-radius: 100px; transition: color .15s, background .15s; }
-.nav a:hover { color: var(--tinta); background: var(--branco); }
-.topo .btn { height: 44px; padding: 0 20px; font-size: 14.5px; }
-.menu-botao { display: none; margin-left: auto; width: 44px; height: 44px; border-radius: 14px; border: 2px solid var(--tinta); background: var(--branco); box-shadow: var(--sombra-dura); place-items: center; }
+.marca-simbolo { width: 28px; height: 28px; flex-shrink: 0; transition: transform .6s var(--mola); }
+.marca:hover .marca-simbolo { transform: rotate(60deg); }
+.barra .marca {
+  height: 54px; padding: 0 20px 2px 14px;
+  background: transparent; border: 2px solid transparent; border-radius: 100px;
+  box-shadow: 0 0 0 transparent;
+  transition: background .3s var(--curva), border-color .3s var(--curva), box-shadow .35s var(--mola);
+}
+.barra.rolou .marca { background: var(--branco); border-color: var(--tinta); box-shadow: var(--sombra-dura); }
+.barra .btn { height: 54px; box-shadow: var(--sombra-dura); }
+.barra .btn:hover { box-shadow: 5px 5px 0 var(--tinta); }
 
 /* ─── Abertura ───────────────────────────────────────────────────────── */
-.abertura { position: relative; padding: 36px 0 90px; }
-.abertura-grade { display: grid; grid-template-columns: 1.05fr 1fr; gap: 40px; align-items: center; }
-.selo-topo {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 7px 14px 7px 8px; border-radius: 100px;
-  background: var(--branco); border: 1.5px solid var(--tinta);
-  font-size: 13px; font-weight: 700;
-}
-.selo-topo i { width: 22px; height: 22px; border-radius: 50%; background: var(--lima); border: 1.5px solid var(--tinta); display: grid; place-items: center; font-style: normal; font-size: 12px; }
+.abertura { padding: 150px 0 212px; text-align: center; position: relative; }
 h1.titulo {
   font-family: var(--display);
   font-weight: 800;
-  /* Duas frases curtas, cada uma numa linha só: o tamanho acompanha a
-     coluna do texto para nenhuma quebrar no meio. */
-  font-size: clamp(44px, 6.1vw, 96px);
-  line-height: 1.02;
-  letter-spacing: -.035em;
-  margin: 22px 0 22px;
+  font-size: clamp(42px, 5.8vw, 100px);
+  line-height: .95;
+  letter-spacing: -.05em;
+  margin: 0 auto 26px;
+  white-space: nowrap;
 }
-.titulo .linha { display: block; white-space: nowrap; }
-/* A palavra grifada: a marca-texto passa por baixo dela quando a página abre,
-   do mesmo jeito que o grifo entra no texto do app. */
-.grifada { position: relative; display: inline-block; z-index: 0; }
+/* A frase grifada: a marca-texto passa por baixo dela, como o grifo entra no
+   texto do app. De tempos em tempos a frase troca, e o grifo troca de cor
+   junto: ele recolhe, a frase nova pula no lugar, e ele passa de novo. */
+/* A largura da frase grifada anda com mola: quando ela cresce ou encolhe,
+   o "Estude menos." desliza para o novo lugar em vez de pular, e balança de
+   leve, como quem abre espaço. */
+.titulo .linha { display: inline-block; }
+.grifada { position: relative; display: inline-block; z-index: 0; text-align: left; white-space: nowrap; vertical-align: top; transition: width .75s var(--mola); }
+.titulo .linha.abre { animation: abreEspaco .8s var(--mola); }
+@keyframes abreEspaco {
+  35% { transform: translateX(var(--empurra, 0)) rotate(var(--inclina, 0deg)); }
+}
 .grifada::before {
   content: ""; position: absolute; z-index: -1;
-  left: -.06em; right: -.08em; bottom: .06em; height: .42em;
-  background: var(--rosa); border-radius: 6px;
-  transform-origin: left center; transform: scaleX(0) skewX(-8deg);
-  animation: grifar .9s .5s var(--curva) forwards;
+  left: -.04em; right: -.06em; bottom: .04em; height: .4em;
+  background: var(--grifo-cor, var(--lima)); border-radius: 8px;
+  transform-origin: right center; transform: scaleX(0) skewX(-8deg);
+  transition: transform .35s var(--curva);
 }
-@keyframes grifar { to { transform: scaleX(1) skewX(-8deg); } }
-.abertura p.chamada { font-size: clamp(17px, 1.6vw, 19.5px); color: var(--cinza); max-width: 520px; margin: 0 0 30px; }
-.chamada b { color: var(--tinta); }
-.acoes { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.grifada.cheia::before { transform-origin: left center; transform: scaleX(1) skewX(-8deg); transition: transform .8s var(--curva); }
+.grifada-texto { display: inline-block; font-style: italic; padding-right: .06em; transition: opacity .22s var(--curva), transform .45s var(--mola); }
+.grifada-texto.trocando { opacity: 0; transform: translateY(.3em) rotate(-2deg); transition: opacity .18s, transform .18s; }
+.chamada { font-size: clamp(15px, 1.2vw, 16.5px); line-height: 1.6; color: #34363B; max-width: 740px; margin: 0 auto 30px; text-wrap: balance; }
+.acoes { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
 
-/* O mosaico, à direita: quatro fotos em duas colunas desencontradas, e mais
-   nada, com os adesivos boiando por cima. A coluna da direita desce, e é
-   esse degrau que tira o ar de tabela. */
-.mosaico {
-  position: relative;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 18px;
-  align-items: start;
-  padding: 10px 0 30px;
+/* ─── O palco: o computador e o passeio pelo app ─────────────────────── */
+/* Uma seção alta com uma janela grudada no topo. Quem rola não sai do lugar:
+   a rolagem vira o tempo da cena, e o script traduz a posição em zoom,
+   digitação, grifo e no deslizar do botão. */
+.palco { position: relative; height: 1150vh; }
+/* A janela corta os lados, mas não o alto: antes da rolagem, o computador
+   aparece mais acima, já entrando na abertura. */
+.palco-janela { position: sticky; top: 0; height: 100vh; height: 100svh; overflow-x: clip; }
+
+
+/* O computador: a tampa preta com a tela, a base clara embaixo, e as duas
+   cenas dentro da tela. Tudo se mede pela largura dele (--pc-larg), e o
+   texto da tela também, para a cena ser a mesma em qualquer tamanho. */
+.computador {
+  will-change: transform;
+  --pc-larg: min(80vw, 1540px);
+  position: absolute; left: 50%; top: 50%; z-index: 3;
+  width: var(--pc-larg);
+  transform: translate(-50%, -50%) translateY(var(--pc-desce, 0px)) scale(var(--pc-escala, 1));
 }
-.mosaico .coluna { display: flex; flex-direction: column; gap: 18px; min-width: 0; }
-.mosaico .coluna.desce { margin-top: 70px; }
-.mosaico .foto { aspect-ratio: 5 / 5.6; }
-.mosaico .coluna .foto:nth-child(1) { transform: rotate(-2deg); }
-.mosaico .coluna .foto:nth-child(2) { transform: rotate(1.5deg); }
-.mosaico .coluna.desce .foto:nth-child(1) { transform: rotate(2deg); }
-.mosaico .coluna.desce .foto:nth-child(2) { transform: rotate(-1.5deg); }
-.mosaico .foto.surge:not(.visto) { transform: translateY(28px); }
-
-/* As fotos: gente de verdade, cada uma no fundo de uma cor, na moldura das
-   outras peças. Nas da abertura, o fundo leva os asteriscos da marca,
-   esbranquiçados, atrás da pessoa (gravados na própria imagem). */
-.foto {
+/* A tampa: moldura preta fina, com o aro de alumínio em volta e a câmera
+   no alto. Sombras macias, como num produto fotografado, em vez do traço
+   de desenho do resto da página. */
+.computador-tampa {
   position: relative;
-  margin: 0;
-  border: 2px solid var(--tinta);
-  border-radius: var(--raio);
+  background: linear-gradient(180deg, #1C1D21, #0B0B0D 40%);
+  border-radius: calc(var(--pc-larg) * .03) calc(var(--pc-larg) * .03) calc(var(--pc-larg) * .008) calc(var(--pc-larg) * .008);
+  padding: 2.1% 1.7% 2.4%;
+  box-shadow:
+    0 0 0 1px #5B5E66,
+    0 0 0 2.5px #2A2C31,
+    inset 0 1px 0 rgba(255, 255, 255, .14),
+    0 28px 50px -18px rgba(18, 19, 22, .45),
+    0 8px 18px -8px rgba(18, 19, 22, .3);
+}
+.computador-tampa::before {
+  /* A câmera: a lente escura com um reflexo. */
+  content: ""; position: absolute; top: .75%; left: 50%;
+  width: calc(var(--pc-larg) * .007); aspect-ratio: 1; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #4D5A70 0 18%, #15171C 45%, #050506 100%);
+  box-shadow: 0 0 0 1.5px #1F2125;
+  transform: translateX(-50%);
+}
+/* O reflexo do vidro, por cima de tudo que está na tela. */
+.tela::after {
+  content: ""; position: absolute; inset: 0; z-index: 6; pointer-events: none;
+  background: linear-gradient(118deg, rgba(255, 255, 255, .16) 0%, rgba(255, 255, 255, .05) 28%, transparent 46%);
+}
+/* A base de alumínio: a borda de cima clara, o corpo em degradê, o vão para
+   abrir a tampa e a sombra no chão. */
+.computador-base {
+  /* Na frente da tampa, cobrindo a borda de baixo dela, como num notebook
+     aberto de verdade. */
+  position: relative; z-index: 1;
+  width: 116%; margin-left: -8%; margin-top: calc(var(--pc-larg) * -.006);
+  height: calc(var(--pc-larg) * .028);
+  background: linear-gradient(180deg, #F4F5F7 0%, #D9DBE0 30%, #B7BAC1 72%, #8E9199 100%);
+  border-radius: 3px 3px 46% 46% / 3px 3px 100% 100%;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .9),
+    inset 0 -2px 3px rgba(18, 19, 22, .25),
+    0 1px 0 rgba(18, 19, 22, .15);
+}
+.computador-base::before {
+  /* O vão para abrir a tampa. */
+  content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 13%; height: 38%;
+  background: linear-gradient(180deg, #9EA1A8, #C9CBD0);
+  border-radius: 0 0 calc(var(--pc-larg) * .012) calc(var(--pc-larg) * .012);
+  box-shadow: inset 0 1px 2px rgba(18, 19, 22, .35);
+}
+.computador-base::after {
+  /* A sombra no chão, embaixo da base. */
+  content: ""; position: absolute; left: 4%; right: 4%; top: 70%; height: 140%; z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(18, 19, 22, .45), transparent);
+  filter: blur(6px);
+}
+.tela {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  border-radius: calc(var(--pc-larg) * .008);
+  background: var(--papel);
   overflow: hidden;
-  box-shadow: var(--sombra-dura-g);
-  aspect-ratio: 5 / 6;
-  background: var(--rosa);
+  font-size: calc(var(--pc-larg) / 72);
 }
-.foto img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .7s var(--curva); }
-.foto:hover img { transform: scale(1.04); }
-.foto figcaption {
-  position: absolute; left: 12px; right: 12px; bottom: 12px;
-  display: flex; align-items: center; gap: 8px;
-  padding: 8px 12px; border-radius: 14px;
-  background: var(--branco); border: 1.5px solid var(--tinta);
-  font-size: 12.5px; font-weight: 700; line-height: 1.3;
+/* A barra da janela: as três bolinhas e o endereço. */
+.tela-janela {
+  position: absolute; left: 0; right: 0; top: 0; z-index: 2;
+  height: 2.6em; padding: 0 1.1em;
+  display: flex; align-items: center; gap: .45em;
+  background: var(--branco); border-bottom: 1.5px solid var(--fio);
 }
-.foto figcaption i { flex-shrink: 0; width: 22px; height: 22px; border-radius: 7px; display: grid; place-items: center; font-style: normal; font-size: 12px; background: var(--rosa); border: 1.5px solid var(--tinta); }
-.foto.azul { background: var(--ceu); }
-.foto.mostarda { background: #F2E23A; }
-.foto.laranja { background: #EB9B0E; }
+.tela-janela i { width: .85em; height: .85em; border-radius: 50%; border: 1.5px solid var(--tinta); }
+.tela-janela span {
+  margin: 0 auto; padding: .3em 2.2em; border-radius: 100px;
+  background: var(--papel); border: 1px solid var(--fio);
+  font-size: .82em; font-weight: 700; color: var(--cinza);
+  transform: translateX(-1.5em);
+}
+.app { position: absolute; inset: 2.6em 0 0; display: flex; }
 
-/* ─── Os adesivos soltos: boiam por cima das fotos ───────────────────── */
-/* Alfinete, estrela, brilho e coração, no traço das outras peças: contorno
-   preto grosso e a sombra dura, que no SVG vem do drop-shadow. */
-.adesivos { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+/* A lateral do app. O marcador rosa corre até a parte que está na tela. */
+.tela-lado {
+  width: 19%; flex-shrink: 0;
+  padding: 1.4em 1em 1.2em; display: flex; flex-direction: column; gap: 1.2em;
+  background: var(--branco); border-right: 1.5px solid var(--fio);
+}
+.tela-marca { font-family: var(--display); font-weight: 800; font-size: 1.6em; letter-spacing: -.04em; padding: 0 .3em; }
+.lado-menu { position: relative; display: flex; flex-direction: column; gap: .35em; font-size: .92em; }
+.lado-marcador {
+  position: absolute; left: 0; right: 0; top: 0; height: 2.6em;
+  border-radius: .9em; background: var(--lima-lavado); border: 1.5px solid var(--tinta); box-shadow: 2px 2px 0 var(--tinta);
+  transform: translateY(calc(var(--item, 0) * 2.95em));
+  transition: transform .6s var(--mola);
+}
+.lado-menu span {
+  position: relative; height: 2.6em; padding: 0 .6em; border-radius: .9em;
+  display: flex; align-items: center; gap: .6em;
+  font-weight: 700; color: var(--cinza); white-space: nowrap; transition: color .3s;
+}
+.lado-menu span.ativo { color: var(--tinta); font-weight: 800; }
+.lado-menu b { width: 1.7em; height: 1.7em; border-radius: .55em; border: 1.5px solid var(--tinta); display: grid; place-items: center; font-size: .9em; color: var(--tinta); flex-shrink: 0; }
+.lado-perfil { margin-top: auto; display: flex; align-items: center; gap: .6em; padding: .5em; border-radius: .9em; background: var(--papel); }
+.lado-perfil strong { display: block; font-size: .92em; }
+.lado-perfil small { display: block; font-size: .78em; color: var(--cinza); }
+.tela-avatar { width: 2.4em; height: 2.4em; border-radius: 50%; border: 1.5px solid var(--tinta); overflow: hidden; background: var(--rosa); flex-shrink: 0; }
+.tela-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+/* As cenas: uma por parte do app. Só a da vez aparece, subindo de leve. */
+.app-area { position: relative; flex: 1; min-width: 0; }
+.cena {
+  position: absolute; inset: 0;
+  padding: 1.4em 1.8em; display: flex; flex-direction: column; gap: 1.1em;
+  opacity: 0; transform: translateY(1.4em) scale(.98);
+  transition: opacity .4s var(--curva), transform .6s var(--mola);
+  pointer-events: none;
+}
+.cena.ativa { opacity: 1; transform: none; }
+.cena-topo { display: flex; align-items: center; gap: .8em; }
+.cena-topo h5 { margin: 0; flex: 1; font-family: var(--display); font-size: 1.8em; letter-spacing: -.04em; white-space: nowrap; }
+.selo-app {
+  display: inline-flex; align-items: center; gap: .4em; height: 2.3em; padding: 0 .9em;
+  border-radius: 100px; border: 1.5px solid var(--tinta); box-shadow: 2px 2px 0 var(--tinta);
+  font-weight: 800; font-size: .9em; white-space: nowrap;
+}
+/* O que aparece com mola: um pulo de tamanho, de lado. */
+.pula { transform: scale(0) rotate(-10deg); transition: transform .55s var(--mola); }
+.pula.ver { transform: rotate(var(--g, -4deg)); }
+
+/* 1. Dashboard: os números contam e o mapa de calor acende em onda. */
+.numeros { display: grid; grid-template-columns: repeat(3, 1fr); gap: .9em; }
+.numero { border: 1.5px solid var(--tinta); border-radius: 1.1em; padding: .85em 1em; box-shadow: var(--sombra-dura); }
+.numero small { display: block; font-weight: 700; font-size: .85em; color: rgba(18, 19, 22, .7); white-space: nowrap; }
+.numero b { display: block; font-family: var(--display); font-size: 2.3em; letter-spacing: -.04em; line-height: 1.05; margin-top: .15em; }
+.calor-caixa { position: relative; border: 1.5px solid var(--fio); background: var(--branco); border-radius: 1.1em; padding: 1em 1.1em 1.1em; display: flex; flex-direction: column; gap: .8em; }
+.calor-caixa header { display: flex; justify-content: space-between; align-items: center; gap: 1em; font-weight: 800; font-size: .95em; }
+.calor-caixa header small { font-weight: 700; color: var(--cinza); display: flex; align-items: center; gap: .3em; white-space: nowrap; }
+.calor-caixa header small i { width: .9em; height: .9em; border-radius: .25em; display: inline-block; border: 1px solid rgba(18, 19, 22, .12); }
+.calor-grade { display: grid; grid-template-rows: repeat(7, auto); grid-auto-flow: column; grid-auto-columns: 1fr; gap: .32em; }
+.calor-grade i { position: relative; aspect-ratio: 1; border-radius: .3em; background: #F1F2EE; }
+.calor-grade i::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit;
+  background: var(--cor, transparent); border: 1px solid rgba(18, 19, 22, .14);
+  transform: scale(clamp(0, calc(var(--onda, 0) * 23 - var(--c)), 1));
+}
+.calor-caixa .medalha {
+  position: absolute; right: 1.2em; bottom: -1.1em;
+  padding: .45em .9em; border-radius: 100px; border: 1.5px solid var(--tinta);
+  background: var(--lima); box-shadow: var(--sombra-dura); font-weight: 800; font-size: .9em; --g: 5deg;
+}
+
+/* 2. Arquivos: o texto é digitado e grifado, e o trecho vira card. */
+.cena-editor { padding: 1.1em 1.6em 1.4em; gap: .8em; }
+.editor-topo { display: flex; align-items: center; justify-content: space-between; gap: 1em; }
+.editor-trilha { font-size: .9em; font-weight: 700; color: var(--cinza); white-space: nowrap; }
+.editor-trilha b { color: var(--tinta); }
+.editor-barra { display: flex; gap: .35em; padding: .3em; border-radius: .9em; background: var(--branco); border: 1px solid var(--fio); }
+.editor-barra span { height: 2.1em; min-width: 2.1em; padding: 0 .6em; border-radius: .6em; display: grid; place-items: center; font-size: .82em; font-weight: 800; color: var(--cinza); }
+.editor-barra span.grifo { background: var(--lima); border: 1px solid var(--tinta); color: var(--tinta); }
+.editor-corpo { flex: 1; min-height: 0; display: flex; gap: 1.2em; }
+.editor-folha {
+  position: relative; flex: 1; min-width: 0;
+  background: var(--branco); border: 1px solid var(--fio); border-radius: .8em;
+  box-shadow: 0 .4em 1.2em rgba(18, 19, 22, .06);
+  padding: 1.6em 2.2em;
+}
+.editor-folha h4 { font-family: var(--display); font-size: 1.7em; line-height: 1.1; letter-spacing: -.03em; margin: .2em 0 .5em; }
+.editor-texto { font-size: 1.15em; line-height: 1.65; color: #2A2C31; margin: 0; }
+.editor-texto .marcado {
+  border-radius: .25em;
+  background: linear-gradient(var(--lima), var(--lima)) left center / var(--grifo, 0%) 100% no-repeat;
+  -webkit-box-decoration-break: clone; box-decoration-break: clone;
+}
+.cursor { display: inline-block; width: 2px; height: 1.1em; background: var(--lima-tinta); vertical-align: -.15em; margin-left: 1px; animation: piscar 1s steps(1) infinite; }
+@keyframes piscar { 50% { opacity: 0; } }
+/* O balão do trecho, como o do app: aparece quando o grifo termina. */
+.balao-trecho {
+  position: absolute; left: 0; top: calc(100% + .7em); white-space: nowrap;
+  display: flex; gap: .4em; padding: .45em;
+  background: var(--tinta); border-radius: 1em; color: var(--branco);
+  box-shadow: 4px 4px 0 var(--lima);
+  font-size: .92em; font-weight: 800;
+  opacity: 0; transform: translateY(.8em) scale(.9);
+  transition: opacity .3s var(--curva), transform .4s var(--mola);
+}
+.balao-trecho span { padding: .45em .7em; border-radius: .65em; transition: transform .25s var(--mola); }
+.balao-trecho span.ativo { background: var(--lima); color: var(--tinta); }
+.balao-trecho span.apertado { transform: scale(.88); }
+.balao-trecho.visivel { opacity: 1; transform: none; }
+/* O resto da página, em linhas claras: o texto continua depois do trecho. */
+.editor-resto { margin-top: 5.6em; display: flex; flex-direction: column; gap: .75em; }
+.editor-resto i { display: block; height: .7em; border-radius: 100px; background: #ECEDEF; }
+.editor-resto i.sub { height: 1em; width: 42%; background: #E1E2E6; margin: .8em 0 .2em; }
+.mais-card {
+  position: absolute; right: 1.2em; bottom: 1.2em;
+  padding: .45em .9em; border-radius: 100px; border: 1.5px solid var(--tinta);
+  background: var(--lima); box-shadow: var(--sombra-dura); font-weight: 800; font-size: .92em;
+}
+.editor-cards {
+  width: 31%; flex-shrink: 0;
+  display: flex; flex-direction: column; gap: .9em;
+  padding: 1.2em; border-radius: .8em; background: var(--branco); border: 1px solid var(--fio);
+}
+.editor-cards p { margin: 0; font-size: .88em; color: var(--cinza); line-height: 1.45; }
+/* A prévia do card: tracejada, e cheia quando o card nasce. */
+.editor-previa {
+  flex: 1; min-height: 0; border: 1.5px dashed var(--fio); border-radius: .9em; padding: 1em;
+  display: flex; flex-direction: column; gap: .5em;
+  transition: background .3s, border-color .3s, box-shadow .3s;
+}
+.editor-previa span { font-size: .78em; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--cinza2); }
+.editor-previa i { display: block; height: .65em; border-radius: 100px; background: #ECEDEF; }
+.editor-previa p { display: none; color: var(--tinta); font-weight: 700; font-size: .95em; line-height: 1.35; }
+.editor-previa.cheia { border-style: solid; border-color: var(--tinta); background: var(--lima-lavado); box-shadow: var(--sombra-dura); }
+.editor-previa.cheia i { display: none; }
+.editor-previa.cheia p { display: block; animation: nascer .5s var(--mola); }
+.editor-salvar { text-align: center; font-size: .85em; color: var(--cinza); font-weight: 700; }
+.editor-salvar b { display: block; color: var(--tinta); font-size: 1.15em; }
+
+/* 3. Decks: o card vira, o "Bom" é apertado, e ele marca a volta. */
+.decks-corpo { flex: 1; min-height: 0; display: flex; gap: 1.3em; }
+.decks-lista { width: 36%; flex-shrink: 0; display: flex; flex-direction: column; gap: .6em; }
+.deck { display: flex; align-items: center; gap: .7em; padding: .65em .75em; border-radius: 1em; background: var(--branco); border: 1.5px solid var(--fio); }
+.deck.aqui { border-color: var(--tinta); box-shadow: var(--sombra-dura); }
+.deck > i { width: 2.3em; height: 2.3em; border-radius: .75em; border: 1.5px solid var(--tinta); flex-shrink: 0; display: grid; place-items: center; font-style: normal; }
+.deck div { flex: 1; min-width: 0; }
+.deck strong { display: block; font-size: .98em; }
+.deck small { display: block; color: var(--cinza); font-size: .82em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.deck em { font-style: normal; font-weight: 800; font-size: .82em; padding: .2em .6em; border-radius: 100px; background: var(--lima); border: 1.5px solid var(--tinta); }
+.deck-meta { margin-top: auto; padding: .8em .9em; border-radius: 1em; background: var(--papel); border: 1px solid var(--fio); display: flex; flex-direction: column; gap: .45em; font-size: .9em; font-weight: 700; color: var(--cinza); }
+.deck-meta b { color: var(--tinta); }
+.deck-meta span { height: .6em; border-radius: 100px; background: var(--branco); border: 1px solid var(--fio); overflow: hidden; }
+.deck-meta span i { display: block; height: 100%; width: var(--meta, 33%); background: var(--lima); transition: width .6s var(--mola); }
+.revisao { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1em; }
+.flash { position: relative; flex: 1; min-height: 0; perspective: 1200px; }
+.flash-girador { position: absolute; inset: 0; transform-style: preserve-3d; transition: transform .8s var(--curva); }
+.flash.virado .flash-girador { transform: rotateY(180deg); }
+.flash-face {
+  position: absolute; inset: 0; backface-visibility: hidden;
+  border: 2px solid var(--tinta); border-radius: 1.2em; box-shadow: 4px 4px 0 var(--tinta);
+  padding: 1.1em 1.3em; display: flex; flex-direction: column;
+}
+.flash-face.frente { background: var(--branco); }
+.flash-face.verso { background: var(--lima); transform: rotateY(180deg); }
+.flash-face small { font-size: .75em; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: rgba(18, 19, 22, .55); }
+.flash-face p { margin: auto 0; font-family: var(--display); font-weight: 700; font-size: 1.4em; line-height: 1.2; letter-spacing: -.02em; }
+.flash-face.verso p { font-family: var(--texto); font-size: 1.1em; line-height: 1.5; }
+.flash .volta {
+  position: absolute; left: 50%; bottom: -.9em; z-index: 3; margin-left: -5em; width: 10em; text-align: center;
+  padding: .5em .8em; border-radius: 100px; background: var(--tinta); color: var(--branco);
+  box-shadow: 3px 3px 0 var(--lima); font-weight: 800; font-size: .92em; --g: -3deg;
+}
+.notas-graus { display: grid; grid-template-columns: repeat(4, 1fr); gap: .55em; }
+.notas-graus span {
+  border: 1.5px solid var(--tinta); border-radius: .85em; padding: .5em .4em; text-align: center;
+  font-weight: 800; font-size: .92em; line-height: 1.2; box-shadow: 2px 2px 0 var(--tinta);
+  transition: transform .25s var(--mola), box-shadow .25s;
+}
+.notas-graus small { display: block; font-weight: 600; font-size: .8em; color: rgba(18, 19, 22, .65); }
+.notas-graus .apertado { transform: translate(2px, 2px) scale(.95); box-shadow: 0 0 0 var(--tinta); outline: 3px solid var(--lima-tinta); outline-offset: 2px; }
+
+/* 4. Pomodoro: o anel enche e o relógio desce junto com a rolagem. */
+.pomo-corpo { flex: 1; min-height: 0; display: flex; gap: 1.8em; align-items: center; }
+.pomo-relogio { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1.1em; }
+.pomo-anel {
+  position: relative; width: 17.5em; aspect-ratio: 1;
+  border: 2px solid var(--tinta); border-radius: 50%; background: var(--branco);
+  box-shadow: 4px 4px 0 var(--tinta); padding: .8em;
+}
+.pomo-anel svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.pomo-anel circle { fill: none; stroke-width: 13; }
+.pomo-anel .trilho { stroke: #EFEFEA; }
+.pomo-anel .arco { stroke: var(--lima-funda); stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: var(--pomo, 1); }
+.pomo-tempo { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.pomo-tempo b { font-family: var(--display); font-size: 3.4em; letter-spacing: -.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+.pomo-tempo small { margin-top: .4em; font-weight: 700; color: var(--cinza); font-size: .9em; }
+.pomo-tempo small strong { color: var(--tinta); background: var(--lima-lavado); padding: .1em .4em; border-radius: .4em; }
+.pomo-tomate { position: absolute; right: -.4em; top: .2em; font-size: 2.2em; --g: 12deg; }
+.pomo-ciclos { display: flex; gap: .55em; }
+.pomo-ciclos i { width: 1.15em; height: 1.15em; border-radius: 50%; border: 1.5px solid var(--tinta); background: var(--branco); }
+.pomo-ciclos i.feito { background: var(--lima); }
+.pomo-ciclos i.agora { background: linear-gradient(90deg, var(--lima) 50%, var(--branco) 50%); }
+.pomo-lado { width: 38%; flex-shrink: 0; display: flex; flex-direction: column; gap: .8em; }
+.pomo-info { padding: .9em 1em; border-radius: 1em; background: var(--branco); border: 1.5px solid var(--fio); display: flex; flex-direction: column; gap: .3em; }
+.pomo-info small { font-size: .8em; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--cinza); }
+.pomo-info strong { font-size: 1.1em; }
+.pomo-info span { font-size: .85em; color: var(--cinza); font-weight: 600; }
+.barras { display: flex; align-items: flex-end; gap: .4em; height: 4.6em; margin-top: .3em; }
+.barras i { flex: 1; height: var(--h); border-radius: .35em .35em .15em .15em; background: var(--ceu); border: 1.5px solid var(--tinta); }
+.barras i.hoje { background: var(--lima); }
+.pomo-botoes { display: flex; gap: .6em; }
+.pomo-botoes span { flex: 1; height: 2.6em; border-radius: 100px; border: 1.5px solid var(--tinta); display: grid; place-items: center; font-weight: 800; font-size: .92em; background: var(--branco); box-shadow: 2px 2px 0 var(--tinta); }
+.pomo-botoes span.escuro { background: var(--tinta); color: var(--branco); box-shadow: 2px 2px 0 var(--lima); }
+
+/* 5. Agente de IA: o pedido, os três pontinhos, e os cards saindo. */
+.chat { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end; gap: .8em; }
+/* As sugestões do agente, antes do pedido. */
+.sugestoes { display: flex; flex-wrap: wrap; gap: .5em; }
+.sugestoes span { padding: .5em .9em; border-radius: 100px; background: var(--branco); border: 1.5px solid var(--fio); font-weight: 700; font-size: .9em; color: var(--cinza); }
+.sugestoes span.usada { border-color: var(--tinta); color: var(--tinta); background: var(--lilas); box-shadow: 2px 2px 0 var(--tinta); }
+.msg {
+  max-width: 80%; padding: .75em 1em; border-radius: 1.1em; border: 1.5px solid var(--tinta);
+  line-height: 1.45; opacity: 0; transform: translateY(1em) scale(.94);
+  transition: opacity .35s var(--curva), transform .5s var(--mola);
+}
+.msg[hidden] { display: none; }
+.msg.ver { opacity: 1; transform: none; }
+.msg.eu { align-self: flex-end; background: var(--tinta); color: var(--branco); border-bottom-right-radius: .35em; }
+.msg.ia { align-self: flex-start; display: flex; gap: .75em; background: var(--branco); border-bottom-left-radius: .35em; box-shadow: 3px 3px 0 var(--lilas-forte); }
+.ia-rosto { width: 2.3em; height: 2.3em; border-radius: 50%; background: var(--lima); border: 1.5px solid var(--tinta); display: grid; place-items: center; flex-shrink: 0; font-weight: 800; }
+.pontinhos { display: flex; gap: .3em; align-items: center; }
+.pontinhos i { width: .55em; height: .55em; border-radius: 50%; background: var(--cinza2); animation: pontinho 1s ease-in-out infinite; }
+.pontinhos i:nth-child(2) { animation-delay: .15s; }
+.pontinhos i:nth-child(3) { animation-delay: .3s; }
+@keyframes pontinho { 50% { transform: translateY(-.35em); background: var(--tinta); } }
+.ia-cards { display: flex; gap: .6em; margin-top: .7em; }
+.ia-card { flex: 1; padding: .65em .75em; border-radius: .85em; border: 1.5px solid var(--tinta); box-shadow: 2px 2px 0 var(--tinta); font-size: .86em; font-weight: 800; line-height: 1.3; }
+.ia-card small { display: block; font-size: .8em; font-weight: 700; color: rgba(18, 19, 22, .6); margin-bottom: .2em; }
+.chat-campo { display: flex; align-items: center; gap: .6em; height: 3em; padding: 0 .4em 0 1.1em; border-radius: 100px; background: var(--branco); border: 1.5px solid var(--tinta); box-shadow: var(--sombra-dura); color: var(--cinza2); font-weight: 600; }
+.chat-campo span { flex: 1; }
+.chat-campo b { width: 2.2em; height: 2.2em; border-radius: 50%; background: var(--lima); border: 1.5px solid var(--tinta); display: grid; place-items: center; color: var(--tinta); }
+
+/* A legenda do passeio, em cima do computador: o número e o nome da parte
+   do app na tela, e os pontinhos de onde se está. */
+.passeio {
+  position: absolute; left: 50%; bottom: calc(100% + 1.2em); z-index: 4;
+  transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: .65em;
+  font-size: max(11px, calc(var(--pc-larg) / 64));
+  white-space: nowrap; pointer-events: none;
+  transition: opacity .3s;
+}
+.passeio-cartao {
+  display: flex; align-items: center; gap: .75em;
+  padding: .5em 1.3em .5em .5em; border-radius: 100px;
+  background: var(--branco); border: 2px solid var(--tinta); box-shadow: var(--sombra-dura);
+}
+.passeio-cartao.troca { animation: trocaPasseio .55s var(--mola); }
+@keyframes trocaPasseio { from { transform: scale(.8) rotate(-4deg); } }
+.passeio-num { width: 2.2em; height: 2.2em; border-radius: 50%; border: 2px solid var(--tinta); display: grid; place-items: center; font-family: var(--display); font-weight: 800; transition: background .3s; }
+.passeio-cartao strong { font-family: var(--display); font-size: 1.25em; letter-spacing: -.02em; }
+.passeio-cartao .tx { color: var(--cinza); font-weight: 600; }
+.passeio-pontos { display: flex; gap: .4em; }
+.passeio-pontos i { height: .6em; width: .6em; border-radius: 100px; background: rgba(18, 19, 22, .25); transition: width .45s var(--mola), background .3s; }
+.passeio-pontos i.aqui { width: 1.9em; background: var(--tinta); }
+
+/* A miniatura do app usada fora do palco (a peça do celular, nos recursos). */
+.tela-topo { display: flex; align-items: center; justify-content: space-between; }
+.tela-rotulo { font-weight: 800; font-size: 1.1em; display: flex; align-items: center; gap: .3em; }
+.tela-linha {
+  display: flex; align-items: center; gap: .7em;
+  padding: .6em .7em; border-radius: 1em; background: var(--branco); border: 1.5px solid var(--fio);
+}
+.tela-linha i { width: 2.4em; height: 2.4em; border-radius: .8em; border: 1.5px solid var(--tinta); flex-shrink: 0; display: grid; place-items: center; font-style: normal; font-size: 1.05em; }
+.tela-linha div { flex: 1; min-width: 0; }
+.tela-linha strong { display: block; font-size: 1em; }
+.tela-linha small { display: block; color: var(--cinza); font-size: .85em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* O fim do palco: o quadro escuro sobe por cima do computador com a curva do
+   esquecimento. Primeiro a linha cinza (sem revisar) despenca; depois a lima
+   (com o Sinapse) cai e, a cada revisão, salta de volta a 100%, caindo cada
+   vez mais devagar, até o dia da prova. Tudo desenhado pela rolagem. */
+.resultado {
+  will-change: transform;
+  position: absolute; inset: var(--mesa-margem, 18px); z-index: 5;
+  border: 2px solid var(--tinta); border-radius: 32px;
+  background-color: var(--tinta);
+  background-image: radial-gradient(circle, rgba(255, 255, 255, .16) 1.3px, transparent 1.4px);
+  background-size: 34px 34px;
+  overflow: hidden;
+  transform: translateY(var(--res-y, 110%)) scale(var(--res-escala, .92));
+  transform-origin: 50% 100%;
+  color: var(--branco);
+}
+.curva {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; justify-content: center; gap: clamp(18px, 3.2vh, 34px);
+  padding: clamp(70px, 9vh, 96px) clamp(20px, 6vw, 96px) clamp(24px, 5vh, 56px);
+}
+.curva-topo { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; }
+.curva-rotulo { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--lima); }
+.curva-rotulo::before { content: ""; width: 26px; height: 2px; background: var(--lima); }
+.curva-topo h3 { margin: 10px 0 0; max-width: 760px; font-family: var(--display); font-weight: 800; font-size: clamp(26px, 3.4vw, 50px); line-height: 1.02; letter-spacing: -.04em; }
+.curva-topo h3 em { font-style: normal; color: var(--tinta); background: var(--lima); padding: 0 .12em; border-radius: .14em; }
+/* O medidor: segue a ponta da linha que está sendo desenhada. */
+.curva-memoria {
+  flex-shrink: 0; min-width: 150px; padding: 12px 18px 14px;
+  border: 2px solid var(--branco); border-radius: 22px; background: var(--mem-cor, var(--lima)); color: var(--tinta);
+  box-shadow: 5px 5px 0 rgba(255, 255, 255, .85);
+  transition: background .35s;
+}
+.curva-memoria small { display: block; font-size: 11.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; opacity: .7; }
+.curva-memoria b { display: block; font-family: var(--display); font-size: clamp(34px, 3.6vw, 52px); line-height: 1; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+.curva-memoria span { display: block; font-size: 12.5px; font-weight: 700; margin-top: 2px; }
+
+.curva-grafico { position: relative; width: min(100%, calc(52vh * 2.5)); margin: 0 auto; aspect-ratio: 1000 / 400; }
+.curva-grafico svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.curva-grade line { stroke: rgba(255, 255, 255, .1); stroke-width: 1.5; }
+.curva-prova { stroke: rgba(255, 255, 255, .5); stroke-width: 2; stroke-dasharray: 6 7; }
+.curva-sem { fill: none; stroke: rgba(255, 255, 255, .45); stroke-width: 3.5; stroke-dasharray: 9 9; stroke-linecap: round; }
+.curva-com { fill: none; stroke: var(--lima); stroke-width: 7; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 10px rgba(198, 243, 107, .45)); }
+/* A ponta que desenha a linha: fora do SVG, para ficar redonda mesmo com o
+   gráfico esticado no celular. */
+.curva-ponta { position: absolute; width: 20px; height: 20px; border-radius: 50%; background: var(--lima); border: 3.5px solid var(--tinta); transform: translate(-50%, -50%); }
+.curva-ponta::after { content: ""; position: absolute; inset: -5px; border-radius: 50%; border: 2px solid var(--lima); animation: halo 1.4s ease-out infinite; }
+@keyframes halo { from { transform: scale(.7); opacity: .9; } to { transform: scale(2.2); opacity: 0; } }
+.curva-y { position: absolute; left: -6px; transform: translate(-100%, -50%); font-size: 11.5px; font-weight: 700; color: rgba(255, 255, 255, .5); }
+.curva-x { position: absolute; top: calc(100% + 10px); transform: translateX(-50%); font-size: 12px; font-weight: 700; color: rgba(255, 255, 255, .55); white-space: nowrap; }
+.curva-x.prova { color: var(--branco); }
+.curva-sem-rotulo {
+  position: absolute; font-size: 13px; font-weight: 700; color: rgba(255, 255, 255, .7); white-space: nowrap;
+  opacity: 0; transform: translateY(8px); transition: opacity .4s, transform .5s var(--mola);
+}
+.curva-sem-rotulo.ver { opacity: 1; transform: none; }
+/* Os marcos: o card criado e cada revisão, em cima do salto da linha. */
+.curva-marco { position: absolute; transform: translate(-50%, calc(-100% - 16px)); }
+.curva-chip {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 12px 6px 6px; border-radius: 16px; border: 2px solid var(--tinta);
+  box-shadow: 3px 3px 0 rgba(255, 255, 255, .85); color: var(--tinta);
+  font-weight: 800; font-size: 13px; line-height: 1.15; white-space: nowrap;
+  transform-origin: 50% 100%;
+}
+.curva-chip i { width: 26px; height: 26px; border-radius: 50%; background: var(--tinta); color: var(--branco); display: grid; place-items: center; font-style: normal; font-size: 12px; flex-shrink: 0; }
+.curva-chip small { display: block; font-weight: 600; font-size: 11.5px; color: rgba(18, 19, 22, .65); }
+/* A chegada: o selo da prova e os confetes. */
+.curva-chegada { position: absolute; left: 94%; top: 17.5%; }
+.curva-selo {
+  position: absolute; right: -14px; top: 34px;
+  padding: 12px 20px; border-radius: 100px; border: 2px solid var(--tinta);
+  background: var(--lima); color: var(--tinta); box-shadow: 5px 5px 0 var(--rosa);
+  font-family: var(--display); font-weight: 800; font-size: clamp(16px, 1.6vw, 22px); letter-spacing: -.02em; white-space: nowrap;
+  transform-origin: 80% 0; --g: -6deg;
+}
+.confetes i {
+  position: absolute; left: 0; top: 0; width: 9px; height: 13px; border-radius: 2px;
+  background: var(--c); border: 1.5px solid var(--tinta); opacity: 0;
+}
+.curva-chegada.chegou .confetes i { animation: confete 1.1s var(--curva) forwards; }
+@keyframes confete {
+  0% { opacity: 1; transform: translate(-50%, -50%) rotate(0); }
+  100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--r)); }
+}
+.curva-legenda { display: flex; justify-content: center; gap: 26px; flex-wrap: wrap; margin-top: 14px; font-size: 13px; font-weight: 700; color: rgba(255, 255, 255, .75); }
+.curva-legenda span { display: inline-flex; align-items: center; gap: 8px; }
+.curva-legenda i { width: 30px; height: 0; border-top: 5px solid var(--lima); border-radius: 4px; }
+.curva-legenda i.sem { border-top: 3px dashed rgba(255, 255, 255, .5); }
+
+/* ─── Seções ─────────────────────────────────────────────────────────── */
+section { position: relative; }
+.secao { padding: 130px 0; }
+.cabeca { text-align: center; max-width: 860px; margin: 0 auto; }
+h2 {
+  font-family: var(--display); font-weight: 800;
+  font-size: clamp(40px, 6.4vw, 92px); line-height: .98; letter-spacing: -.045em;
+  margin: 0 0 20px;
+}
+.cabeca p { font-size: 18px; color: #34363B; margin: 0 auto 28px; max-width: 520px; }
+
+/* ─── Os gênios: os agentes de IA, em caricatura ─────────────────────── */
+/* Cada agente de IA do sistema tem a cara de quem entende do assunto. No
+   mural, a caricatura vem em cima, sobre a folha pontilhada, e embaixo dela
+   um pedaço da tela do app com o gênio respondendo na aba de IA do arquivo:
+   é o que mostra que ele mora lá dentro. */
+.mural { columns: 4 260px; column-gap: 20px; margin-top: 70px; }
+.peca {
+  break-inside: avoid; margin: 0 0 20px;
+  position: relative; overflow: hidden;
+  border: 2px solid var(--tinta); border-radius: var(--raio);
+  box-shadow: var(--sombra-dura-g);
+  background: var(--branco);
+  transition: transform .3s var(--mola), box-shadow .3s var(--curva);
+}
+.peca:hover { transform: translate(-3px, -3px) rotate(-.6deg); box-shadow: 9px 9px 0 var(--tinta); }
+/* A legenda: a etiqueta branca no pé, com o rosto, o nome e o que ensina. */
+.peca figcaption {
+  position: absolute; left: 12px; right: 12px; bottom: 12px;
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px 9px 9px; border-radius: 16px;
+  background: var(--branco); border: 1.5px solid var(--tinta);
+  line-height: 1.25;
+}
+.peca figcaption i {
+  flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%; overflow: hidden;
+  display: grid; place-items: center; font-style: normal;
+  background: var(--fundo, var(--lima)); border: 1.5px solid var(--tinta);
+}
+.peca figcaption i svg { width: 100%; height: 100%; }
+.peca figcaption strong { display: block; font-size: 14px; }
+.peca figcaption small { display: block; font-size: 12.5px; color: var(--cinza); font-weight: 600; }
+
+.genio { background: var(--fundo, var(--branco)); padding-bottom: 12px; }
+/* No gênio a legenda vem no fluxo, embaixo da conversa: solta no pé, ela
+   cobriria a última fala quando o nome quebra em duas linhas. */
+.genio figcaption { position: relative; left: auto; right: auto; bottom: auto; margin: 12px 12px 0; }
+.genio-retrato {
+  position: relative; padding: 26px 30px 6px;
+  background-image: radial-gradient(circle, rgba(18, 19, 22, .16) 1.1px, transparent 1.2px);
+  background-size: 18px 18px;
+}
+.genio-retrato .caricatura {
+  width: 100%; height: auto; overflow: visible;
+  filter: drop-shadow(5px 5px 0 var(--tinta));
+  transform-origin: 50% 92%;
+  transition: transform .6s var(--mola);
+}
+.genio:hover .caricatura { transform: rotate(-5deg) scale(1.05); }
+/* O selo de agente, com a luz acesa de quem está de plantão. */
+.selo-ia {
+  position: absolute; top: 14px; left: 14px; z-index: 2;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 11px; border-radius: 100px;
+  background: var(--tinta); color: var(--branco);
+  font-size: 11px; font-weight: 800; letter-spacing: .04em;
+}
+.selo-ia::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--lima); animation: plantao 1.6s ease-in-out infinite; }
+@keyframes plantao { 50% { opacity: .3; transform: scale(.7); } }
+/* O pedaço do app: as abas do trilho, a de IA acesa, e a conversa. */
+.genio-app {
+  position: relative; z-index: 1;
+  margin: -6px 14px 0; padding: 10px;
+  background: var(--branco); border: 2px solid var(--tinta); border-radius: 16px;
+  box-shadow: var(--sombra-dura);
+  display: flex; flex-direction: column; gap: 7px;
+}
+.genio-app-abas { display: flex; align-items: center; gap: 3px; font-size: 10.5px; font-weight: 800; color: var(--cinza); min-width: 0; }
+.genio-app-abas span { padding: 3px 8px; border-radius: 100px; }
+.genio-app-abas span.on { background: var(--tinta); color: var(--branco); }
+.genio-app-abas em { margin-left: auto; font-style: normal; font-weight: 700; color: var(--cinza2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.genio-app p { margin: 0; padding: 7px 10px; border-radius: 12px; font-size: 12.5px; font-weight: 600; line-height: 1.4; }
+.genio-app .eu { align-self: flex-end; max-width: 86%; background: var(--lima); border: 1.5px solid var(--tinta); border-bottom-right-radius: 4px; }
+.genio-fala { display: flex; gap: 6px; align-items: flex-end; }
+.genio-fala .rosto { width: 28px; height: 28px; flex-shrink: 0; border-radius: 50%; overflow: hidden; border: 1.5px solid var(--tinta); background: var(--fundo, var(--lima)); }
+.genio-fala .rosto svg { width: 100%; height: 100%; }
+.genio-fala p { background: var(--papel); border: 1.5px solid var(--fio); border-bottom-left-radius: 4px; }
+.genio-app .digitando { display: inline-flex; gap: 3px; padding: 10px 11px; }
+.genio-app .digitando b { width: 5px; height: 5px; border-radius: 50%; background: var(--cinza2); animation: plantao 1s ease-in-out infinite; }
+.genio-app .digitando b:nth-child(2) { animation-delay: .15s; }
+.genio-app .digitando b:nth-child(3) { animation-delay: .3s; }
+
+/* A peça da escolha: a lista de gênios como ela aparece no app. */
+.peca-escolha { background: var(--tinta); color: var(--branco); padding: 22px 18px 92px; }
+.peca-escolha h3 { font-family: var(--display); font-size: 22px; line-height: 1.05; letter-spacing: -.03em; margin: 0 0 4px; }
+.peca-escolha > p { margin: 0 0 14px; font-size: 13px; color: rgba(255, 255, 255, .7); font-weight: 600; }
+.escolha-grade { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.escolha-grade span {
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  padding: 8px 4px 7px; border-radius: 14px;
+  border: 1.5px solid rgba(255, 255, 255, .22);
+  font-size: 11px; font-weight: 800; text-align: center; line-height: 1.1;
+}
+.escolha-grade span i { width: 44px; height: 44px; border-radius: 50%; overflow: hidden; border: 1.5px solid var(--tinta); background: var(--fundo); display: block; }
+.escolha-grade span i svg { width: 100%; height: 100%; }
+.escolha-grade span.on { background: var(--lima); color: var(--tinta); border-color: var(--tinta); box-shadow: 3px 3px 0 var(--branco); }
+.peca-escolha figcaption i { background: var(--lima); color: var(--tinta); }
+.peca-escolha figcaption { color: var(--tinta); }
+
+/* Os adesivos soltos. Contorno preto grosso e a sombra dura, que no SVG vem
+   do drop-shadow. A cor de cada um vem de `--cor`. */
 .adesivo {
-  position: absolute;
+  position: absolute; z-index: 6; pointer-events: none;
   width: var(--tam, 56px); height: var(--tam, 56px);
   filter: drop-shadow(3px 3px 0 var(--tinta));
-  transform: translate(var(--x, 0px), var(--y, 0px)) rotate(var(--giro, 0deg));
+  transform: rotate(var(--giro, 0deg));
   animation: balanca 6s ease-in-out infinite;
   animation-delay: var(--atraso, 0s);
 }
 @keyframes balanca {
-  0%, 100% { transform: translate(var(--x, 0px), var(--y, 0px)) rotate(var(--giro, 0deg)); }
-  50% { transform: translate(var(--x, 0px), calc(var(--y, 0px) - 7px)) rotate(calc(var(--giro, 0deg) + 2deg)); }
+  0%, 100% { transform: translateY(0) rotate(var(--giro, 0deg)); }
+  50% { transform: translateY(-8px) rotate(calc(var(--giro, 0deg) + 3deg)); }
 }
-@keyframes flutua { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 
-/* ─── A faixa que corre ─────────────────────────────────────────────── */
-/* A faixa é torta (-1,4°): cada ponta sobe ou desce cerca de 1,25% da largura
-   da tela. A folga em cima e embaixo cresce junto, para nenhuma ponta ser
-   cortada em tela larga. */
-.faixa-caixa { overflow: hidden; padding: calc(1.25vw + 8px) 0; margin-block: calc(-1.25vw - 4px) calc(-1.25vw + 4px); }
-.faixa { border-block: 2px solid var(--tinta); background: var(--tinta); color: var(--branco); overflow: hidden; transform: rotate(-1.4deg); margin: 0 -20px; }
-.faixa-trilho { display: flex; gap: 36px; padding: 16px 0; width: max-content; animation: correr 48s linear infinite; }
-.faixa span { font-family: var(--display); font-weight: 800; font-size: 26px; letter-spacing: -.02em; display: flex; align-items: center; gap: 36px; }
-.faixa span::after { content: "✳"; color: var(--rosa); font-size: 22px; }
-@keyframes correr { to { transform: translateX(-50%); } }
-
-/* ─── Seções ─────────────────────────────────────────────────────────── */
-section { position: relative; }
-.secao { padding: 110px 0; }
-.sobretitulo { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
-.sobretitulo::before { content: ""; width: 26px; height: 3px; border-radius: 3px; background: var(--rosa-forte); }
-h2 {
-  font-family: var(--display); font-weight: 800;
-  font-size: clamp(34px, 4.6vw, 62px); line-height: 1; letter-spacing: -.04em;
-  margin: 16px 0 18px;
+/* ─── Na prática: o quadro torto, antes e depois ─────────────────────── */
+.pratica { padding-bottom: 170px; overflow: clip; }
+.quadro {
+  position: relative; margin: 70px auto 0; width: min(900px, 100%);
+  background: var(--branco); border: 2px solid var(--tinta); border-radius: 30px;
+  box-shadow: 10px 10px 0 var(--tinta);
+  padding: 18px;
+  transform: rotate(-2deg);
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
 }
-.secao-intro { max-width: 640px; color: var(--cinza); font-size: 18px; margin: 0; }
-
-/* Os três passos, em pílulas tortas numeradas. */
-.passos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-top: 56px; }
-.passo {
-  position: relative;
-  border: 2px solid var(--tinta); border-radius: 999px;
-  padding: 34px 30px; min-height: 170px;
-  display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
-  background: var(--branco);
-  transition: transform .3s var(--curva);
+.quadro > div { border: 2px solid var(--tinta); border-radius: 20px; overflow: hidden; position: relative; min-height: 300px; }
+.quadro .quem-estuda img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
+.quadro .quem-estuda .nome { position: absolute; left: 16px; bottom: 14px; color: var(--branco); font-family: var(--display); font-weight: 800; font-size: 26px; line-height: 1; letter-spacing: -.03em; text-shadow: 0 2px 14px rgba(0, 0, 0, .35); }
+.quadro .quem-estuda .nome small { display: block; font-size: 17px; opacity: .85; margin-top: 4px; }
+.etiqueta-quadro {
+  position: absolute; top: 12px; left: 12px; z-index: 2;
+  padding: 4px 11px; border-radius: 100px; background: var(--tinta); color: var(--branco);
+  font-size: 12px; font-weight: 800;
 }
-.passo:nth-child(2) { transform: rotate(-4deg); background: var(--rosa-lavado); }
-.passo:nth-child(3) { transform: rotate(3deg); }
-.passo:hover { transform: rotate(0) translateY(-4px); }
-.passo .num { position: absolute; top: 10px; right: 26px; width: 34px; height: 34px; border-radius: 50%; background: var(--tinta); color: var(--branco); font-weight: 800; font-size: 13px; display: grid; place-items: center; }
-.passo:nth-child(2) .num { background: var(--branco); color: var(--tinta); border: 2px solid var(--tinta); }
-.passo h3 { font-family: var(--display); font-size: 30px; letter-spacing: -.03em; margin: 0 0 6px; line-height: 1; }
-.passo p { margin: 0; color: var(--cinza); font-size: 15px; max-width: 260px; }
+.antes { background: #EFEEEA; padding: 50px 20px 20px; }
+.antes p { margin: 0; font-family: ui-monospace, "Consolas", monospace; font-size: 12.5px; line-height: 1.6; color: #6A6C72; }
+.depois { grid-column: 1 / -1; background: var(--papel); padding: 50px 24px 24px; display: grid; grid-template-columns: 1.3fr 1fr; gap: 20px; align-items: center; }
+.depois h4 { font-family: var(--display); font-size: 24px; letter-spacing: -.03em; margin: 0 0 10px; }
+.depois p { margin: 0 0 8px; font-size: 15px; line-height: 1.75; color: #2A2C31; }
+.depois mark { background: var(--lima); color: inherit; border-radius: 4px; padding: 0 3px; }
+.depois mark.l { background: var(--rosa); }
+.depois mark.m { background: var(--manteiga); }
+.depois-cards { display: flex; flex-direction: column; gap: 10px; }
+.depois-cards span { padding: 12px 14px; border: 2px solid var(--tinta); border-radius: 14px; background: var(--branco); font-weight: 800; font-size: 14px; box-shadow: var(--sombra-dura); }
+.depois-cards span:nth-child(2) { transform: rotate(1.5deg); background: var(--lilas); }
+.depois-cards span:nth-child(3) { transform: rotate(-1deg); background: var(--ceu); }
+/* O selo de assunto, colado na quina do quadro como etiqueta de pasta. */
+.selo-assunto {
+  position: absolute; z-index: 3; top: -34px; left: -50px;
+  padding: 18px 30px; background: #BFE6CF; border: 2px solid var(--tinta);
+  clip-path: polygon(10% 0, 90% 0, 100% 22%, 100% 78%, 90% 100%, 10% 100%, 0 78%, 0 22%);
+  font-family: var(--display); font-weight: 800; font-size: 34px; letter-spacing: -.03em;
+  transform: rotate(-6deg);
+  filter: drop-shadow(4px 4px 0 var(--tinta));
+}
 
-/* ─── A demonstração que se usa ─────────────────────────────────────── */
-.demo { display: grid; grid-template-columns: 1.1fr .9fr; gap: 28px; margin-top: 50px; align-items: start; }
-.demo-folha { background: var(--branco); border: 2px solid var(--tinta); border-radius: var(--raio); box-shadow: var(--sombra-dura-g); padding: 30px 32px 34px; position: relative; }
-.demo-folha .barrinha { display: flex; gap: 6px; margin: -8px 0 20px; flex-wrap: wrap; }
-.demo-folha .barrinha span { height: 30px; min-width: 30px; padding: 0 8px; border-radius: 9px; background: var(--papel); border: 1px solid var(--fio); display: grid; place-items: center; font-size: 12px; font-weight: 800; color: var(--cinza); }
+/* ─── Revise brincando: a faixa lima com a demonstração ──────────────── */
+.faixa-rosa { background: var(--lima); border-block: 2px solid var(--tinta); padding: 70px 0 90px; }
+.faixa-rosa h2 { font-size: clamp(54px, 11vw, 190px); text-align: center; white-space: nowrap; margin-bottom: 26px; }
+.faixa-rosa-linha { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; margin-bottom: 24px; }
+.faixa-rosa-linha p { margin: 0; font-size: 17px; font-weight: 600; }
+.demo {
+  background: var(--branco); border: 2px solid var(--tinta); border-radius: 30px;
+  box-shadow: 10px 10px 0 var(--tinta);
+  padding: 34px;
+  display: grid; grid-template-columns: 1.1fr .9fr; gap: 28px; align-items: start;
+}
+.demo-folha { background: var(--papel); border: 2px solid var(--tinta); border-radius: var(--raio); padding: 28px 30px 30px; position: relative; }
+.demo-folha .barrinha { display: flex; gap: 6px; margin: -6px 0 18px; flex-wrap: wrap; }
+.demo-folha .barrinha span { height: 30px; min-width: 30px; padding: 0 8px; border-radius: 9px; background: var(--branco); border: 1px solid var(--fio); display: grid; place-items: center; font-size: 12px; font-weight: 800; color: var(--cinza); }
 .demo-folha h3 { font-family: var(--display); font-size: 26px; letter-spacing: -.03em; margin: 0 0 12px; }
 .demo-folha p { color: #34363B; font-size: 16px; line-height: 1.75; margin: 0 0 10px; }
 .trecho {
   border-radius: 6px; padding: 1px 2px;
-  background: linear-gradient(var(--rosa), var(--rosa)) left bottom / 0 42% no-repeat;
+  background: linear-gradient(var(--lima), var(--lima)) left bottom / 0 42% no-repeat;
   transition: background-size .5s var(--curva);
   cursor: pointer; font-weight: 700;
   outline-offset: 2px;
-  text-decoration: underline dotted var(--rosa-forte) 2px;
+  text-decoration: underline dotted var(--lima-tinta) 2px;
   text-underline-offset: 5px;
   -webkit-box-decoration-break: clone; box-decoration-break: clone;
 }
-.trecho:focus-visible { outline: 3px solid var(--rosa-forte); }
+.trecho:focus-visible { outline: 3px solid var(--lima-tinta); }
 .trecho:hover { background-size: 100% 42%; }
-.trecho.grifado { background-size: 100% 100%; background-color: transparent; text-decoration: none; }
-.dica-demo { display: flex; align-items: center; gap: 10px; margin-top: 18px; padding: 12px 14px; border-radius: 14px; background: var(--rosa-lavado); font-size: 14px; font-weight: 700; }
-.dica-demo .ponto { width: 10px; height: 10px; border-radius: 50%; background: var(--rosa-forte); flex-shrink: 0; animation: pulsar 1.4s ease-in-out infinite; }
+.trecho.grifado { background-size: 100% 100%; text-decoration: none; }
+.dica-demo { display: flex; align-items: center; gap: 10px; margin-top: 18px; padding: 12px 14px; border-radius: 14px; background: var(--lima-lavado); font-size: 14px; font-weight: 700; }
+.dica-demo .ponto { width: 10px; height: 10px; border-radius: 50%; background: var(--lima-tinta); flex-shrink: 0; animation: pulsar 1.4s ease-in-out infinite; }
 @keyframes pulsar { 50% { transform: scale(1.6); opacity: .4; } }
-
 .demo-lado { display: flex; flex-direction: column; gap: 16px; }
-/* O card que vira: frente com a pergunta, verso com o trecho. */
 .card-demo { perspective: 1200px; height: 260px; }
 .card-demo .face {
   position: absolute; inset: 0;
@@ -292,287 +854,540 @@ h2 {
 .face .texto { font-family: var(--display); font-weight: 700; font-size: 22px; line-height: 1.25; letter-spacing: -.02em; margin: auto 0; }
 .face.verso .texto { font-family: var(--texto); font-size: 16px; font-weight: 600; line-height: 1.6; }
 .face .vazio { margin: auto 0; color: var(--cinza2); font-weight: 700; font-size: 15px; text-align: center; }
-.card-demo.nascendo .girador { animation: nascer .6s var(--curva); }
+.card-demo.nascendo .girador { animation: nascer .6s var(--mola); }
 @keyframes nascer { from { transform: scale(.7) rotate(-6deg); opacity: 0; } }
 .demo-graus { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .demo-graus button { border: 2px solid var(--tinta); border-radius: 14px; padding: 10px 6px; font-weight: 800; font-size: 13.5px; line-height: 1.2; box-shadow: var(--sombra-dura); transition: transform .12s, box-shadow .12s; }
 .demo-graus button small { display: block; font-weight: 600; font-size: 11.5px; color: rgba(18, 19, 22, .65); }
 .demo-graus button:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--tinta); }
 .demo-graus button:disabled { opacity: .35; cursor: not-allowed; box-shadow: none; }
-.demo-graus .g1 { background: #FFD9D6; } .demo-graus .g2 { background: var(--manteiga); } .demo-graus .g3 { background: var(--lima); } .demo-graus .g4 { background: var(--ceu); }
+.g1 { background: #FFD9D6; } .g2 { background: var(--manteiga); } .g3 { background: var(--lima); } .g4 { background: var(--ceu); }
 .demo-status { min-height: 48px; padding: 13px 16px; border-radius: 14px; border: 2px dashed var(--tinta); font-weight: 700; font-size: 14px; line-height: 1.5; background: var(--branco); }
-.demo-status b { color: var(--rosa-forte); }
+.demo-status b { color: var(--lima-tinta); }
 
-/* ─── Recursos em mosaico ───────────────────────────────────────────── */
-.recursos { display: grid; grid-template-columns: repeat(6, 1fr); gap: 18px; margin-top: 56px; }
-.recurso {
-  border: 2px solid var(--tinta); border-radius: var(--raio);
-  padding: 26px; background: var(--branco);
-  box-shadow: var(--sombra-dura-g);
-  display: flex; flex-direction: column; gap: 10px;
-  transition: transform .25s var(--curva), box-shadow .25s var(--curva);
-  min-height: 250px; overflow: hidden; position: relative;
+/* ─── Dúvidas ────────────────────────────────────────────────────────── */
+.duvidas { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; padding: 110px 0; }
+.duvidas h2 { font-size: clamp(22px, 2vw, 26px); letter-spacing: -.02em; margin: 14px 0 0; }
+.perguntas { border-top: 2px solid var(--tinta); }
+.perguntas details { border-bottom: 2px solid var(--tinta); }
+.perguntas summary {
+  list-style: none; cursor: pointer;
+  display: flex; justify-content: space-between; align-items: center; gap: 20px;
+  padding: 20px 4px; font-weight: 800; font-size: 19px; letter-spacing: -.01em;
 }
-.recurso:hover { transform: translate(-3px, -3px); box-shadow: 9px 9px 0 var(--tinta); }
-.recurso h3 { font-family: var(--display); font-size: 25px; line-height: 1.05; letter-spacing: -.03em; margin: auto 0 0; }
-.recurso p { margin: 0; color: #3E4046; font-size: 15px; }
-.recurso .ico { width: 52px; height: 52px; border-radius: 16px; border: 2px solid var(--tinta); background: var(--branco); display: grid; place-items: center; }
-.recurso .tag { position: absolute; top: 22px; right: 22px; font-size: 11.5px; font-weight: 800; padding: 4px 10px; border-radius: 100px; border: 1.5px solid var(--tinta); background: var(--branco); }
-.r-editor { grid-column: span 4; background: var(--lilas); min-height: 320px; }
-.r-editor .mini-barra { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; }
-.r-editor .mini-barra span { padding: 6px 10px; border-radius: 10px; background: var(--branco); border: 1.5px solid var(--tinta); font-size: 12.5px; font-weight: 800; }
-.r-editor .mini-barra span.on { background: var(--tinta); color: var(--branco); }
-.r-notas { grid-column: span 2; background: var(--manteiga); }
-.r-pomodoro { grid-column: span 2; }
-.r-pastas { grid-column: span 2; background: var(--ceu); }
-.r-inbox { grid-column: span 2; background: var(--lima); }
-.r-ia { grid-column: span 3; background: var(--tinta); color: var(--branco); }
-.r-ia p { color: rgba(255, 255, 255, .78); }
-.r-ia .ico { background: var(--rosa); }
-.r-ia .tag { background: var(--rosa); color: var(--tinta); border-color: var(--rosa); }
-.r-celular { grid-column: span 3; background: var(--rosa); }
-.cores-grifo { display: flex; gap: 8px; margin-top: 6px; }
-.cores-grifo i { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--tinta); }
-
-/* ─── Revisão espaçada: a escada ────────────────────────────────────── */
-.escada-caixa { margin-top: 56px; border: 2px solid var(--tinta); border-radius: 32px; background: var(--branco); box-shadow: var(--sombra-dura-g); padding: 40px; }
-.escada { display: flex; align-items: flex-end; gap: 14px; height: 250px; }
-.degrau { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 10px; height: 100%; }
-.degrau .barra {
-  width: 100%; border: 2px solid var(--tinta); border-radius: 16px 16px 6px 6px;
-  height: 0; transition: height 1s var(--curva);
-  display: flex; align-items: flex-start; justify-content: center; padding-top: 10px;
-  font-family: var(--display); font-weight: 800; font-size: 18px;
+.perguntas summary::-webkit-details-marker { display: none; }
+.perguntas summary .mais {
+  flex-shrink: 0; width: 34px; height: 34px; border-radius: 50%;
+  border: 2px solid var(--tinta); background: var(--branco);
+  display: grid; place-items: center;
+  transition: transform .4s var(--mola), background .2s;
 }
-.degrau small { font-weight: 800; font-size: 13px; color: var(--cinza); text-align: center; }
-.escada-caixa.visto .degrau:nth-child(1) .barra { height: 22%; background: #FFD9D6; transition-delay: .05s; }
-.escada-caixa.visto .degrau:nth-child(2) .barra { height: 38%; background: var(--manteiga); transition-delay: .15s; }
-.escada-caixa.visto .degrau:nth-child(3) .barra { height: 56%; background: var(--lima); transition-delay: .25s; }
-.escada-caixa.visto .degrau:nth-child(4) .barra { height: 76%; background: var(--ceu); transition-delay: .35s; }
-.escada-caixa.visto .degrau:nth-child(5) .barra { height: 100%; background: var(--rosa); transition-delay: .45s; }
-.escada-legenda { display: flex; flex-wrap: wrap; gap: 24px; justify-content: space-between; margin-top: 26px; padding-top: 22px; border-top: 2px dashed var(--fio); }
-.escada-legenda p { margin: 0; max-width: 520px; color: var(--cinza); }
-.escada-legenda strong { color: var(--tinta); }
+/* O ícone gira na hora do clique (a classe vem do script), sem esperar a
+   gaveta terminar de abrir ou fechar. */
+.perguntas details.aberto summary .mais { transform: rotate(135deg) scale(1.08); background: var(--lima); }
+.perguntas summary:hover .mais { background: var(--lima-lavado); }
+.perguntas details.aberto summary:hover .mais { background: var(--lima); }
+.perguntas details p { margin: 0; padding: 0 60px 22px 4px; color: #3E4046; font-size: 16px; }
 
-/* ─── Para quem ─────────────────────────────────────────────────────── */
-.quem { display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center; }
-.quem-lista { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
-.quem-lista span { padding: 12px 18px; border-radius: 100px; border: 2px solid var(--tinta); font-weight: 800; font-size: 15px; background: var(--branco); transition: transform .2s var(--curva), background .2s; }
-.quem-lista span:hover { transform: rotate(-3deg) scale(1.05); background: var(--lima); }
-.quem-lista span:nth-child(3n+2):hover { background: var(--rosa); }
-.quem-lista span:nth-child(3n):hover { background: var(--lilas); }
-/* Três fotos em pé, levemente tortas, como retratos presos num mural. */
-.gente { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; align-items: start; }
-.gente .foto { aspect-ratio: 5 / 6.4; }
-.gente .foto:nth-child(1) { transform: rotate(-4deg); margin-top: 30px; background: var(--lilas); }
-.gente .foto:nth-child(2) { transform: rotate(2.5deg); background: var(--manteiga); }
-.gente .foto:nth-child(3) { transform: rotate(-2deg); margin-top: 48px; background: var(--ceu); }
-.gente .foto figcaption { justify-content: center; font-size: 13px; }
-
-/* ─── O convite do fim ──────────────────────────────────────────────── */
+/* ─── O convite do fim ───────────────────────────────────────────────── */
 .convite {
   position: relative; overflow: hidden;
-  border: 2px solid var(--tinta); border-radius: 40px;
-  background: var(--rosa); box-shadow: var(--sombra-dura-g);
-  padding: 80px 40px; text-align: center;
+  border: 2px solid var(--tinta); border-radius: 36px;
+  background: var(--lima); box-shadow: 10px 10px 0 var(--tinta);
+  padding: 44px 44px 0;
+  min-height: 600px;
+  display: flex; flex-direction: column;
 }
-.convite h2 { font-size: clamp(38px, 6vw, 84px); margin: 0 auto 18px; max-width: 900px; }
-.convite p { font-size: 18px; max-width: 540px; margin: 0 auto 32px; font-weight: 600; }
-.convite .estrela { position: absolute; font-size: 120px; line-height: 1; color: var(--tinta); opacity: .08; animation: girar 18s linear infinite; }
-.convite .estrela.e1 { top: -30px; left: 4%; }
-.convite .estrela.e2 { bottom: -40px; right: 6%; animation-direction: reverse; }
-@keyframes girar { to { transform: rotate(360deg); } }
-.rodape { padding: 50px 0 40px; display: flex; flex-wrap: wrap; gap: 20px; align-items: center; justify-content: space-between; color: var(--cinza); font-size: 14px; font-weight: 600; }
+.convite h2 { font-size: clamp(36px, 5.2vw, 78px); text-align: left; margin: 0 0 26px; max-width: 1000px; }
+.convite .btn { align-self: flex-start; }
+.convite-adesivos { position: absolute; top: 34px; right: 40px; width: 180px; height: 150px; }
+.convite-adesivos .adesivo { position: absolute; }
+/* A marca gigante no pé do convite, num tom de lima mais fundo. */
+.marca-gigante {
+  margin-top: auto;
+  font-family: var(--display); font-weight: 800;
+  font-size: clamp(100px, 25vw, 400px); line-height: .78; letter-spacing: -.06em;
+  color: var(--lima-funda);
+  white-space: nowrap; text-align: center;
+  transform: translateY(var(--marca-y, 30%));
+  user-select: none;
+}
+.rodape { padding: 30px 0 40px; display: flex; flex-wrap: wrap; gap: 14px 24px; align-items: center; justify-content: space-between; color: var(--cinza); font-size: 14px; font-weight: 600; }
+.rodape nav { display: flex; gap: 22px; flex-wrap: wrap; }
+.rodape nav a { text-decoration: none; }
+.rodape nav a:hover { color: var(--tinta); }
 
 /* ─── Entrada ao rolar ──────────────────────────────────────────────── */
-.surge { opacity: 0; transform: translateY(28px); transition: opacity .7s var(--curva), transform .7s var(--curva); }
+.surge { opacity: 0; transform: translateY(34px); transition: opacity .7s var(--curva), transform .8s var(--mola); }
 .surge.visto { opacity: 1; transform: none; }
-.passo.surge.visto:nth-child(2) { transform: rotate(-4deg); }
-.passo.surge.visto:nth-child(3) { transform: rotate(3deg); }
-.passo.surge.visto:hover { transform: rotate(0) translateY(-4px); }
-.gente .foto.surge.visto:nth-child(1) { transform: rotate(-4deg); }
-.gente .foto.surge.visto:nth-child(2) { transform: rotate(2.5deg); }
-.gente .foto.surge.visto:nth-child(3) { transform: rotate(-2deg); }
+.quadro.surge { transform: translateY(40px) rotate(-5deg); }
+.quadro.surge.visto { transform: rotate(-2deg); }
 
 /* ─── Telas menores ─────────────────────────────────────────────────── */
 @media (max-width: 1020px) {
-  .abertura-grade { grid-template-columns: 1fr; }
-  h1.titulo { font-size: clamp(44px, 11.5vw, 96px); }
-  .mosaico { max-width: 620px; margin: 30px auto 0; width: 100%; }
-  .demo { grid-template-columns: 1fr; }
-  .recursos { grid-template-columns: repeat(2, 1fr); }
-  .r-editor, .r-notas, .r-pomodoro, .r-pastas, .r-inbox, .r-ia, .r-celular { grid-column: span 1; }
-  .r-editor { grid-column: 1 / -1; }
-  .quem { grid-template-columns: 1fr; }
+  .demo { grid-template-columns: 1fr; padding: 22px; }
+  .duvidas { grid-template-columns: 1fr; gap: 10px; }
 }
 @media (max-width: 760px) {
-  .nav, .topo .btn-cheio { display: none; }
-  .menu-botao { display: grid; }
-  .topo.aberto .nav {
-    display: flex; flex-direction: column; position: absolute; top: 72px; left: 20px; right: 20px;
-    background: var(--branco); border: 2px solid var(--tinta); border-radius: 20px; box-shadow: var(--sombra-dura-g); padding: 10px;
-  }
-  .topo.aberto .nav a { padding: 12px 14px; font-size: 16px; color: var(--tinta); }
-  .secao { padding: 76px 0; }
-  .passos { grid-template-columns: 1fr; gap: 28px; }
-  .passo { min-height: 140px; padding: 28px 24px; }
-  .recursos { grid-template-columns: 1fr; }
-  .r-editor { grid-column: auto; }
-  .escada-caixa { padding: 26px 18px; }
-  .escada { height: 200px; gap: 8px; }
-  .degrau .barra { font-size: 14px; border-radius: 12px 12px 5px 5px; }
-  .degrau small { font-size: 11px; }
-  .convite { padding: 56px 22px; border-radius: 28px; }
-  .demo-folha { padding: 24px 20px 26px; }
+  .abertura { padding: 120px 0 162px; }
+  h1.titulo { white-space: normal; font-size: clamp(48px, 13vw, 78px); }
+  h1.titulo .linha { display: block; }
+  .palco { height: 1000vh; }
+  .curva { justify-content: flex-start; padding-top: 96px; }
+  .curva-topo { flex-direction: column; align-items: flex-start; }
+  .curva-memoria { min-width: 0; display: flex; align-items: baseline; gap: 10px; padding: 8px 14px; }
+  .curva-memoria b { font-size: 30px; }
+  .curva-chip { padding: 3px; border-radius: 50%; }
+  .curva-chip > span { display: none; }
+  .curva-x { font-size: 10px; }
+  /* No celular o gráfico estica para cima e ganha espaço para os marcos. */
+  .curva-grafico { aspect-ratio: 1000 / 880; margin-top: 40px; width: 100%; }
+  .curva-y { display: none; }
+  .curva-x:not(.prova):not(.hoje) { display: none; }
+  .curva-sem-rotulo { font-size: 11px; left: 30% !important; top: 84% !important; white-space: normal; width: 60%; }
+  .curva-selo { font-size: 14px; padding: 8px 14px; right: -4px; }
+  /* Na tela estreita o computador ocupa a largura, a tela fica quadrada e a
+     lateral do app sai: a legenda em cima diz em que parte se está. */
+  .computador { --pc-larg: 94vw; }
+  .tela { aspect-ratio: 1; font-size: calc(var(--pc-larg) / 44); }
+  .tela-lado, .decks-lista, .pomo-lado, .editor-cards, .editor-resto { display: none; }
+  .cena { padding: 1em 1.1em 1.1em; gap: .8em; }
+  .cena-topo h5 { font-size: 1.5em; }
+  .numeros { gap: .5em; }
+  .numero { padding: .7em .75em; }
+  .numero small { font-size: .78em; }
+  .numero b { font-size: 1.8em; }
+  .calor-caixa header small { display: none; }
+  .calor-grade i:nth-child(-n+42) { display: none; }
+  .editor-barra span:nth-child(n+4):not(.grifo) { display: none; }
+  .editor-folha { padding: 1em 1.2em; }
+  .pomo-anel { width: 19em; }
+  .msg { max-width: 92%; }
+  .sugestoes span:nth-child(n+3) { display: none; }
+  .passeio { font-size: 11px; }
+  .passeio-cartao { white-space: normal; max-width: 86vw; }
+  .passeio-cartao .tx { display: none; }
+  .secao { padding: 90px 0; }
+  .mural { columns: 2 150px; column-gap: 12px; }
+  .peca { margin-bottom: 12px; }
+  .peca figcaption { left: 8px; right: 8px; bottom: 8px; padding: 8px; gap: 8px; }
+  .peca figcaption i { width: 28px; height: 28px; }
+  .peca figcaption strong { font-size: 12.5px; }
+  .peca figcaption small { font-size: 11px; }
+  .genio figcaption { margin: 8px 8px 0; }
+  .genio-retrato { padding: 34px 12px 4px; }
+  .selo-ia { top: 8px; left: 8px; font-size: 9.5px; padding: 4px 8px; }
+  .genio-app { margin: -4px 8px 0; padding: 7px; }
+  .genio-app-abas em { display: none; }
+  .genio-app p { font-size: 11.5px; padding: 6px 8px; }
+  .genio-fala .rosto { display: none; }
+  .escolha-grade { grid-template-columns: repeat(2, 1fr); }
+  .quadro { grid-template-columns: 1fr; padding: 12px; }
+  .quadro > div { min-height: 240px; }
+  .depois { grid-template-columns: 1fr; }
+  .selo-assunto { left: -8px; top: -40px; font-size: 26px; padding: 14px 22px; }
+  .faixa-rosa h2 { white-space: normal; font-size: clamp(54px, 17vw, 110px); }
   .demo-graus { grid-template-columns: repeat(2, 1fr); }
-  .faixa span { font-size: 20px; }
-  .adesivo { width: calc(var(--tam, 56px) * .75); height: calc(var(--tam, 56px) * .75); }
-  .gente { gap: 10px; }
-  .gente .foto figcaption { font-size: 11px; padding: 6px 8px; left: 8px; right: 8px; bottom: 8px; }
+  .perguntas summary { font-size: 17px; }
+  .perguntas details p { padding-right: 10px; }
+  .convite { padding: 30px 22px 0; border-radius: 26px; min-height: 480px; }
+  .convite-adesivos { display: none; }
+  .barra .marca { height: 48px; font-size: 22px; padding: 0 16px 2px 12px; }
+  .barra .marca .marca-simbolo { width: 24px; height: 24px; }
+  .barra .btn { height: 48px; padding: 0 18px; }
+  .adesivo { width: calc(var(--tam, 56px) * .72); height: calc(var(--tam, 56px) * .72); }
 }
-@media (max-width: 420px) {
-  .mosaico, .mosaico .coluna { gap: 12px; }
-  .mosaico .coluna.desce { margin-top: 44px; }
-  .btn { height: 48px; padding: 0 20px; }
-}
+
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
-  .grifada::before { transform: scaleX(1) skewX(-8deg); }
-  .surge { opacity: 1; transform: none; }
-  .escada-caixa .degrau:nth-child(1) .barra { height: 22%; background: #FFD9D6; }
-  .escada-caixa .degrau:nth-child(2) .barra { height: 38%; background: var(--manteiga); }
-  .escada-caixa .degrau:nth-child(3) .barra { height: 56%; background: var(--lima); }
-  .escada-caixa .degrau:nth-child(4) .barra { height: 76%; background: var(--ceu); }
-  .escada-caixa .degrau:nth-child(5) .barra { height: 100%; background: var(--rosa); }
+  .grifada::before { animation: none; transform: scaleX(1) skewX(-8deg); }
+  .adesivo, .cursor, .dica-demo .ponto { animation: none; }
+  .surge, .quadro.surge { opacity: 1; transform: none; transition: none; }
+  .quadro.surge { transform: rotate(-2deg); }
+  .barra { transition: none; }
 }
 </style>
 </head>
 <body>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <symbol id="logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M3 20l5.5-5.5"/><path d="M8.5 14.5l2.9.9"/><path d="M8.5 14.5l-.9-2.9"/>
-    <circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/>
-    <path d="M21 4l-5.5 5.5"/><path d="M15.5 9.5l-2.9-.9"/><path d="M15.5 9.5l.9 2.9"/>
+  <!-- O símbolo da marca: o núcleo e as seis ligações, de pontas redondas. -->
+  <symbol id="marca" viewBox="0 0 32 32">
+    <g stroke="currentColor" stroke-width="3.6" stroke-linecap="round">
+      <path d="M16 16 18.72 5.86M16 16l10.14-2.72M16 16l7.42 7.42M16 16l-2.72 10.14M16 16 5.86 18.72M16 16 8.58 8.58"/>
+    </g>
+    <g fill="currentColor">
+      <circle cx="16" cy="16" r="4.8"/>
+      <circle cx="19.11" cy="4.41" r="3.4"/><circle cx="27.59" cy="12.89" r="3.4"/><circle cx="24.49" cy="24.49" r="3.4"/>
+      <circle cx="12.89" cy="27.59" r="3.4"/><circle cx="4.41" cy="19.11" r="3.4"/><circle cx="7.51" cy="7.51" r="3.4"/>
+    </g>
   </symbol>
+  <!-- Os adesivos: alfinete, estrela, brilho e coração. A cor vem de `--cor`. -->
+  <symbol id="a-alfinete" viewBox="0 0 64 64">
+    <path d="M32 44v17" stroke="#121316" stroke-width="3.5" stroke-linecap="round"/>
+    <path d="M22 6h20a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3h-2l2 14c6 2 9 6 9 10a3 3 0 0 1-3 3H17a3 3 0 0 1-3-3c0-4 3-8 9-10l2-14h-2a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3z" style="fill:var(--cor, #F2A0C0)" stroke="#121316" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M28.5 19l-1.2 8.5" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  </symbol>
+  <symbol id="a-estrela" viewBox="0 0 64 64">
+    <path d="M32 6l7.1 17.3 18.6 1.4-14.3 12 4.5 18.1L32 45l-15.9 9.8 4.5-18.1-14.3-12 18.6-1.4z" style="fill:var(--cor, #FFE27A)" stroke="#121316" stroke-width="3" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="a-brilho" viewBox="0 0 64 64">
+    <path d="M32 4C34 22 42 30 60 32 42 34 34 42 32 60 30 42 22 34 4 32 22 30 30 22 32 4z" style="fill:var(--cor, #C6F36B)" stroke="#121316" stroke-width="3" stroke-linejoin="round"/>
+  </symbol>
+  <symbol id="a-coracao" viewBox="0 0 64 64">
+    <path d="M32 54C14 42 6 32 6 22c0-9 7-15 15-15 5 0 9 3 11 7 2-4 6-7 11-7 8 0 15 6 15 15 0 10-8 20-26 32z" style="fill:var(--cor, #DCCBFF)" stroke="#121316" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M15 19c1-4 4-6 7-6" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>
+  </symbol>
+  <symbol id="seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
 </svg>
 
-<header class="topo" id="topo">
-  <div class="moldura topo-dentro">
-    <a class="marca" href="#inicio" aria-label="Sinapse, início">
-      <span class="marca-chapa"><svg width="20" height="20"><use href="#logo"/></svg></span>
-      Sinapse
-    </a>
-    <nav class="nav" id="nav" aria-label="Seções">
-      <a href="#como">Como funciona</a>
-      <a href="#recursos">Recursos</a>
-      <a href="#revisao">Revisão</a>
-      <a href="#quem">Para quem</a>
-    </nav>
-    <a class="btn btn-cheio" href="/app">Entrar no app</a>
-    <button type="button" class="menu-botao" id="menuBotao" aria-expanded="false" aria-controls="nav" aria-label="Abrir menu">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
-    </button>
-  </div>
+<!-- ═══ A barra que flutua ═══ -->
+<header class="barra" id="barra">
+  <a class="marca" href="#inicio" aria-label="Sinapse, início">
+    <svg class="marca-simbolo" aria-hidden="true"><use href="#marca"/></svg>
+    sinapse
+  </a>
+  <a class="btn btn-grifo btn-pequeno" href="/app">Login</a>
 </header>
 
 <main id="inicio">
   <!-- ═══ Abertura ═══ -->
   <section class="abertura pontilhado">
-    <div class="moldura abertura-grade">
-      <div>
-        <span class="selo-topo"><i>✓</i> Resumo, flashcard e revisão no mesmo lugar</span>
-        <h1 class="titulo">
-          <span class="linha">Estude menos.</span>
-          <span class="linha"><span class="grifada">Lembre mais.</span></span>
-        </h1>
-        <p class="chamada">Escreva e grife seus resumos numa folha de verdade, transforme <b>qualquer trecho em flashcard com um clique</b> e deixe a revisão espaçada decidir o que volta amanhã, e o que só volta daqui a uma semana.</p>
-        <div class="acoes">
-          <a class="btn btn-rosa" href="/app">
-            Começar a estudar
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-          </a>
-          <a class="btn btn-vazio" href="#como">Ver como funciona</a>
+    <div class="moldura">
+      <h1 class="titulo"><span class="linha">Estude menos.</span> <span class="linha"><span class="grifada" id="grifada"><span class="grifada-texto" id="grifadaTexto">Lembre mais.</span></span></span></h1>
+      <p class="chamada">Escreva e grife seus resumos, transforme qualquer trecho em flashcard com um clique e revise na hora certa. Tudo no navegador, sem instalar nada.</p>
+      <div class="acoes">
+        <a class="btn btn-grifo" href="/app">Começar a usar <svg width="18" height="18"><use href="#seta"/></svg></a>
+        <a class="btn btn-vazio" href="#ferramentas">Conhecer os gênios</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ O palco: o computador, com a rolagem passeando pelo app ═══ -->
+  <section class="palco" id="palco" aria-label="Demonstração: um passeio pelo Sinapse">
+    <div class="palco-janela pontilhado">
+      <div class="computador" id="computador">
+        <!-- A legenda do passeio: em que parte do app a tela está. -->
+        <div class="passeio" id="passeio" aria-hidden="true">
+          <div class="passeio-cartao" id="passeioCartao"><span class="passeio-num" id="passeioNum" style="background:var(--rosa)">1</span><strong id="passeioTitulo">Dashboard</strong><span class="tx" id="passeioTexto">Seu estudo num relance, com o mapa de calor dos dias</span></div>
+          <div class="passeio-pontos" id="passeioPontos"><i class="aqui"></i><i></i><i></i><i></i><i></i></div>
         </div>
+        <div class="computador-tampa">
+        <div class="tela">
+          <div class="tela-janela" aria-hidden="true"><i style="background:var(--rosa)"></i><i style="background:var(--manteiga)"></i><i style="background:var(--lima)"></i><span>sinapse.app</span></div>
+          <div class="app">
+            <div class="tela-lado">
+              <span class="tela-marca">sinapse</span>
+              <div class="lado-menu" id="ladoMenu">
+                <i class="lado-marcador"></i>
+                <span class="ativo"><b style="background:var(--lima)">▦</b>Dashboard</span>
+                <span><b style="background:var(--rosa)">✎</b>Arquivos</span>
+                <span><b style="background:var(--manteiga)">❏</b>Decks</span>
+                <span><b style="background:var(--ceu)">◔</b>Pomodoro</span>
+                <span><b style="background:var(--lilas)">✦</b>Agente de IA</span>
+              </div>
+              <div class="lado-perfil"><span class="tela-avatar"><img src="/lp/estudante-lilas.jpg" alt="" width="600" height="720"></span><span><strong>Ana</strong><small>R1 · Clínica</small></span></div>
+            </div>
+            <div class="app-area">
+
+              <!-- 1. Dashboard: os números e o mapa de calor. -->
+              <div class="cena ativa">
+                <div class="cena-topo"><h5>Bom dia, Ana ☀️</h5><span class="selo-app" style="background:var(--manteiga)">🔥 12 dias seguidos</span></div>
+                <div class="numeros">
+                  <div class="numero" style="background:var(--rosa)"><small>Cards revisados</small><b data-conta="248">0</b></div>
+                  <div class="numero" style="background:var(--ceu)"><small>Minutos na semana</small><b data-conta="415">0</b></div>
+                  <div class="numero" style="background:var(--lima)"><small>Acertos</small><b data-conta="86" data-fim="%">0%</b></div>
+                </div>
+                <div class="calor-caixa">
+                  <header><span>Seu estudo nas últimas 20 semanas</span><small>menos <i style="background:#F1F2EE"></i><i style="background:#E9F9C9"></i><i style="background:#C6F36B"></i><i style="background:#9BD43A"></i><i style="background:#5E8F1C"></i> mais</small></header>
+                  <div class="calor-grade" id="calorGrade"></div>
+                  <span class="medalha pula" id="medalha">Recorde de foco! ✳</span>
+                </div>
+              </div>
+
+              <!-- 2. Arquivos: o texto digitado, o grifo e o card que nasce. -->
+              <div class="cena cena-editor">
+                <div class="editor-topo">
+                  <span class="editor-trilha">Cardiologia / <b>SCA</b></span>
+                  <div class="editor-barra" aria-hidden="true"><span>↶</span><span>B</span><span><i>I</i></span><span>U</span><span>Título</span><span>Lista</span><span class="grifo">Grifo</span></div>
+                </div>
+                <div class="editor-corpo">
+                  <div class="editor-folha">
+                    <h4>Síndrome coronariana aguda</h4>
+                    <div style="position:relative">
+                      <p class="editor-texto"><span id="digAntes"></span><span class="marcado" id="digGrifo"></span><span id="digDepois"></span><span class="cursor" id="cursor"></span></p>
+                      <div class="balao-trecho" id="balao"><span>Grifo</span><span>Nota</span><span class="ativo" id="balaoCriar">Criar card</span></div>
+                    </div>
+                    <div class="editor-resto" aria-hidden="true"><i style="width:96%"></i><i style="width:88%"></i><i style="width:60%"></i><i class="sub"></i><i style="width:92%"></i><i style="width:78%"></i></div>
+                    <span class="mais-card pula" id="maisCard">+1 card em SCA ✳</span>
+                  </div>
+                  <div class="editor-cards">
+                    <span class="tela-rotulo">Novo card</span>
+                    <p>O trecho grifado vira a pergunta, e a resposta vem junto.</p>
+                    <div class="editor-previa" id="previa">
+                      <span>Pergunta</span><i style="width:90%"></i><i style="width:64%"></i>
+                      <p>Com ECG dentro dos critérios, é preciso esperar os marcadores de necrose?</p>
+                      <span style="margin-top:.6em">Resposta</span><i style="width:80%"></i>
+                      <p>Não: a reperfusão começa sem esperar.</p>
+                    </div>
+                    <div class="editor-salvar">Salvar no deck<b>SCA ⌄</b></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 3. Decks: a revisão, com o card virando e a nota. -->
+              <div class="cena">
+                <div class="cena-topo"><h5>Revisão de hoje</h5><span class="selo-app" style="background:var(--rosa)">12 cards na fila</span></div>
+                <div class="decks-corpo">
+                  <div class="decks-lista">
+                    <div class="deck aqui"><i style="background:var(--rosa)">♥</i><div><strong>SCA</strong><small>Cardiologia · 19 cards</small></div><em>5</em></div>
+                    <div class="deck"><i style="background:var(--ceu)">✳</i><div><strong>Asma</strong><small>Pneumologia · 9 cards</small></div><em>4</em></div>
+                    <div class="deck"><i style="background:var(--manteiga)">★</i><div><strong>Hiponatremia</strong><small>Nefrologia · 6 cards</small></div><em>3</em></div>
+                    <div class="deck-meta">Meta do dia<span><i id="metaDia"></i></span><span style="height:auto;background:none;border:0"><b id="metaConta">4</b> de 12 cards</span></div>
+                  </div>
+                  <div class="revisao">
+                    <div class="flash" id="flash">
+                      <div class="flash-girador">
+                        <div class="flash-face frente"><small>Pergunta · SCA</small><p>Com ECG dentro dos critérios, é preciso esperar os marcadores de necrose para tratar?</p><small>toque para virar ↻</small></div>
+                        <div class="flash-face verso"><small>Resposta</small><p>Não. Com o ECG dentro dos critérios, a reperfusão começa sem esperar os marcadores de necrose.</p><small>do seu resumo</small></div>
+                      </div>
+                      <span class="volta pula" id="volta">✳ volta em 3 dias</span>
+                    </div>
+                    <div class="notas-graus"><span class="g1">Errei<small>de novo</small></span><span class="g2">Difícil<small>amanhã</small></span><span class="g3" id="grauBom">Bom<small>em 3 dias</small></span><span class="g4">Fácil<small>em 8 dias</small></span></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 4. Pomodoro: o anel enchendo, com o assunto do arquivo. -->
+              <div class="cena">
+                <div class="cena-topo"><h5>Pomodoro</h5><span class="selo-app" style="background:var(--ceu)">Ciclo 3 de 4</span></div>
+                <div class="pomo-corpo">
+                  <div class="pomo-relogio">
+                    <div class="pomo-anel" id="pomoAnel">
+                      <svg viewBox="0 0 120 120"><circle class="trilho" cx="60" cy="60" r="50"/><circle class="arco" cx="60" cy="60" r="50" pathLength="1"/></svg>
+                      <div class="pomo-tempo"><b id="pomoTempo">18:00</b><small>foco em <strong>SCA</strong></small></div>
+                      <span class="pomo-tomate pula ver">🍅</span>
+                    </div>
+                    <div class="pomo-ciclos"><i class="feito"></i><i class="feito"></i><i class="agora"></i><i></i></div>
+                  </div>
+                  <div class="pomo-lado">
+                    <div class="pomo-info" style="background:var(--rosa-lavado);border-color:var(--tinta)"><small>Assunto do ciclo</small><strong>SCA · Cardiologia</strong><span>vem do arquivo aberto</span></div>
+                    <div class="pomo-info"><small>Foco na semana</small><div class="barras"><i style="--h:45%"></i><i style="--h:70%"></i><i style="--h:30%"></i><i style="--h:85%"></i><i style="--h:60%"></i><i class="hoje" style="--h:95%"></i><i style="--h:12%"></i></div><span>hoje: 3 ciclos · 75 min</span></div>
+                    <div class="pomo-botoes"><span class="escuro">Pausar</span><span>Pular</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 5. Agente de IA: o pedido e os cards que saem do resumo. -->
+              <div class="cena">
+                <div class="cena-topo"><h5>Agente de IA</h5><span class="selo-app" style="background:var(--lilas)">✦ lê os seus arquivos</span></div>
+                <div class="sugestoes" aria-hidden="true"><span>Resuma o arquivo SCA</span><span class="usada">Crie cards do meu resumo</span><span>Me faça 5 perguntas</span><span>Explique como num plantão</span></div>
+                <div class="chat">
+                  <div class="msg eu" data-em=".765">Faz 3 cards sobre reperfusão na SCA, a partir do meu resumo? 🙏</div>
+                  <div class="msg ia" data-em=".78" data-ate=".8"><span class="ia-rosto">✦</span><span class="pontinhos"><i></i><i></i><i></i></span></div>
+                  <div class="msg ia" data-em=".8"><span class="ia-rosto">✦</span><div>Pronto! Tirei do seu arquivo <b>SCA</b>:<div class="ia-cards"><span class="ia-card pula" data-em=".815" style="--g:-3deg;background:var(--manteiga)"><small>Card 1</small>Qual o tempo porta-balão?</span><span class="ia-card pula" data-em=".83" style="--g:2deg;background:var(--rosa)"><small>Card 2</small>E o porta-agulha na trombólise?</span><span class="ia-card pula" data-em=".845" style="--g:-2deg;background:var(--lima)"><small>Card 3</small>Quais os critérios de reperfusão?</span></div></div></div>
+                </div>
+                <div class="chat-campo"><span>Pergunte ao seu resumo…</span><b>↑</b></div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+        </div>
+        <div class="computador-base" aria-hidden="true"></div>
       </div>
 
-      <div class="mosaico" id="mosaico">
-        <div class="coluna">
-          <figure class="foto surge">
-            <img src="/lp/estudante-rosa-asteriscos.jpg" alt="Estudante sorrindo com o celular na mão, sobre fundo rosa" width="600" height="720" loading="eager">
-          </figure>
-          <figure class="foto mostarda surge">
-            <img src="/lp/estudante-mostarda-asteriscos.jpg" alt="Estudante pensativa, de suéter, sobre fundo amarelo" width="600" height="720" loading="eager">
-          </figure>
-        </div>
-        <div class="coluna desce">
-          <figure class="foto azul surge">
-            <img src="/lp/estudante-azul-asteriscos.jpg" alt="Estudante sorrindo sobre fundo azul claro" width="600" height="720" loading="eager">
-          </figure>
-          <figure class="foto laranja surge">
-            <img src="/lp/estudante-laranja-asteriscos.jpg" alt="Estudante surpresa olhando o celular, sobre fundo laranja" width="600" height="720" loading="eager">
-          </figure>
-        </div>
-
-        <div class="adesivos" aria-hidden="true">
-          <svg class="adesivo" viewBox="0 0 64 64" style="left:21%;top:0%;--giro:-14deg;--tam:74px">
-            <path d="M32 44v17" stroke="#121316" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" stroke-width="3.5"/>
-            <path d="M22 6h20a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3h-2l2 14c6 2 9 6 9 10a3 3 0 0 1-3 3H17a3 3 0 0 1-3-3c0-4 3-8 9-10l2-14h-2a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3z" style="fill:var(--rosa)" stroke="#121316" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-            <path d="M28.5 19l-1.2 8.5" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
-          </svg>
-          <svg class="adesivo" viewBox="0 0 64 64" style="left:86%;top:4%;--giro:12deg;--tam:78px;--atraso:-1.5s">
-            <path d="M32 6l7.1 17.3 18.6 1.4-14.3 12 4.5 18.1L32 45l-15.9 9.8 4.5-18.1-14.3-12 18.6-1.4z" style="fill:var(--manteiga)" stroke="#121316" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-          </svg>
-          <svg class="adesivo" viewBox="0 0 64 64" style="left:47%;top:3%;--giro:0deg;--tam:42px;--atraso:-3s">
-            <path d="M32 4C34 22 42 30 60 32 42 34 34 42 32 60 30 42 22 34 4 32 22 30 30 22 32 4z" style="fill:var(--ceu)" stroke="#121316" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-          </svg>
-          <svg class="adesivo" viewBox="0 0 64 64" style="left:-7%;top:45%;--giro:-8deg;--tam:70px;--atraso:-2s">
-            <path d="M32 4C34 22 42 30 60 32 42 34 34 42 32 60 30 42 22 34 4 32 22 30 30 22 32 4z" style="fill:var(--lima)" stroke="#121316" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-          </svg>
-          <svg class="adesivo" viewBox="0 0 64 64" style="left:43%;top:90%;--giro:10deg;--tam:68px;--atraso:-4s">
-            <path d="M32 54C14 42 6 32 6 22c0-9 7-15 15-15 5 0 9 3 11 7 2-4 6-7 11-7 8 0 15 6 15 15 0 10-8 20-26 32z" style="fill:var(--lilas)" stroke="#121316" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
-            <path d="M15 19c1-4 4-6 7-6" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>
-          </svg>
+      <!-- O fim: a curva do esquecimento, com e sem revisão. -->
+      <div class="resultado" id="resultado" aria-hidden="true">
+        <div class="curva">
+          <div class="curva-topo">
+            <div>
+              <span class="curva-rotulo">A curva do esquecimento</span>
+              <h3>Cada revisão empurra o esquecimento <em>para longe.</em></h3>
+            </div>
+            <div class="curva-memoria" id="curvaMemoria"><small>Memória</small><b id="curvaPct">100%</b><span id="curvaModo">sem revisar</span></div>
+          </div>
+          <div class="curva-grafico" id="curvaGrafico">
+            <svg viewBox="0 0 1000 400" preserveAspectRatio="none">
+              <g class="curva-grade"><line x1="40" x2="980" y1="40" y2="40"/><line x1="40" x2="980" y1="120" y2="120"/><line x1="40" x2="980" y1="200" y2="200"/><line x1="40" x2="980" y1="280" y2="280"/><line x1="40" x2="980" y1="360" y2="360"/></g>
+              <line class="curva-prova" x1="940" x2="940" y1="20" y2="360"/>
+              <path class="curva-sem" id="curvaSem"/>
+              <path class="curva-com" id="curvaCom"/>
+            </svg>
+            <span class="curva-ponta" id="curvaPonta"></span>
+            <span class="curva-y" style="top:10%">100%</span>
+            <span class="curva-y" style="top:50%">50%</span>
+            <span class="curva-y" style="top:90%">0%</span>
+            <span class="curva-x hoje" style="left:7%">hoje</span>
+            <span class="curva-x" style="left:22%">dia 1</span>
+            <span class="curva-x" style="left:39%">dia 4</span>
+            <span class="curva-x" style="left:59%">dia 12</span>
+            <span class="curva-x" style="left:80%">dia 33</span>
+            <span class="curva-x prova" style="left:94%">🏁 a prova</span>
+            <span class="curva-sem-rotulo" id="curvaSemRotulo" style="left:44%;top:81%">sem revisar: em 4 dias, quase tudo some</span>
+            <div class="curva-marco" data-x="70" style="left:7%;top:10%"><span class="curva-chip pula" style="background:var(--rosa);--g:-4deg"><i>✳</i><span>Card criado<small>do seu grifo</small></span></span></div>
+            <div class="curva-marco" data-x="220" style="left:22%;top:10%"><span class="curva-chip pula" style="background:var(--manteiga);--g:3deg"><i>1</i><span>Difícil<small>volta amanhã</small></span></span></div>
+            <div class="curva-marco" data-x="390" style="left:39%;top:10%"><span class="curva-chip pula" style="background:var(--lima);--g:-3deg"><i>2</i><span>Bom<small>volta em 3 dias</small></span></span></div>
+            <div class="curva-marco" data-x="590" style="left:59%;top:10%"><span class="curva-chip pula" style="background:var(--lima);--g:2deg"><i>3</i><span>Bom<small>volta em 8 dias</small></span></span></div>
+            <div class="curva-marco" data-x="800" style="left:80%;top:10%"><span class="curva-chip pula" style="background:var(--ceu);--g:-2deg"><i>4</i><span>Fácil<small>volta em 21 dias</small></span></span></div>
+            <div class="curva-chegada" id="curvaChegada"><span class="confetes" id="confetes"></span><span class="curva-selo pula">Lembrou na prova! ✳</span></div>
+          </div>
+          <div class="curva-legenda"><span><i></i>com o Sinapse: revisões na hora certa</span><span><i class="sem"></i>sem revisar</span></div>
         </div>
       </div>
     </div>
   </section>
 
-  <div class="faixa-caixa"><div class="faixa" aria-hidden="true">
-    <div class="faixa-trilho" id="faixa">
-      <span>Medicina</span><span>Direito</span><span>Engenharia</span><span>Enfermagem</span><span>Psicologia</span><span>Odontologia</span><span>Administração</span><span>Arquitetura</span><span>Farmácia</span><span>Pedagogia</span><span>Concursos públicos</span><span>Residência médica</span><span>OAB</span><span>ENEM e vestibular</span>
-    </div>
-  </div></div>
-
-  <!-- ═══ Como funciona ═══ -->
-  <section class="secao" id="como">
+  <!-- ═══ Os gênios: os agentes de IA do sistema ═══ -->
+  <section class="secao" id="ferramentas">
     <div class="moldura">
-      <span class="sobretitulo surge">Como funciona</span>
-      <h2 class="surge">Do resumo à memória<br>em três gestos.</h2>
-      <p class="secao-intro surge">Você não precisa sair do texto para estudar. O que você grifa vira pergunta, e a pergunta volta na hora em que ia ser esquecida.</p>
-
-      <div class="passos">
-        <div class="passo surge"><span class="num">01</span><h3>Escreva e grife</h3><p>Uma folha A4 com a barra do Google Docs. Cole do Gemini, de um PDF, de onde for.</p></div>
-        <div class="passo surge"><span class="num">02</span><h3>Vire card</h3><p>Selecione um trecho e toque em “Criar flashcard”. A resposta já vem pronta.</p></div>
-        <div class="passo surge"><span class="num">03</span><h3>Revise</h3><p>Errei, Difícil, Bom ou Fácil: você diz como foi, o card diz quando volta.</p></div>
+      <div class="cabeca">
+        <h2 class="surge">Gênios de plantão, dentro do app.</h2>
+        <p class="surge">Os agentes de IA do Sinapse têm a cara de quem entende do assunto. Eles leem o seu arquivo e respondem na aba de IA, cada um do seu jeito.</p>
+        <a class="btn btn-lima surge" href="/app">Estudar com eles</a>
       </div>
 
-      <!-- A demonstração: dá para usar aqui mesmo. -->
-      <div class="demo">
-        <div class="demo-folha surge">
-          <div class="barrinha" aria-hidden="true"><span>↶</span><span>↷</span><span>Título 2</span><span>B</span><span><i>I</i></span><span><u>U</u></span><span style="background:var(--rosa);border-color:var(--tinta);color:var(--tinta)">Grifo</span></div>
+      <div class="mural">
+        <figure class="peca genio surge" style="--fundo:var(--manteiga)">
+          <div class="genio-retrato"><span class="selo-ia">Agente de IA</span><svg class="caricatura" data-genio="einstein" viewBox="0 0 200 222" role="img" aria-label="Caricatura de Albert Einstein"></svg></div>
+          <div class="genio-app"><div class="genio-app-abas"><span>Cards</span><span>Notas</span><span class="on">IA</span><em>Relatividade</em></div><p class="eu">Não entendi a dilatação do tempo.</p><div class="genio-fala"><span class="rosto" data-rosto="einstein"></span><p>Imagine que você está num trem quase à velocidade da luz, com um relógio de luz na mão. Agora olhe de fora...</p></div></div>
+          <figcaption><i data-rosto="einstein"></i><span><strong>Albert Einstein</strong><small>Física, com experimentos mentais</small></span></figcaption>
+        </figure>
+        <figure class="peca genio surge" style="--fundo:#BFE6CF">
+          <div class="genio-retrato"><span class="selo-ia">Agente de IA</span><svg class="caricatura" data-genio="hipocrates" viewBox="0 0 200 222" role="img" aria-label="Caricatura de Hipócrates"></svg></div>
+          <div class="genio-app"><div class="genio-app-abas"><span>Cards</span><span>Notas</span><span class="on">IA</span><em>SCA</em></div><p class="eu">Dor torácica há 2h, supra de V1 a V4.</p><div class="genio-fala"><span class="rosto" data-rosto="hipocrates"></span><p>Qual parede está sofrendo? E o que você pede antes de qualquer marcador?</p></div></div>
+          <figcaption><i data-rosto="hipocrates"></i><span><strong>Hipócrates</strong><small>Medicina, caso a caso</small></span></figcaption>
+        </figure>
+        <figure class="peca genio surge" style="--fundo:var(--lilas)">
+          <div class="genio-retrato"><span class="selo-ia">Agente de IA</span><svg class="caricatura" data-genio="socrates" viewBox="0 0 200 222" role="img" aria-label="Caricatura de Sócrates"></svg></div>
+          <div class="genio-app"><div class="genio-app-abas"><span>Cards</span><span>Notas</span><span class="on">IA</span><em>Ética</em></div><p class="eu">O que é justiça?</p><div class="genio-fala"><span class="rosto" data-rosto="socrates"></span><p>Boa pergunta. E o que você chamaria de injusto?</p></div></div>
+          <figcaption><i data-rosto="socrates"></i><span><strong>Sócrates</strong><small>Só responde com perguntas</small></span></figcaption>
+        </figure>
+        <figure class="peca peca-escolha surge">
+          <h3>Com quem você quer estudar hoje?</h3>
+          <p>Cada arquivo tem o seu especialista na aba de IA.</p>
+          <div class="escolha-grade">
+            <span style="--fundo:var(--manteiga)"><i data-rosto="einstein"></i>Einstein</span>
+            <span class="on" style="--fundo:#BFE6CF"><i data-rosto="hipocrates"></i>Hipócrates</span>
+            <span style="--fundo:var(--ceu)"><i data-rosto="curie"></i>Curie</span>
+            <span style="--fundo:var(--lilas)"><i data-rosto="socrates"></i>Sócrates</span>
+            <span style="--fundo:var(--rosa-lavado)"><i data-rosto="machado"></i>Machado</span>
+            <span style="--fundo:#FFD9B8"><i data-rosto="newton"></i>Newton</span>
+          </div>
+          <figcaption><i>✳</i><span><strong>Escolha o especialista</strong><small>Ele lê o seu arquivo antes de responder</small></span></figcaption>
+        </figure>
+        <figure class="peca genio surge" style="--fundo:var(--ceu)">
+          <div class="genio-retrato"><span class="selo-ia">Agente de IA</span><svg class="caricatura" data-genio="curie" viewBox="0 0 200 222" role="img" aria-label="Caricatura de Marie Curie"></svg></div>
+          <div class="genio-app"><div class="genio-app-abas"><span>Cards</span><span>Notas</span><span class="on">IA</span><em>Estequiometria</em></div><p class="eu">Balanceia essa equação pra mim?</p><div class="genio-fala"><span class="rosto" data-rosto="curie"></span><p>Antes, conte os oxigênios de cada lado. Quantos você achou?</p></div></div>
+          <figcaption><i data-rosto="curie"></i><span><strong>Marie Curie</strong><small>Química, com rigor de laboratório</small></span></figcaption>
+        </figure>
+        <figure class="peca genio surge" style="--fundo:#E8DCC6">
+          <div class="genio-retrato"><span class="selo-ia">Agente de IA</span><svg class="caricatura" data-genio="darwin" viewBox="0 0 200 222" role="img" aria-label="Caricatura de Charles Darwin"></svg></div>
+          <figcaption><i data-rosto="darwin"></i><span><strong>Charles Darwin</strong><small>Biologia, ligando tudo pela evolução</small></span></figcaption>
+        </figure>
+        <figure class="peca genio surge" style="--fundo:var(--rosa-lavado)">
+          <div class="genio-retrato"><span class="selo-ia">Agente de IA</span><svg class="caricatura" data-genio="machado" viewBox="0 0 200 222" role="img" aria-label="Caricatura de Machado de Assis"></svg></div>
+          <div class="genio-app"><div class="genio-app-abas"><span>Cards</span><span>Notas</span><span class="on">IA</span><em>Redação ENEM</em></div><p class="eu">Revisa meu parágrafo?</p><div class="genio-fala"><span class="rosto" data-rosto="machado"></span><p>Três “que” numa frase só, leitor. Cortemos dois e fiquemos amigos.</p></div></div>
+          <figcaption><i data-rosto="machado"></i><span><strong>Machado de Assis</strong><small>Português e redação</small></span></figcaption>
+        </figure>
+        <figure class="peca genio surge" style="--fundo:#F2E3B3">
+          <div class="genio-retrato"><span class="selo-ia">Agente de IA</span><svg class="caricatura" data-genio="rui" viewBox="0 0 200 222" role="img" aria-label="Caricatura de Rui Barbosa"></svg></div>
+          <div class="genio-app"><div class="genio-app-abas"><span>Cards</span><span>Notas</span><span class="on">IA</span><em>Processo Civil</em></div><p class="eu">Qual o prazo da apelação?</p><div class="genio-fala"><span class="rosto" data-rosto="rui"></span><p>15 dias úteis, pelo art. 1.003, § 5º, do CPC. Quer que eu vire isso em card?</p></div></div>
+          <figcaption><i data-rosto="rui"></i><span><strong>Rui Barbosa</strong><small>Direito, artigo por artigo</small></span></figcaption>
+        </figure>
+        <figure class="peca genio surge" style="--fundo:#E3D5FF">
+          <div class="genio-retrato"><span class="selo-ia">Agente de IA</span><svg class="caricatura" data-genio="ada" viewBox="0 0 200 222" role="img" aria-label="Caricatura de Ada Lovelace"></svg></div>
+          <figcaption><i data-rosto="ada"></i><span><strong>Ada Lovelace</strong><small>Lógica e programação</small></span></figcaption>
+        </figure>
+        <figure class="peca genio surge" style="--fundo:#FFD9B8">
+          <div class="genio-retrato"><span class="selo-ia">Agente de IA</span><svg class="caricatura" data-genio="newton" viewBox="0 0 200 222" role="img" aria-label="Caricatura de Isaac Newton"></svg></div>
+          <div class="genio-app"><div class="genio-app-abas"><span>Cards</span><span>Notas</span><span class="on">IA</span><em>Cálculo I</em></div><p class="eu">Derivada de x²?</p><div class="genio-fala"><span class="rosto" data-rosto="newton"></span><p class="digitando"><b></b><b></b><b></b></p></div></div>
+          <figcaption><i data-rosto="newton"></i><span><strong>Isaac Newton</strong><small>Matemática, linha por linha</small></span></figcaption>
+        </figure>
+        <figure class="peca genio surge" style="--fundo:#D7EEF7">
+          <div class="genio-retrato"><span class="selo-ia">Agente de IA</span><svg class="caricatura" data-genio="nightingale" viewBox="0 0 200 222" role="img" aria-label="Caricatura de Florence Nightingale"></svg></div>
+          <div class="genio-app"><div class="genio-app-abas"><span>Cards</span><span>Notas</span><span class="on">IA</span><em>Saúde coletiva</em></div><p class="eu">Como leio esse gráfico de mortalidade?</p><div class="genio-fala"><span class="rosto" data-rosto="nightingale"></span><p>Comece pelo eixo: o que cada fatia representa? Os números contam uma história.</p></div></div>
+          <figcaption><i data-rosto="nightingale"></i><span><strong>Florence Nightingale</strong><small>Enfermagem e estatística</small></span></figcaption>
+        </figure>
+        <figure class="peca genio surge" style="--fundo:#F6D2C4">
+          <div class="genio-retrato"><span class="selo-ia">Agente de IA</span><svg class="caricatura" data-genio="davinci" viewBox="0 0 200 222" role="img" aria-label="Caricatura de Leonardo da Vinci"></svg></div>
+          <figcaption><i data-rosto="davinci"></i><span><strong>Leonardo da Vinci</strong><small>Mapas mentais e desenho</small></span></figcaption>
+        </figure>
+        <figure class="peca genio surge" style="--fundo:#E9F0C8">
+          <div class="genio-retrato"><span class="selo-ia">Agente de IA</span><svg class="caricatura" data-genio="platao" viewBox="0 0 200 222" role="img" aria-label="Caricatura de Platão"></svg></div>
+          <div class="genio-app"><div class="genio-app-abas"><span>Cards</span><span>Notas</span><span class="on">IA</span><em>Filosofia</em></div><p class="eu">Me ajuda a defender minha tese?</p><div class="genio-fala"><span class="rosto" data-rosto="platao"></span><p>Primeiro, as premissas. Diga-me em que você acredita, e por quê.</p></div></div>
+          <figcaption><i data-rosto="platao"></i><span><strong>Platão</strong><small>Filosofia e argumentação</small></span></figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Na prática ═══ -->
+  <section class="secao pratica pontilhado" id="pratica" style="border-top:2px solid var(--tinta)">
+    <div class="moldura">
+      <div class="cabeca">
+        <h2 class="surge">O Sinapse na prática</h2>
+        <p class="surge">O resumo colado do PDF vira texto grifado, e o que foi grifado vira pergunta. Num arquivo só.</p>
+        <a class="btn btn-lima surge" href="/app">Entrar no app</a>
+      </div>
+
+      <div style="position:relative">
+        <svg class="adesivo" style="left:2%;top:120px;--tam:84px;--giro:-12deg;--cor:var(--manteiga)"><use href="#a-estrela"/></svg>
+        <svg class="adesivo" style="right:3%;top:60px;--tam:70px;--giro:14deg;--cor:var(--rosa);--atraso:-2s"><use href="#a-coracao"/></svg>
+        <svg class="adesivo" style="right:6%;bottom:40px;--tam:64px;--giro:-6deg;--cor:var(--lima);--atraso:-4s"><use href="#a-brilho"/></svg>
+        <svg class="adesivo" style="left:5%;bottom:20px;--tam:66px;--giro:18deg;--cor:var(--ceu);--atraso:-1s"><use href="#a-alfinete"/></svg>
+
+        <div class="quadro surge">
+          <span class="selo-assunto">cardio</span>
+          <div class="quem-estuda">
+            <img src="/lp/estudante-lilas.jpg" alt="Estudante rindo, de jaqueta jeans, sobre fundo lilás" width="600" height="720" loading="lazy">
+            <span class="nome">Residência<small>Clínica médica</small></span>
+          </div>
+          <div class="antes">
+            <span class="etiqueta-quadro">Antes</span>
+            <p>sindrome coronariana aguda - diante de ECG dentro dos criterios nao se espera resultado dos marcadores de necrose p/ iniciar tto e terapia de reperfusao. angioplastia primaria tto de escolha tempo porta balao ate 90min em hosp com hemodinamica ate 120 se transferencia. trombolise porta agulha 30min criterios de reperfusao: reducao supra ST &gt;50% em 60-90min, melhora da dor, arritmias de reperfusao...</p>
+          </div>
+          <div class="depois">
+            <span class="etiqueta-quadro">Depois</span>
+            <div>
+              <h4>Síndrome coronariana aguda</h4>
+              <p>Com ECG dentro dos critérios, <mark>não se espera os marcadores de necrose</mark> para tratar.</p>
+              <p>Angioplastia primária com <mark class="l">porta-balão até 90 min</mark>; trombólise com <mark class="m">porta-agulha até 30 min</mark>.</p>
+            </div>
+            <div class="depois-cards">
+              <span>Esperar a troponina para tratar?</span>
+              <span>Porta-balão aceitável?</span>
+              <span>Critérios de reperfusão?</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Revise brincando ═══ -->
+  <section class="faixa-rosa" id="demo">
+    <div class="moldura">
+      <h2 class="surge">Revise brincando</h2>
+      <div class="faixa-rosa-linha">
+        <p>Grife, vire card, revise.<br>Experimente aqui mesmo, sem criar conta.</p>
+        <a class="btn btn-lima" href="/app">Entrar no app</a>
+      </div>
+
+      <div class="demo surge">
+        <div class="demo-folha">
+          <div class="barrinha" aria-hidden="true"><span>↶</span><span>↷</span><span>Título 2</span><span>B</span><span><i>I</i></span><span><u>U</u></span><span style="background:var(--lima);border-color:var(--tinta);color:var(--tinta)">Grifo</span></div>
           <h3>Síndrome coronariana aguda</h3>
           <p>Diante de um ECG dentro dos critérios, <span class="trecho" role="button" tabindex="0" data-pergunta="Com ECG dentro dos critérios, é preciso esperar os marcadores de necrose para tratar?" data-resposta="Não. Diante de um ECG dentro dos critérios, não se espera o resultado dos marcadores de necrose para iniciar o tratamento e a terapia de reperfusão.">não se espera o resultado dos marcadores de necrose</span> para iniciar o tratamento e a terapia de reperfusão.</p>
           <p>A angioplastia primária é o tratamento de escolha, com <span class="trecho" role="button" tabindex="0" data-pergunta="Qual o tempo porta-balão aceitável em hospital com hemodinâmica?" data-resposta="Até 90 minutos (tempo porta-balão) em hospital com serviço de hemodinâmica; até 120 minutos quando é preciso transferir.">tempo porta-balão de até 90 minutos</span> em hospital com hemodinâmica.</p>
           <p>Na trombólise, <span class="trecho" role="button" tabindex="0" data-pergunta="Quais os critérios de reperfusão após trombólise química?" data-resposta="Redução do supra de ST > 50% em 60 a 90 minutos, melhora da dor, arritmias de reperfusão e pico precoce dos marcadores de necrose.">a redução do supra de ST acima de 50%</span> é um dos critérios de reperfusão.</p>
-          <div class="dica-demo"><span class="ponto"></span> Toque num trecho grifado para criar o flashcard.</div>
+          <div class="dica-demo"><span class="ponto"></span> Toque num trecho sublinhado para criar o flashcard.</div>
         </div>
 
         <div class="demo-lado">
           <div class="card-demo" id="cardDemo" role="button" tabindex="0" aria-label="Flashcard: toque para virar">
             <div class="girador">
               <div class="face frente">
-                <span class="rotulo"><span>Frente</span><span id="demoDeck">SCA</span></span>
+                <span class="rotulo"><span>Frente</span><span>SCA</span></span>
                 <p class="vazio" id="demoVazio">Seu card aparece aqui.</p>
                 <p class="texto" id="demoPergunta" hidden></p>
                 <span class="rotulo" id="demoVirar" hidden><span>toque para ver a resposta</span><span>↻</span></span>
@@ -596,154 +1411,536 @@ h2 {
     </div>
   </section>
 
-  <!-- ═══ Recursos ═══ -->
-  <section class="secao pontilhado" id="recursos" style="border-block:2px solid var(--tinta)">
-    <div class="moldura">
-      <span class="sobretitulo surge">Recursos</span>
-      <h2 class="surge">Tudo o que um bom<br>caderno de estudo tem.</h2>
-      <p class="secao-intro surge">E algumas coisas que caderno nenhum faz.</p>
-
-      <div class="recursos">
-        <article class="recurso r-editor surge">
-          <span class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M8 13h8M8 17h5"/></svg></span>
-          <div class="mini-barra" aria-hidden="true"><span class="on">Título 1</span><span>Negrito</span><span>Listas</span><span>Tabela</span><span>Imagem</span><span>Link</span><span>Índice</span></div>
-          <h3>Um editor de verdade, em folha A4</h3>
-          <p>A barra do Google Docs no lugar em que a mão espera: títulos, listas, tabelas com células mescladas, imagens, margens e um índice que se monta sozinho a partir dos seus títulos.</p>
-        </article>
-        <article class="recurso r-notas surge">
-          <span class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/></svg></span>
-          <h3>Grifos e notas presos ao trecho</h3>
-          <p>Sete cores de marca-texto e comentários que ficam grudados na frase.</p>
-          <div class="cores-grifo" aria-hidden="true"><i style="background:#F2A0C0"></i><i style="background:#7BD389"></i><i style="background:#8AB8FF"></i><i style="background:#FFE27A"></i><i style="background:#FFB86B"></i><i style="background:#C4A5FF"></i><i style="background:#FF8A80"></i></div>
-        </article>
-        <article class="recurso r-pomodoro surge">
-          <span class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 1.5M9 2h6"/></svg></span>
-          <h3>Pomodoro que sabe o assunto</h3>
-          <p>Ciclos de foco e pausa. Aberto num arquivo, o ciclo já leva o nome dele.</p>
-        </article>
-        <article class="recurso r-pastas surge">
-          <span class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg></span>
-          <h3>Pastas, etiquetas e busca</h3>
-          <p>Uma pasta por especialidade, filtros por situação e etiqueta, tudo à mão.</p>
-        </article>
-        <article class="recurso r-inbox surge">
-          <span class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11Z"/></svg></span>
-          <h3>O que fazer hoje, numa lista</h3>
-          <p>Cards para revisar, rascunhos esperando um deck, arquivos em branco.</p>
-        </article>
-        <article class="recurso r-ia surge">
-          <span class="tag">prévia</span>
-          <span class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z"/></svg></span>
-          <h3>Um assistente que leu o seu arquivo</h3>
-          <p>Resumo por seção, flashcards sugeridos e explicação do trecho selecionado, ao lado do texto, sem trocar de aba.</p>
-        </article>
-        <article class="recurso r-celular surge">
-          <span class="ico"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/></svg></span>
-          <h3>No celular, do jeito certo</h3>
-          <p>A barra de formatação cabe numa faixa, o índice abre de lado e a revisão cabe no polegar. Revise na fila do café.</p>
-        </article>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══ Revisão espaçada ═══ -->
-  <section class="secao" id="revisao">
-    <div class="moldura">
-      <span class="sobretitulo surge">Revisão espaçada</span>
-      <h2 class="surge">Cada acerto empurra<br>o card mais para longe.</h2>
-      <p class="secao-intro surge">Você não decide o que revisar: o Sinapse decide, pelo que você respondeu da última vez. O que você erra volta logo; o que você domina aparece cada vez menos.</p>
-
-      <div class="escada-caixa surge" id="escada">
-        <div class="escada" aria-hidden="true">
-          <div class="degrau"><div class="barra">1</div><small>hoje</small></div>
-          <div class="degrau"><div class="barra">2</div><small>amanhã</small></div>
-          <div class="degrau"><div class="barra">3</div><small>em 3 dias</small></div>
-          <div class="degrau"><div class="barra">4</div><small>em 8 dias</small></div>
-          <div class="degrau"><div class="barra">5</div><small>semanas depois</small></div>
-        </div>
-        <div class="escada-legenda">
-          <p><strong>Um card novo, respondido bem de novo e de novo.</strong> Os intervalos crescem conforme a facilidade de cada card: o botão diz, antes de você apertar, daqui a quanto tempo ele volta.</p>
-          <a class="btn btn-cheio" href="/app">Montar meu primeiro deck</a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═══ Para quem ═══ -->
-  <section class="secao pontilhado" id="quem" style="border-top:2px solid var(--tinta)">
-    <div class="moldura quem">
-      <div>
-        <span class="sobretitulo surge">Para quem</span>
-        <h2 class="surge">Para quem estuda para prova longa.</h2>
-        <p class="secao-intro surge">Residência, concurso, faculdade: quando o conteúdo é grande demais para caber na cabeça de uma vez, ele precisa voltar em partes.</p>
-        <div class="quem-lista surge" aria-label="Exemplos">
-          <span>Residência médica</span><span>ENAMED</span><span>Enare</span><span>Faculdade</span><span>Concursos</span><span>Revalida</span>
-        </div>
-      </div>
-      <div class="gente">
-        <figure class="foto surge">
-          <img src="/lp/estudante-lilas.jpg" alt="Estudante rindo, de jaqueta jeans, sobre fundo lilás" width="600" height="720" loading="lazy">
-          <figcaption>Residência</figcaption>
-        </figure>
-        <figure class="foto surge">
-          <img src="/lp/estudante-amarelo.jpg" alt="Estudante de óculos sorrindo sobre fundo amarelo" width="600" height="720" loading="lazy">
-          <figcaption>Concurso</figcaption>
-        </figure>
-        <figure class="foto surge">
-          <img src="/lp/estudante-ola.jpg" alt="Estudante acenando diante de uma parede colorida" width="600" height="720" loading="lazy">
-          <figcaption>Faculdade</figcaption>
-        </figure>
-      </div>
+  <!-- ═══ Dúvidas ═══ -->
+  <section class="moldura duvidas" id="duvidas">
+    <h2>Dúvidas? A gente responde.</h2>
+    <div class="perguntas">
+      <details>
+        <summary>Preciso instalar alguma coisa?<span class="mais" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary>
+        <p>Não. O Sinapse roda no navegador, no computador e no celular. É só entrar no app e abrir o primeiro arquivo.</p>
+      </details>
+      <details>
+        <summary>Posso colar o que eu já tenho?<span class="mais" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary>
+        <p>Pode. Cole do PDF, do Google Docs ou do Gemini: títulos, listas e tabelas chegam no lugar, e o índice se monta a partir dos títulos.</p>
+      </details>
+      <details>
+        <summary>Como a revisão decide quando o card volta?<span class="mais" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary>
+        <p>Pelo que você respondeu da última vez. Errei traz o card de volta na mesma sessão; Difícil, Bom e Fácil empurram cada vez mais para longe, e o botão mostra o intervalo antes de você apertar.</p>
+      </details>
+      <details>
+        <summary>Funciona bem no celular?<span class="mais" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary>
+        <p>Funciona. A barra de formatação cabe numa faixa, o índice abre de lado e a revisão foi feita para o polegar.</p>
+      </details>
+      <details>
+        <summary>Para que tipo de prova ele serve?<span class="mais" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary>
+        <p>Para prova longa, quando o conteúdo é grande demais para caber na cabeça de uma vez: residência médica, Revalida, concursos, OAB e a própria faculdade.</p>
+      </details>
     </div>
   </section>
 
   <!-- ═══ Convite ═══ -->
-  <section class="secao">
-    <div class="moldura">
-      <div class="convite surge">
-        <span class="estrela e1" aria-hidden="true">✳</span>
-        <span class="estrela e2" aria-hidden="true">✳</span>
-        <h2>Abra o seu primeiro resumo hoje.</h2>
-        <p>Cole o que você já tem, grife o que importa e deixe o Sinapse cuidar de quando revisar.</p>
-        <a class="btn btn-cheio" href="/app">
-          Começar a estudar
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
-        </a>
+  <section class="moldura" id="convite">
+    <div class="convite surge">
+      <h2>Comece a estudar.<br>Veja até onde você chega.</h2>
+      <a class="btn btn-cheio" href="/app">Entrar no app <svg width="18" height="18"><use href="#seta"/></svg></a>
+      <div class="convite-adesivos" aria-hidden="true">
+        <svg class="adesivo" style="left:0;top:10px;--tam:80px;--giro:-12deg;--cor:var(--rosa)"><use href="#a-coracao"/></svg>
+        <svg class="adesivo" style="left:80px;top:0;--tam:70px;--giro:10deg;--cor:var(--manteiga);--atraso:-2s"><use href="#a-estrela"/></svg>
+        <svg class="adesivo" style="left:56px;top:76px;--tam:60px;--giro:-4deg;--cor:var(--ceu);--atraso:-4s"><use href="#a-brilho"/></svg>
       </div>
+      <div class="marca-gigante" id="marcaGigante" aria-hidden="true"><span style="display:inline-block">sinapse</span></div>
     </div>
   </section>
 </main>
 
 <footer class="moldura rodape">
-  <a class="marca" href="#inicio"><span class="marca-chapa"><svg width="20" height="20"><use href="#logo"/></svg></span>Sinapse</a>
-  <span>Estudo ativo e revisão espaçada.</span>
+  <nav aria-label="Rodapé">
+    <span>© 2026 Sinapse</span>
+    <a href="#ferramentas">Gênios</a>
+    <a href="#demo">Demonstração</a>
+    <a href="#duvidas">Dúvidas</a>
+  </nav>
+  <a class="marca" href="#inicio"><svg class="marca-simbolo" aria-hidden="true"><use href="#marca"/></svg>sinapse</a>
 </footer>
 
 <script>
 (function () {
   var semMovimento = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var $ = function (id) { return document.getElementById(id); };
+  function limitar(v, a, b) { return Math.max(a, Math.min(b, v)); }
+  /* O pedaço `a..b` da rolagem, de 0 a 1. */
+  function trecho(p, a, b) { return limitar((p - a) / (b - a), 0, 1); }
+  function suave(t) { return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
 
-  /* O topo ganha fundo quando a página rola, e o menu do celular abre e fecha. */
-  var topo = document.getElementById("topo");
-  function pintarTopo() { topo.classList.toggle("rolou", window.scrollY > 10); }
-  window.addEventListener("scroll", pintarTopo, { passive: true });
-  pintarTopo();
-  var menuBotao = document.getElementById("menuBotao");
-  menuBotao.addEventListener("click", function () {
-    var aberto = topo.classList.toggle("aberto");
-    menuBotao.setAttribute("aria-expanded", String(aberto));
+
+  /* ── A frase grifada do título: troca de tempos em tempos, e o grifo troca
+     de cor junto, passando pelas cores de grifo do app. ── */
+  var grifada = $("grifada"), grifadaTexto = $("grifadaTexto");
+  var FRASES = [
+    ["Lembre mais.", "var(--lima)"],
+    ["Aprenda mais.", "var(--rosa)"],
+    ["Revise certo.", "var(--manteiga)"],
+    ["Passe na prova.", "var(--ceu)"],
+    ["Vá mais longe.", "var(--lilas)"]
+  ];
+  var fraseAtual = 0;
+  setTimeout(function () { grifada.classList.add("cheia"); }, semMovimento ? 0 : 500);
+  function trocarFrase() {
+    fraseAtual = (fraseAtual + 1) % FRASES.length;
+    grifada.classList.remove("cheia");
+    setTimeout(function () {
+      grifadaTexto.classList.add("trocando");
+      setTimeout(function () {
+        var antes = grifada.offsetWidth;
+        grifadaTexto.textContent = FRASES[fraseAtual][0];
+        /* A cor vai para a raiz: o grifo e o botão da barra leem dela. */
+        document.documentElement.style.setProperty("--grifo-cor", FRASES[fraseAtual][1]);
+        var depois = grifadaTexto.offsetWidth;
+        grifada.style.width = depois + "px";
+        /* O "Estude menos." reage: escorrega um pouco além para o lado em que
+           vai (a frase cresceu, ele vai para a esquerda) e volta. */
+        var vai = depois > antes ? -1 : 1;
+        estude.style.setProperty("--empurra", (vai * Math.min(18, Math.abs(depois - antes) * .25 + 6)) + "px");
+        estude.style.setProperty("--inclina", (vai * 2.2) + "deg");
+        estude.classList.remove("abre");
+        void estude.offsetWidth;
+        estude.classList.add("abre");
+        grifadaTexto.classList.remove("trocando");
+        setTimeout(function () { grifada.classList.add("cheia"); }, 220);
+      }, 200);
+    }, 360);
+  }
+  /* A largura fica escrita na frase para poder andar; no redimensionar (o
+     título muda de tamanho com a tela), ela é medida de novo, sem animar. */
+  var estude = grifada.parentElement.previousElementSibling;
+  function medirGrifada() {
+    grifada.style.transition = "none";
+    grifada.style.width = grifadaTexto.offsetWidth + "px";
+    void grifada.offsetWidth;
+    grifada.style.transition = "";
+  }
+  medirGrifada();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(medirGrifada);
+  window.addEventListener("resize", medirGrifada);
+  if (!semMovimento) setInterval(trocarFrase, 3200);
+
+  /* ── O palco ──────────────────────────────────────────────────────────
+     A rolagem dentro do palco vai de 0 a 1. Primeiro o computador chega; depois
+     a tela passeia pelas partes do app, uma de cada vez (o dashboard, um
+     arquivo, os decks, o pomodoro e o agente de IA), cada uma com a sua
+     animação presa à rolagem; no fim, o quadro do resultado sobe com o card
+     pronto. */
+  var palcoJanela = document.querySelector(".palco-janela");
+  var palco = $("palco"), computador = $("computador");
+  var cenas = Array.prototype.slice.call(computador.querySelectorAll(".cena"));
+  var ladoMenu = $("ladoMenu"), ladoItens = Array.prototype.slice.call(ladoMenu.querySelectorAll("span"));
+  var passeio = $("passeio"), passeioCartao = $("passeioCartao"), passeioNum = $("passeioNum");
+  var passeioTitulo = $("passeioTitulo"), passeioTexto = $("passeioTexto"), passeioPontos = $("passeioPontos").children;
+  var PASSEIO = [
+    { ate: .27, titulo: "Dashboard", texto: "Seu estudo num relance, com o mapa de calor dos dias", cor: "var(--rosa)" },
+    { ate: .47, titulo: "Arquivos", texto: "Escreva, grife, e o trecho vira card", cor: "var(--lima)" },
+    { ate: .62, titulo: "Decks", texto: "Cada card volta na hora certa de revisar", cor: "var(--manteiga)" },
+    { ate: .75, titulo: "Pomodoro", texto: "Foco cronometrado, com o assunto no relógio", cor: "var(--ceu)" },
+    { ate: 2, titulo: "Agente de IA", texto: "Peça cards e perguntas do seu próprio resumo", cor: "var(--lilas)" }
+  ];
+  var cenaAtual = 0;
+
+  /* O mapa de calor: 20 semanas de 7 dias, mais quente nas semanas recentes.
+     Cada quadradinho guarda a coluna (--c), e a onda acende da esquerda. */
+  var calorGrade = $("calorGrade");
+  var TONS_CALOR = ["", "#E9F9C9", "#C6F36B", "#9BD43A", "#5E8F1C"];
+  var semCalor = 3;
+  for (var col = 0; col < 20; col++) {
+    for (var dia = 0; dia < 7; dia++) {
+      semCalor = (semCalor * 53 + 17) % 97;
+      var forca = semCalor % 5;
+      if (col > 12 && forca < 2) forca += 2;
+      var cel = document.createElement("i");
+      cel.style.setProperty("--c", col);
+      if (forca) cel.style.setProperty("--cor", TONS_CALOR[forca]);
+      calorGrade.appendChild(cel);
+    }
+  }
+  var contadores = Array.prototype.slice.call(computador.querySelectorAll("[data-conta]"));
+  var medalha = $("medalha");
+
+  var digAntes = $("digAntes"), digGrifo = $("digGrifo"), digDepois = $("digDepois"), cursor = $("cursor");
+  var balao = $("balao"), balaoCriar = $("balaoCriar"), previa = $("previa"), maisCard = $("maisCard");
+  var TEXTO = ["Diante de um ECG dentro dos critérios, ", "não se espera o resultado dos marcadores de necrose", " para iniciar a reperfusão."];
+  var TOTAL = TEXTO[0].length + TEXTO[1].length + TEXTO[2].length;
+
+  var flash = $("flash"), grauBom = $("grauBom"), volta = $("volta"), metaDia = $("metaDia"), metaConta = $("metaConta");
+  var pomoAnel = $("pomoAnel"), pomoTempo = $("pomoTempo");
+  var noChat = Array.prototype.slice.call(computador.querySelectorAll(".chat [data-em]"));
+
+  var resultado = $("resultado");
+
+  /* A curva do esquecimento. A memória cai como exp(-t/S); cada revisão a
+     devolve a 100% e aumenta S, então cada queda é mais lenta que a anterior.
+     As contas são no espaço do SVG: x de 70 (hoje) a 940 (a prova), y de 40
+     (100%) a 360 (0%). */
+  var REVISOES = [70, 220, 390, 590, 800], ESTABILIDADE = [70, 130, 260, 520, 1300], PROVA = 940;
+  function yDa(m) { return 40 + (100 - m) * 3.2; }
+  var dCom = "M70 40", dSem = "M70 40";
+  REVISOES.forEach(function (x0, k) {
+    var x1 = k < REVISOES.length - 1 ? REVISOES[k + 1] : PROVA;
+    for (var x = x0 + 5; x <= x1; x += 5) dCom += " L" + x + " " + yDa(100 * Math.exp(-(x - x0) / ESTABILIDADE[k])).toFixed(1);
+    if (k < REVISOES.length - 1) dCom += " L" + x1 + " 40";
   });
-  document.querySelectorAll("#nav a").forEach(function (a) {
-    a.addEventListener("click", function () { topo.classList.remove("aberto"); menuBotao.setAttribute("aria-expanded", "false"); });
+  for (var xs = 75; xs <= PROVA; xs += 5) dSem += " L" + xs + " " + yDa(100 * Math.exp(-(xs - 70) / 70)).toFixed(1);
+  var curvaCom = $("curvaCom"), curvaSem = $("curvaSem"), curvaPonta = $("curvaPonta");
+  curvaCom.setAttribute("d", dCom);
+  curvaSem.setAttribute("d", dSem);
+  var compCom = curvaCom.getTotalLength(), compSem = curvaSem.getTotalLength();
+  curvaCom.style.strokeDasharray = compCom;
+  curvaSem.style.strokeDasharray = "9 9";
+  var curvaPct = $("curvaPct"), curvaModo = $("curvaModo"), curvaMemoria = $("curvaMemoria"), curvaSemRotulo = $("curvaSemRotulo");
+  var curvaMarcos = Array.prototype.slice.call(resultado.querySelectorAll(".curva-marco"));
+  var curvaChegada = $("curvaChegada"), confetes = $("confetes");
+  ["var(--lima)", "var(--rosa)", "var(--manteiga)", "var(--ceu)", "var(--lilas)"].forEach(function (cor, n) {
+    for (var c = 0; c < 3; c++) {
+      var pedaco = document.createElement("i");
+      var ang = (n * 3 + c) / 15 * Math.PI * 2;
+      pedaco.style.setProperty("--c", cor);
+      pedaco.style.setProperty("--dx", Math.round(Math.cos(ang) * (60 + c * 28)) + "px");
+      pedaco.style.setProperty("--dy", Math.round(Math.sin(ang) * (50 + c * 24)) + "px");
+      pedaco.style.setProperty("--r", (ang * 180 / Math.PI + 220) + "deg");
+      confetes.appendChild(pedaco);
+    }
+  });
+  /* A linha tracejada não aceita o truque do traço que cresce; ela é
+     revelada por uma máscara de recorte que anda da esquerda. */
+  curvaSem.style.clipPath = "inset(0 100% 0 0)";
+
+  function mostrarCena(i) {
+    if (i === cenaAtual) return;
+    cenaAtual = i;
+    cenas.forEach(function (c, k) { c.classList.toggle("ativa", k === i); });
+    ladoMenu.style.setProperty("--item", i);
+    ladoItens.forEach(function (s, k) { s.classList.toggle("ativo", k === i); });
+    var passo = PASSEIO[i];
+    passeioNum.textContent = i + 1;
+    passeioNum.style.background = passo.cor;
+    passeioTitulo.textContent = passo.titulo;
+    passeioTexto.textContent = passo.texto;
+    passeioCartao.classList.remove("troca");
+    void passeioCartao.offsetWidth;
+    passeioCartao.classList.add("troca");
+    for (var k = 0; k < passeioPontos.length; k++) passeioPontos[k].classList.toggle("aqui", k === i);
+  }
+
+  /* As medidas do palco ficam guardadas e só são refeitas no redimensionar:
+     ler o layout a cada quadro, depois de mexer nos estilos, travava a cena. */
+  var med = {};
+  function medirPalco() {
+    med.topo = palco.getBoundingClientRect().top + window.scrollY;
+    med.curso = palco.offsetHeight - window.innerHeight;
+    med.altPc = computador.offsetHeight;
+    med.janela = palcoJanela.clientHeight;
+    med.estreita = window.innerWidth < 760;
+  }
+
+  function pintarPalco(pr) {
+    /* O passeio ocupa os primeiros 72% da rolagem (com a mesma régua de antes,
+       de 0 a .88); o resto é da curva do esquecimento. */
+    var p = Math.min(pr / .72, 1) * .88;
+    var estreita = med.estreita;
+
+    /* A chegada: o computador desce do alto, crescendo um pouco. */
+    var z = suave(trecho(p, 0, .1));
+    var margem = (estreita ? 10 : 18) * (1 - z);
+    resultado.style.setProperty("--mesa-margem", (estreita ? 10 : 18) + "px");
+    /* No passeio, o computador encolhe o bastante para caber inteiro na
+       altura da janela, com espaço para a legenda em cima. Parado, no começo
+       da página, ele fica com cerca de 68% da largura (no celular, a largura
+       toda), mais acima, entrando na abertura e cortado pelo pé da tela. */
+    var altPc = med.altPc;
+    var cabe = Math.min(1, (med.janela - (estreita ? 120 : 175)) / altPc);
+    var inicio = estreita ? cabe : Math.max(cabe, .85);
+    var escala = inicio + (cabe - inicio) * z;
+    computador.style.setProperty("--pc-escala", escala);
+    /* A escala é a partir do centro: o deslocamento conta a borda de cima já
+       encolhida, para o topo visível ficar onde deve. */
+    var topoNatural = med.janela / 2 - altPc / 2;
+    var topoAcima = margem - Math.min(altPc * inicio * .24, 150);
+    var desceInicio = topoAcima - topoNatural - altPc * (1 - inicio) / 2;
+    computador.style.setProperty("--pc-desce", ((1 - z) * desceInicio + z * window.innerHeight * .045) + "px");
+
+    /* Em que parte do passeio a tela está. */
+    var i = 0;
+    while (p >= PASSEIO[i].ate) i++;
+    mostrarCena(i);
+
+    /* 1. Dashboard: os números contam e o mapa acende em onda. */
+    var conta = suave(trecho(p, .08, .2));
+    contadores.forEach(function (el) { el.textContent = Math.round(Number(el.dataset.conta) * conta) + (el.dataset.fim || ""); });
+    calorGrade.style.setProperty("--onda", trecho(p, .1, .22));
+    medalha.classList.toggle("ver", p > .22);
+
+    /* 2. Arquivos: a digitação letra a letra, o grifo, o balão e o card. */
+    var n = Math.round(TOTAL * trecho(p, .285, .38));
+    var a = TEXTO[0].length, b = a + TEXTO[1].length;
+    digAntes.textContent = TEXTO[0].slice(0, Math.min(n, a));
+    digGrifo.textContent = n > a ? TEXTO[1].slice(0, Math.min(n, b) - a) : "";
+    digDepois.textContent = n > b ? TEXTO[2].slice(0, n - b) : "";
+    cursor.style.visibility = p > .385 ? "hidden" : "visible";
+    digGrifo.style.setProperty("--grifo", (trecho(p, .385, .41) * 100) + "%");
+    balao.classList.toggle("visivel", p > .41);
+    balaoCriar.classList.toggle("apertado", p > .425 && p < .435);
+    previa.classList.toggle("cheia", p > .435);
+    maisCard.classList.toggle("ver", p > .44);
+
+    /* 3. Decks: o card vira, o "Bom" é apertado e a volta é marcada. */
+    flash.classList.toggle("virado", p > .52);
+    grauBom.classList.toggle("apertado", p > .56);
+    volta.classList.toggle("ver", p > .57);
+    var feitos = p > .57 ? 5 : 4;
+    metaConta.textContent = feitos;
+    metaDia.style.setProperty("--meta", (feitos / 12 * 100) + "%");
+
+    /* 4. Pomodoro: o anel enche e o relógio desce. */
+    var feito = .28 + .25 * trecho(p, .62, .75);
+    pomoAnel.style.setProperty("--pomo", 1 - feito);
+    var resta = Math.round(25 * 60 * (1 - feito));
+    pomoTempo.textContent = String(Math.floor(resta / 60)).padStart(2, "0") + ":" + String(resta % 60).padStart(2, "0");
+
+    /* 5. Agente de IA: cada fala e cada card aparecem na sua vez. */
+    noChat.forEach(function (el) {
+      el.classList.toggle("ver", p > Number(el.dataset.em));
+      if (el.dataset.ate) el.hidden = p > Number(el.dataset.ate);
+    });
+
+    /* O quadro escuro sobe com a curva do esquecimento. */
+    var q = suave(trecho(pr, .72, .77));
+    /* A legenda do passeio só aparece depois que a rolagem começa. */
+    passeio.style.opacity = Math.min(trecho(p, .03, .09), 1 - q);
+    resultado.style.setProperty("--res-y", ((1 - q) * 110) + "%");
+    resultado.style.setProperty("--res-escala", .92 + .08 * q);
+
+    /* Primeiro a linha cinza, sem revisar, despenca; depois a lima. */
+    var g = trecho(pr, .77, .81), c = trecho(pr, .815, .965);
+    curvaSem.style.clipPath = "inset(-20px " + ((1 - g) * 100) + "% -20px 0)";
+    curvaSemRotulo.classList.toggle("ver", g >= 1);
+    curvaCom.style.strokeDashoffset = compCom * (1 - c);
+    var ponta, modo;
+    if (c > 0) { ponta = curvaCom.getPointAtLength(compCom * c); modo = "com o Sinapse"; }
+    else { ponta = curvaSem.getPointAtLength(compSem * g); modo = "sem revisar"; }
+    curvaPonta.style.left = (ponta.x / 10) + "%";
+    curvaPonta.style.top = (ponta.y / 4) + "%";
+    var mem = Math.round(100 - (ponta.y - 40) / 3.2);
+    curvaPct.textContent = mem + "%";
+    curvaModo.textContent = modo;
+    curvaMemoria.style.setProperty("--mem-cor", mem >= 75 ? "var(--lima)" : mem >= 40 ? "var(--manteiga)" : "var(--rosa)");
+    curvaMarcos.forEach(function (m, k) {
+      m.firstElementChild.classList.toggle("ver", k === 0 ? q >= 1 : (c > 0 && ponta.x >= Number(m.dataset.x) - 1));
+    });
+    var chegou = c >= 1;
+    curvaChegada.classList.toggle("chegou", chegou);
+    curvaChegada.lastElementChild.classList.toggle("ver", chegou);
+  }
+
+  /* ── A marca gigante sobe um pouco quando o convite chega ── */
+  var marcaGigante = $("marcaGigante"), convite = $("convite");
+  function pintarMarca() {
+    var r = convite.getBoundingClientRect();
+    var t = limitar(1 - (r.bottom - window.innerHeight * .4) / window.innerHeight, 0, 1);
+    marcaGigante.style.setProperty("--marca-y", (30 - 16 * t) + "%");
+  }
+
+  /* A marca ocupa a largura inteira do convite, de ponta a ponta: mede a
+     palavra num tamanho conhecido e escala até caber. */
+  function ajustarMarca() {
+    marcaGigante.style.fontSize = "100px";
+    var largura = marcaGigante.firstChild.offsetWidth;
+    var cabe = marcaGigante.clientWidth * .98;
+    if (largura) marcaGigante.style.fontSize = (100 * cabe / largura) + "px";
+  }
+  ajustarMarca();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(ajustarMarca);
+  window.addEventListener("resize", ajustarMarca);
+
+  var pedido = false;
+  var barra = $("barra");
+
+  /* ── As perguntas abrem e fecham como gaveta: a altura anda com mola e a
+     resposta entra deslizando. Um clique no meio do caminho volta de onde
+     está, sem pulo. ── */
+  var CURVA_GAVETA = "cubic-bezier(.2, .8, .2, 1)";
+  document.querySelectorAll(".perguntas details").forEach(function (det) {
+    var resumo = det.querySelector("summary"), resposta = det.querySelector("p");
+    var anim = null;
+    if (det.open) det.classList.add("aberto");
+    resumo.addEventListener("click", function (e) {
+      e.preventDefault();
+      var abrir = !det.classList.contains("aberto");
+      det.classList.toggle("aberto", abrir);
+      if (semMovimento) { det.open = abrir; return; }
+      var de = det.offsetHeight;
+      if (anim) anim.cancel();
+      det.open = true;
+      var ate = abrir ? det.scrollHeight : resumo.offsetHeight + 2;
+      det.style.overflow = "hidden";
+      anim = det.animate({ height: [de + "px", ate + "px"] }, { duration: abrir ? 520 : 380, easing: CURVA_GAVETA });
+      resposta.animate(
+        abrir ? { opacity: [0, 1], transform: ["translateY(-10px)", "none"] } : { opacity: [1, 0], transform: ["none", "translateY(-6px)"] },
+        { duration: abrir ? 480 : 240, easing: CURVA_GAVETA, delay: abrir ? 90 : 0, fill: "backwards" }
+      );
+      anim.onfinish = function () {
+        anim = null;
+        det.open = abrir;
+        det.style.overflow = "";
+      };
+    });
   });
 
-  /* A faixa corre sem emenda: o conteúdo vai duplicado, e a animação anda
-     metade do comprimento. */
-  var faixa = document.getElementById("faixa");
-  faixa.innerHTML += faixa.innerHTML;
+  /* A cena não segue a rolagem ao pé da letra: o progresso mostrado corre
+     atrás do progresso real com um amortecimento, e os trancos da roda do
+     mouse viram movimento contínuo. Um salto grande (um link, o recarregar
+     no meio da página) vai direto. */
+  var pVisto = null, ultimoQuadro = 0, correndo = false;
+  function alvoPalco() { return med.curso > 0 ? limitar((window.scrollY - med.topo) / med.curso, 0, 1) : 0; }
+  function correr(t) {
+    var alvo = alvoPalco();
+    var dt = ultimoQuadro ? Math.min(t - ultimoQuadro, 64) : 16;
+    ultimoQuadro = t;
+    if (pVisto === null || semMovimento || Math.abs(alvo - pVisto) > .25) pVisto = alvo;
+    else pVisto += (alvo - pVisto) * (1 - Math.exp(-dt / 120));
+    if (Math.abs(alvo - pVisto) < .0002) pVisto = alvo;
+    pintarPalco(pVisto);
+    if (pVisto !== alvo) requestAnimationFrame(correr);
+    else { correndo = false; ultimoQuadro = 0; }
+  }
+  function quadro() {
+    pedido = false;
+    barra.classList.toggle("rolou", window.scrollY > 40);
+    pintarMarca();
+    if (!correndo) { correndo = true; requestAnimationFrame(correr); }
+  }
+  function pedir() { if (!pedido) { pedido = true; requestAnimationFrame(quadro); } }
+  function remedir() { medirPalco(); pVisto = null; pedir(); }
+  window.addEventListener("scroll", pedir, { passive: true });
+  window.addEventListener("resize", remedir);
+  window.addEventListener("load", remedir);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(remedir);
+  medirPalco();
+  quadro();
 
-  /* Entrada ao rolar: cada peça aparece quando chega na tela, uma vez só. */
-  var surgem = document.querySelectorAll(".surge, #escada");
+  /* ── Os gênios: as caricaturas dos agentes de IA ──────────────────────
+     Cada gênio é montado com as mesmas peças, como um boneco de adesivo:
+     corpo, cabelo de trás, orelhas, rosto, cabelo da frente, olhos grandes,
+     nariz, boca, barba ou bigode, óculos e o que for marca registrada dele
+     (a coroa de louros, a boina, a maçã). Cabeça grande e corpo pequeno, que
+     é o que faz uma caricatura. O traço é o da casa: contorno preto grosso. */
+  var TRACO = 'stroke="#121316" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"';
+  var PELE = { clara: "#F6D2B5", media: "#E5B48C", morena: "#B9825A" };
+  var GENIOS = {
+    einstein:    { pele: "clara", cabelo: "nuvem", corCabelo: "#FFFFFF", bigode: "fino", corBarba: "#FFFFFF", sobrancelha: "farta", roupa: "#8A8D96", gola: "pulover", boca: "lingua" },
+    hipocrates:  { pele: "media", cabelo: "lados", corCabelo: "#F2F2EE", barba: "curta", corBarba: "#F2F2EE", roupa: "#FFFFFF", gola: "toga", enfeite: "louro", nariz: "grande" },
+    socrates:    { pele: "media", cabelo: "lados", corCabelo: "#C9C9C4", barba: "cheia", corBarba: "#C9C9C4", roupa: "#FFFFFF", gola: "toga", nariz: "bola", sobrancelha: "farta" },
+    curie:       { pele: "clara", cabelo: "coque", corCabelo: "#6B4428", roupa: "#2B2D33", gola: "vestido", boca: "leve" },
+    darwin:      { pele: "clara", cabelo: "lados", corCabelo: "#FFFFFF", barba: "longa", corBarba: "#FFFFFF", roupa: "#3B3F4A", gola: "terno", sobrancelha: "farta", nariz: "grande" },
+    machado:     { pele: "morena", cabelo: "crespo", corCabelo: "#2B2018", barba: "curta", corBarba: "#2B2018", roupa: "#24262C", gola: "gravata", oculos: "pincene" },
+    rui:         { pele: "clara", cabelo: "lados", corCabelo: "#BDBDB8", bigode: "guidao", corBarba: "#F5F5F2", roupa: "#24262C", gola: "gravata", oculos: "redondo" },
+    ada:         { pele: "clara", cabelo: "cachos", corCabelo: "#4A2E1C", roupa: "#8E6CCF", gola: "vestido", boca: "leve" },
+    newton:      { pele: "clara", cabelo: "peruca", corCabelo: "#F4F1E8", roupa: "#C2412D", gola: "lenco", enfeite: "maca" },
+    nightingale: { pele: "clara", cabelo: "touca", corCabelo: "#4A2E1C", roupa: "#2E3A5C", gola: "avental", boca: "leve" },
+    davinci:     { pele: "media", cabelo: "longo", corCabelo: "#F2F2EE", barba: "longa", corBarba: "#F2F2EE", roupa: "#7A4A2A", gola: "terno", enfeite: "boina", sobrancelha: "farta" },
+    platao:      { pele: "media", cabelo: "crespo", corCabelo: "#8C8A84", barba: "cheia", corBarba: "#8C8A84", roupa: "#FFFFFF", gola: "toga" }
+  };
+
+  function caricatura(g) {
+    var pele = PELE[g.pele], cc = g.corCabelo, cb = g.corBarba || cc;
+    var s = "";
+    /* O corpo, pequeno, e a gola que diz a época. */
+    s += '<path d="M42 222 C44 186 70 172 100 172 C130 172 156 186 158 222 Z" fill="' + g.roupa + '" ' + TRACO + '/>';
+    if (g.gola === "toga") s += '<path d="M66 186 Q102 212 132 182" fill="none" ' + TRACO + '/><path d="M86 178 Q108 198 124 180" fill="none" stroke="#121316" stroke-width="2.5" stroke-linecap="round"/>';
+    if (g.gola === "terno" || g.gola === "gravata") s += '<path d="M86 172 L100 196 L114 172 Z" fill="#FFFFFF" ' + TRACO + '/>';
+    if (g.gola === "gravata") s += '<path d="M92 180 L100 186 L108 180 L108 192 L100 186 L92 192 Z" fill="#121316"/>';
+    if (g.gola === "pulover") s += '<path d="M78 176 Q100 192 122 176" fill="none" ' + TRACO + '/>';
+    if (g.gola === "vestido") s += '<path d="M80 178 Q100 196 120 178" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>';
+    if (g.gola === "lenco") s += '<path d="M86 174 Q100 200 114 174 Q108 194 100 196 Q92 194 86 174 Z" fill="#FFFFFF" ' + TRACO + '/>';
+    if (g.gola === "avental") s += '<path d="M74 222 L78 186 Q100 198 122 186 L126 222 Z" fill="#FFFFFF" ' + TRACO + '/>';
+
+    /* O cabelo de trás: o que aparece em volta do rosto. */
+    if (g.cabelo === "nuvem") {
+      [[42,72,24],[56,44,26],[82,28,26],[114,26,26],[142,38,26],[162,62,24],[170,92,20],[34,98,20],[30,124,16],[172,122,16],[100,22,22]].forEach(function (c) {
+        s += '<circle cx="' + c[0] + '" cy="' + c[1] + '" r="' + c[2] + '" fill="' + cc + '" ' + TRACO + '/>';
+      });
+    }
+    if (g.cabelo === "cachos" || g.cabelo === "peruca") {
+      for (var y = 92; y <= (g.cabelo === "peruca" ? 178 : 160); y += 17) {
+        s += '<circle cx="40" cy="' + y + '" r="15" fill="' + cc + '" ' + TRACO + '/><circle cx="160" cy="' + y + '" r="15" fill="' + cc + '" ' + TRACO + '/>';
+      }
+    }
+    if (g.cabelo === "longo") s += '<path d="M46 86 C30 140 36 182 58 202 L80 200 L68 112 Z M154 86 C170 140 164 182 142 202 L120 200 L132 112 Z" fill="' + cc + '" ' + TRACO + '/>';
+    if (g.cabelo === "coque") s += '<circle cx="100" cy="30" r="22" fill="' + cc + '" ' + TRACO + '/>';
+    if (g.cabelo === "touca") s += '<path d="M34 112 C28 48 64 22 100 22 C136 22 172 48 166 112 L172 168 L148 154 L150 104 C140 74 60 74 50 104 L52 154 L28 168 Z" fill="#FFFFFF" ' + TRACO + '/>';
+    if (g.cabelo === "lados") s += '<ellipse cx="44" cy="100" rx="14" ry="22" fill="' + cc + '" ' + TRACO + '/><ellipse cx="156" cy="100" rx="14" ry="22" fill="' + cc + '" ' + TRACO + '/>';
+
+    /* As orelhas e o rosto, grande. */
+    s += '<circle cx="44" cy="110" r="11" fill="' + pele + '" ' + TRACO + '/><circle cx="156" cy="110" r="11" fill="' + pele + '" ' + TRACO + '/>';
+    s += '<ellipse cx="100" cy="104" rx="56" ry="62" fill="' + pele + '" ' + TRACO + '/>';
+    if (g.cabelo === "lados" || g.cabelo === "touca") s += '<path d="M70 52 Q80 46 90 48" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" opacity=".7"/>';
+
+    /* O cabelo da frente. */
+    var tampa = 'M44 102 C40 52 70 32 100 32 C130 32 160 52 156 102 C150 80 130 66 100 66 C72 66 52 78 44 102 Z';
+    if (g.cabelo === "crespo" || g.cabelo === "coque" || g.cabelo === "cachos" || g.cabelo === "peruca" || g.cabelo === "longo") s += '<path d="' + tampa + '" fill="' + cc + '" ' + TRACO + '/>';
+    if (g.cabelo === "crespo" || g.cabelo === "peruca") {
+      [[56,58],[74,42],[100,36],[126,42],[144,58]].forEach(function (c) { s += '<circle cx="' + c[0] + '" cy="' + c[1] + '" r="12" fill="' + cc + '" ' + TRACO + '/>'; });
+    }
+    if (g.cabelo === "cachos" || g.cabelo === "coque") s += '<path d="M100 36 L100 62" stroke="#121316" stroke-width="3" stroke-linecap="round"/>';
+    if (g.cabelo === "touca") s += '<path d="M54 84 C62 60 138 60 146 84 C130 72 70 72 54 84 Z" fill="' + cc + '" ' + TRACO + '/>';
+
+    /* As sobrancelhas, os olhos grandes e o nariz. */
+    var sw = g.sobrancelha === "farta" ? 8 : 4.5, sc = g.sobrancelha === "farta" ? cb : "#121316";
+    s += '<path d="M68 82 Q80 74 92 82 M108 82 Q120 74 132 82" fill="none" stroke="' + (g.sobrancelha === "farta" ? "#121316" : sc) + '" stroke-width="' + (sw + (g.sobrancelha === "farta" ? 4 : 0)) + '" stroke-linecap="round"/>';
+    if (g.sobrancelha === "farta") s += '<path d="M68 82 Q80 74 92 82 M108 82 Q120 74 132 82" fill="none" stroke="' + sc + '" stroke-width="' + sw + '" stroke-linecap="round"/>';
+    s += '<circle cx="80" cy="100" r="11" fill="#FFFFFF" ' + TRACO + '/><circle cx="120" cy="100" r="11" fill="#FFFFFF" ' + TRACO + '/>';
+    s += '<circle cx="83" cy="102" r="5" fill="#121316"/><circle cx="117" cy="102" r="5" fill="#121316"/>';
+    s += '<circle cx="66" cy="128" r="9" fill="#F2A0C0" opacity=".55"/><circle cx="134" cy="128" r="9" fill="#F2A0C0" opacity=".55"/>';
+    if (g.nariz === "bola") s += '<circle cx="100" cy="124" r="14" fill="' + pele + '" ' + TRACO + '/>';
+    else if (g.nariz === "grande") s += '<path d="M100 106 C90 124 88 134 100 136 C110 137 114 130 108 124" fill="' + pele + '" ' + TRACO + '/>';
+    else s += '<path d="M100 108 C94 120 93 126 100 128 C106 129 109 125 106 121" fill="none" ' + TRACO + '/>';
+
+    /* A boca, e o que cobre a boca. */
+    if (g.boca === "lingua") s += '<path d="M84 142 Q100 162 116 142 Z" fill="#121316" ' + TRACO + '/><ellipse cx="100" cy="155" rx="9" ry="11" fill="#F2A0C0" ' + TRACO + '/>';
+    else if (g.boca === "leve") s += '<path d="M88 144 Q100 152 112 144" fill="none" ' + TRACO + '/>';
+    else s += '<path d="M84 142 Q100 156 116 142" fill="none" ' + TRACO + '/>';
+    if (g.barba === "cheia") s += '<path d="M46 112 C48 168 72 194 100 196 C128 194 152 168 154 112 C146 134 132 140 120 136 C112 150 88 150 80 136 C68 140 54 134 46 112 Z" fill="' + cb + '" ' + TRACO + '/><ellipse cx="100" cy="146" rx="9" ry="5" fill="#121316"/>';
+    if (g.barba === "longa") s += '<path d="M48 114 C48 176 80 216 100 220 C120 216 152 176 152 114 C144 134 132 140 120 136 C112 150 88 150 80 136 C68 140 56 134 48 114 Z" fill="' + cb + '" ' + TRACO + '/><path d="M86 168 Q90 190 96 200 M114 168 Q110 190 104 200" fill="none" stroke="#121316" stroke-width="2.5" stroke-linecap="round" opacity=".5"/><ellipse cx="100" cy="146" rx="9" ry="5" fill="#121316"/>';
+    if (g.barba === "curta") s += '<path d="M56 126 C62 162 84 176 100 176 C116 176 138 162 144 126 C132 142 116 146 100 144 C84 146 68 142 56 126 Z" fill="' + cb + '" ' + TRACO + '/>';
+    if (g.bigode === "fino") s += '<path d="M74 132 C82 120 96 124 100 130 C104 124 118 120 126 132 C118 140 106 138 100 134 C94 138 82 140 74 132 Z" fill="' + cb + '" ' + TRACO + '/>';
+    if (g.bigode === "guidao") s += '<path d="M62 128 C74 114 94 118 100 128 C106 118 126 114 138 128 C144 134 150 126 152 120 C154 136 134 146 118 140 C110 138 104 134 100 132 C96 134 90 138 82 140 C66 146 46 136 48 120 C50 126 56 134 62 128 Z" fill="' + cb + '" ' + TRACO + '/>';
+
+    /* Os óculos. */
+    if (g.oculos === "pincene") s += '<circle cx="80" cy="100" r="15" fill="none" ' + TRACO + '/><circle cx="120" cy="100" r="15" fill="none" ' + TRACO + '/><path d="M95 98 Q100 92 105 98" fill="none" ' + TRACO + '/>';
+    if (g.oculos === "redondo") s += '<circle cx="80" cy="100" r="16" fill="none" ' + TRACO + '/><circle cx="120" cy="100" r="16" fill="none" ' + TRACO + '/><path d="M96 98 L104 98 M64 96 L46 92 M136 96 L154 92" fill="none" ' + TRACO + '/>';
+
+    /* A marca registrada de cada um. */
+    if (g.enfeite === "louro") {
+      [[50,74,-50],[58,58,-38],[72,46,-22],[88,40,-8],[112,40,8],[128,46,22],[142,58,38],[150,74,50]].forEach(function (f) {
+        s += '<ellipse cx="' + f[0] + '" cy="' + f[1] + '" rx="11" ry="6" transform="rotate(' + f[2] + " " + f[0] + " " + f[1] + ')" fill="#7BC27A" ' + TRACO + '/>';
+      });
+    }
+    if (g.enfeite === "boina") s += '<path d="M36 64 C40 30 160 26 166 60 C150 70 60 74 36 64 Z" fill="#C2412D" ' + TRACO + '/><circle cx="104" cy="32" r="5" fill="#C2412D" ' + TRACO + '/>';
+    if (g.enfeite === "maca") s += '<circle cx="104" cy="22" r="15" fill="#E5483B" ' + TRACO + '/><path d="M104 8 Q106 2 112 0" fill="none" ' + TRACO + '/><path d="M107 6 Q118 0 120 8 Q112 12 107 6 Z" fill="#7BC27A" stroke="#121316" stroke-width="2.5"/><path d="M84 6 l-6 -6 M128 14 l8 -4" stroke="#121316" stroke-width="3" stroke-linecap="round"/>';
+    return s;
+  }
+
+  /* A caricatura inteira no retrato; nos lugares pequenos (a legenda, a
+     conversa, a lista de escolha), só a cabeça, com o recorte mais fechado. */
+  Array.prototype.forEach.call(document.querySelectorAll("[data-genio]"), function (el) {
+    var g = GENIOS[el.dataset.genio];
+    if (g) el.innerHTML = caricatura(g);
+  });
+  Array.prototype.forEach.call(document.querySelectorAll("[data-rosto]"), function (el) {
+    var g = GENIOS[el.dataset.rosto];
+    if (!g) return;
+    el.innerHTML = '<svg viewBox="24 18 152 152" aria-hidden="true">' + caricatura(g) + "</svg>";
+  });
+
+  /* ── Entrada ao rolar: cada peça aparece quando chega na tela ── */
+  var surgem = document.querySelectorAll(".surge");
   if (semMovimento || !("IntersectionObserver" in window)) {
     surgem.forEach(function (el) { el.classList.add("visto"); });
   } else {
@@ -753,34 +1950,19 @@ h2 {
         e.target.classList.add("visto");
         olho.unobserve(e.target);
       });
-    }, { threshold: 0.15, rootMargin: "0px 0px -40px 0px" });
+    }, { threshold: 0.12, rootMargin: "0px 0px -40px 0px" });
     surgem.forEach(function (el, i) {
-      el.style.transitionDelay = (i % 4) * 70 + "ms";
+      el.style.transitionDelay = (i % 4) * 80 + "ms";
       olho.observe(el);
     });
   }
 
-  /* Na tela estreita, um adesivo posto em porcentagem pode sobrar para fora
-     da borda: ele volta para dentro. */
-  function encaixar() {
-    document.querySelectorAll(".adesivo").forEach(function (chip) {
-      chip.style.setProperty("--x", "0px");
-      var r = chip.getBoundingClientRect(), dx = 0;
-      if (r.right > window.innerWidth - 10) dx = window.innerWidth - 10 - r.right;
-      if (r.left + dx < 10) dx = 10 - r.left;
-      chip.style.setProperty("--x", dx + "px");
-    });
-  }
-  encaixar();
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(encaixar);
-  window.addEventListener("resize", encaixar);
-
-  /* A demonstração: grifar um trecho cria o card, tocar no card o vira, e o
-     grau diz quando ele voltaria. É o caminho do app, em miniatura. */
-  var card = document.getElementById("cardDemo");
-  var vazio = document.getElementById("demoVazio"), pergunta = document.getElementById("demoPergunta");
-  var resposta = document.getElementById("demoResposta"), virar = document.getElementById("demoVirar");
-  var graus = document.querySelectorAll("#demoGraus button"), status = document.getElementById("demoStatus");
+  /* ── A demonstração: grifar um trecho cria o card, tocar no card o vira, e
+     o grau diz quando ele voltaria. É o caminho do app, em miniatura. ── */
+  var card = $("cardDemo");
+  var vazio = $("demoVazio"), pergunta = $("demoPergunta");
+  var resposta = $("demoResposta"), virar = $("demoVirar");
+  var graus = document.querySelectorAll("#demoGraus button"), status = $("demoStatus");
   var temCard = false, feitos = 0;
 
   document.querySelectorAll(".trecho").forEach(function (t) {
