@@ -15,11 +15,11 @@
    A ordem das seções segue a da Tinker: a barra que flutua, o título enorme
    numa linha, o computador que a rolagem traz para o centro (onde o card nasce
    na frente de quem lê), o mosaico de ferramentas, o caso na prática, a faixa
-   colorida com a demonstração, as perguntas, e o convite com a marca gigante.
+   colorida com os depoimentos, as perguntas, e o convite com a marca gigante.
 
-   A pele é a da casa: contorno preto grosso com sombra dura, adesivos tortos
-   que boiam, a folha pontilhada, o rosa do app de acento, e lilás, lima e
-   manteiga, que são as cores de grifo que ele já oferece.
+   A pele é a da casa: contorno preto grosso com sombra dura, a folha
+   pontilhada, o rosa do app de acento, e lilás, lima e manteiga,
+   que são as cores de grifo que ele já oferece.
    ───────────────────────────────────────────────────────────────────────── */
 :root {
   --papel: #F8F8F6;
@@ -562,6 +562,32 @@ h1.titulo {
 .passeio-pontos i { height: .6em; width: .6em; border-radius: 100px; background: rgba(18, 19, 22, .25); transition: width .45s var(--mola), background .3s; }
 .passeio-pontos i.aqui { width: 1.9em; background: var(--tinta); }
 
+/* Os rabiscos em volta do computador. Ficam dentro dele, então crescem e
+   andam junto: nas margens, setas e círculos a caneta se desenham até a
+   parte da tela que importa. */
+.rabiscos { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 7; }
+.rabiscos path {
+  fill: none; stroke: var(--tinta); stroke-linecap: round; stroke-linejoin: round;
+  stroke-dasharray: 1 2; stroke-dashoffset: 1;
+  transition: stroke-dashoffset .25s var(--curva);
+}
+.rabiscos .rab-circulo { stroke: var(--rosa-forte); }
+.rabiscos .ver path { stroke-dashoffset: 0; }
+.rabiscos .ver .rab-circulo { transition: stroke-dashoffset .55s var(--curva) .1s; }
+.rabiscos .ver .rab-seta { transition: stroke-dashoffset .6s var(--curva) .35s; }
+.rabiscos .ver .rab-ponta { transition: stroke-dashoffset .2s var(--curva) .9s; }
+.rab-nota {
+  position: absolute; z-index: 7; width: calc(var(--pc-larg) * .12);
+  font-family: var(--mao); font-weight: 700; font-size: calc(var(--pc-larg) / 46); line-height: 1;
+  pointer-events: none; opacity: 0;
+  transform: translate(var(--tx, 0), var(--ty, -100%)) rotate(var(--g, 0deg)) scale(.6);
+  transition: opacity .15s, transform .25s var(--curva);
+}
+.rab-nota.esq { --tx: -100%; text-align: right; }
+.rab-nota.abaixo { --ty: 0%; }
+.rab-nota.ver { opacity: 1; transform: translate(var(--tx, 0), var(--ty, -100%)) rotate(var(--g, 0deg)); transition: opacity .2s, transform .5s var(--mola); }
+
+
 /* A miniatura do app usada fora do palco (a peça do celular, nos recursos). */
 .tela-topo { display: flex; align-items: center; justify-content: space-between; }
 .tela-rotulo { font-weight: 800; font-size: 1.1em; display: flex; align-items: center; gap: .3em; }
@@ -819,56 +845,93 @@ h2 {
   .perfil:hover img, .detalhe-foto:hover img, .detalhe-foto:hover svg { rotate: none; translate: none; }
 }
 
-/* Os adesivos soltos. Contorno preto grosso e a sombra dura, que no SVG vem
-   do drop-shadow. A cor de cada um vem de `--cor`. */
-.adesivo {
-  position: absolute; z-index: 6; pointer-events: none;
-  width: var(--tam, 56px); height: var(--tam, 56px);
-  filter: drop-shadow(3px 3px 0 var(--tinta));
-  transform: rotate(var(--giro, 0deg));
-  animation: balanca 6s ease-in-out infinite;
-  animation-delay: var(--atraso, 0s);
-}
-@keyframes balanca {
-  0%, 100% { transform: translateY(0) rotate(var(--giro, 0deg)); }
-  50% { transform: translateY(-8px) rotate(calc(var(--giro, 0deg) + 3deg)); }
-}
-
 /* ─── Na prática: antes do Sinapse contra depois dele ───────────────────
-   Dois painéis e uma ideia só: vermelho é quem estuda sem método, verde é
-   quem estuda com o Sinapse. Cada um tem uma pessoa desenhada e uma frase,
-   e nada mais. Os desenhos seguem os adesivos da página: contorno preto
-   grosso e cor chapada. No celular os dois empilham e o VS fica entre eles. */
+   Duas fotos e uma ideia só: vermelho é quem estuda sem método, arrancando
+   os cabelos; verde é quem estuda com o Sinapse, feliz. A cor está na moldura e
+   no selo, e a foto fala o resto. No celular as duas empilham e o VS fica
+   entre elas. Fotos do Pexels (licença livre): 3807738 e 10375905. */
 .pratica { padding-bottom: 170px; overflow: clip; }
 .duelo {
-  --vermelho: #FF6B5E; --vermelho-lavado: #FFE3DF;
-  --verde: #5CC97B; --verde-lavado: #E2F7E6;
-  position: relative; margin: 70px auto 0; width: min(960px, 100%);
+  --vermelho: #F0503F; --vermelho-lavado: #FFE3DF;
+  --verde: #2FAE5B; --verde-lavado: #DFF5E5;
+  position: relative; margin: 70px auto 0; width: min(920px, 100%);
   display: grid; grid-template-columns: 1fr 1fr; gap: 48px;
 }
 .lado {
-  position: relative; margin: 0; overflow: hidden;
-  display: flex; flex-direction: column; align-items: center; text-align: center;
+  position: relative; margin: 0;
   border: 2px solid var(--tinta); border-radius: 28px; box-shadow: 8px 8px 0 var(--tinta);
-  padding: 26px 26px 30px;
+  padding: 12px 12px 24px;
+  outline: none; cursor: default;
+  transition: transform .5s var(--mola), box-shadow .3s var(--curva), opacity .3s, filter .3s;
 }
-.lado-antes { background: var(--vermelho-lavado); transform: rotate(-1.5deg); }
-.lado-depois { background: var(--verde-lavado); transform: rotate(1.5deg); }
+.lado-antes { background: var(--vermelho); transform: rotate(-1.5deg); }
+.lado-depois { background: var(--verde); transform: rotate(1.5deg); }
+.lado-foto {
+  position: relative; aspect-ratio: 4 / 5; overflow: hidden;
+  border: 2px solid var(--tinta); border-radius: 18px; background: var(--tinta);
+}
+.lado-foto img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.lado-antes .lado-foto img { object-position: 50% 50%; }
+.lado-depois .lado-foto img { object-position: 50% 60%; }
 .lado-selo {
-  padding: 7px 18px; border: 2px solid var(--tinta); border-radius: 100px; box-shadow: var(--sombra-dura);
-  font-family: var(--display); font-weight: 800; font-size: 16px; letter-spacing: -.02em; color: var(--branco);
+  position: absolute; top: 14px; left: 14px; z-index: 1;
+  padding: 7px 16px; border: 2px solid var(--tinta); border-radius: 100px; box-shadow: var(--sombra-dura);
+  font-family: var(--display); font-weight: 800; font-size: 15px; letter-spacing: -.02em; color: var(--branco);
 }
 .lado-antes .lado-selo { background: var(--vermelho); }
 .lado-depois .lado-selo { background: var(--verde); }
-.lado svg { display: block; width: 100%; max-width: 330px; height: auto; margin: 6px 0 4px; overflow: visible; }
+.lado figcaption { padding: 18px 10px 0; color: var(--branco); text-align: center; }
 .lado figcaption strong {
   display: block; font-family: var(--display); font-weight: 800; font-size: 28px; letter-spacing: -.035em; line-height: 1.1;
 }
-.lado figcaption span { display: block; margin-top: 8px; font-size: 15.5px; line-height: 1.55; color: #3A3C42; }
+/* Os pontos de cada lado, alinhados à esquerda num bloco centralizado: um
+   ✕ branco no vermelho, um ✓ branco no verde. */
+.lado figcaption ul {
+  display: inline-flex; flex-direction: column; gap: 8px;
+  margin: 14px 0 0; padding: 0; list-style: none; text-align: left;
+}
+.lado figcaption li { display: flex; align-items: flex-start; gap: 10px; font-size: 15.5px; line-height: 1.4; font-weight: 600; }
+.lado figcaption li::before {
+  flex: none; width: 22px; height: 22px; margin-top: -1px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--branco); border: 2px solid var(--tinta);
+  font-size: 12px; font-weight: 800; line-height: 1;
+}
+.lado-antes figcaption li::before { content: "✕"; color: var(--vermelho); }
+.lado-depois figcaption li::before { content: "✓"; color: var(--verde); }
+
+/* A interação. O cartão sob o ponteiro (ou com o foco do teclado) se
+   endireita e sobe, a foto chega mais perto e os pontos entram um a um. O
+   outro cartão recua. Cada lado tem o seu jeito: o antes treme de nervoso,
+   o depois acende. O VS vira para o lado escolhido. */
+.lado:hover, .lado:focus-visible { transform: rotate(0) translateY(-10px); box-shadow: 12px 16px 0 var(--tinta); z-index: 5; }
+.lado-foto img { transition: transform .7s var(--curva), filter .4s; }
+.lado:hover .lado-foto img, .lado:focus-visible .lado-foto img { transform: scale(1.07); }
+.lado-antes:hover .lado-foto, .lado-antes:focus-visible .lado-foto { animation: nervoso .32s ease-in-out 3; }
+@keyframes nervoso {
+  25% { transform: translateX(-4px) rotate(-.6deg); }
+  75% { transform: translateX(4px) rotate(.6deg); }
+}
+.lado-antes:hover .lado-foto img { filter: saturate(.75) contrast(1.05); }
+.lado-depois:hover .lado-foto img { filter: brightness(1.06) saturate(1.15); }
+.lado-selo { transition: transform .45s var(--mola); }
+.lado:hover .lado-selo, .lado:focus-visible .lado-selo { transform: scale(1.15) rotate(-6deg); }
+.lado figcaption li { transition: transform .4s var(--mola); }
+.lado figcaption li::before { transition: transform .45s var(--mola); }
+.lado:hover figcaption li, .lado:focus-visible figcaption li { transform: translateX(6px); }
+.lado:hover figcaption li::before, .lado:focus-visible figcaption li::before { transform: scale(1.25) rotate(-10deg); }
+.lado figcaption li:nth-child(2), .lado figcaption li:nth-child(2)::before { transition-delay: .06s; }
+.lado figcaption li:nth-child(3), .lado figcaption li:nth-child(3)::before { transition-delay: .12s; }
+.duelo:has(.lado:hover) .lado:not(:hover) { opacity: .6; filter: saturate(.6); }
+.duelo:has(.lado:hover) .lado-antes:not(:hover) { transform: rotate(-1.5deg) scale(.96); }
+.duelo:has(.lado:hover) .lado-depois:not(:hover) { transform: rotate(1.5deg) scale(.96); }
+.vs { transition: transform .5s var(--mola); }
+.duelo:has(.lado-antes:hover) .vs { transform: translateX(-10px) rotate(-24deg) scale(1.08); }
+.duelo:has(.lado-depois:hover) .vs { transform: translateX(10px) rotate(12deg) scale(1.08); }
 
 /* O selo de VS, no vão entre os dois. */
 .vs {
-  position: absolute; z-index: 4; left: 50%; top: 50%;
+  position: absolute; z-index: 6; left: 50%; top: 42%;
   width: 84px; height: 84px; margin: -42px 0 0 -42px;
   display: grid; place-items: center;
   background: var(--branco); border: 2px solid var(--tinta); border-radius: 50%;
@@ -877,80 +940,13 @@ h2 {
   transform: rotate(-8deg);
 }
 
-/* O movimento dos desenhos: no antes, os papéis tremem e as gotas caem;
-   no depois, a pessoa respira devagar e o brilho pisca. */
-.papel { transform-box: fill-box; transform-origin: center; animation: treme .5s ease-in-out infinite alternate; }
-.papel:nth-of-type(2n) { animation-delay: -.25s; animation-duration: .6s; }
-@keyframes treme { from { transform: rotate(-6deg) translateY(0); } to { transform: rotate(6deg) translateY(-4px); } }
-.gota { animation: gota 1.4s ease-in infinite; }
-@keyframes gota { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(26px); opacity: 0; } }
-.respira { transform-box: fill-box; transform-origin: 50% 100%; animation: respira 4s ease-in-out infinite; }
-@keyframes respira { 50% { transform: translateY(-6px) scale(1.015); } }
-.aura { transform-box: fill-box; transform-origin: center; animation: aura 4s ease-in-out infinite; }
-@keyframes aura { 50% { transform: scale(1.06); opacity: .55; } }
-.pisca { transform-box: fill-box; transform-origin: center; animation: pisca 2.4s ease-in-out infinite; }
-.pisca:nth-of-type(2) { animation-delay: -1.2s; }
-@keyframes pisca { 50% { transform: scale(.6) rotate(20deg); opacity: .5; } }
-
-/* ─── Revise brincando: a faixa lima com a demonstração ──────────────── */
-.faixa-rosa { background: var(--lima); border-block: 2px solid var(--tinta); padding: 70px 0 90px; }
-.faixa-rosa h2 { font-size: clamp(54px, 11vw, 190px); text-align: center; white-space: nowrap; margin-bottom: 26px; }
+/* ─── Quem usa diz: a faixa lima com os depoimentos ────────────────── */
+.faixa-rosa { background: var(--lima); border-block: 2px solid var(--tinta); padding: 70px 0 90px; overflow-x: clip; }
+/* O respiro de baixo conta com letra que desce além da linha (o rabo do Q). */
+.faixa-rosa h2 { font-size: clamp(54px, 11vw, 190px); text-align: center; white-space: nowrap; margin-bottom: calc(26px + .12em); }
 .faixa-rosa-linha { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; margin-bottom: 24px; }
 .faixa-rosa-linha p { margin: 0; font-size: 17px; font-weight: 600; }
-.demo {
-  background: var(--branco); border: 2px solid var(--tinta); border-radius: 30px;
-  box-shadow: 10px 10px 0 var(--tinta);
-  padding: 34px;
-  display: grid; grid-template-columns: 1.1fr .9fr; gap: 28px; align-items: start;
-}
-.demo-folha { background: var(--papel); border: 2px solid var(--tinta); border-radius: var(--raio); padding: 28px 30px 30px; position: relative; }
-.demo-folha .barrinha { display: flex; gap: 6px; margin: -6px 0 18px; flex-wrap: wrap; }
-.demo-folha .barrinha span { height: 30px; min-width: 30px; padding: 0 8px; border-radius: 9px; background: var(--branco); border: 1px solid var(--fio); display: grid; place-items: center; font-size: 12px; font-weight: 800; color: var(--cinza); }
-.demo-folha h3 { font-family: var(--display); font-size: 26px; letter-spacing: -.03em; margin: 0 0 12px; }
-.demo-folha p { color: #34363B; font-size: 16px; line-height: 1.75; margin: 0 0 10px; }
-.trecho {
-  border-radius: 6px; padding: 1px 2px;
-  background: linear-gradient(var(--lima), var(--lima)) left bottom / 0 42% no-repeat;
-  transition: background-size .5s var(--curva);
-  cursor: pointer; font-weight: 700;
-  outline-offset: 2px;
-  text-decoration: underline dotted var(--lima-tinta) 2px;
-  text-underline-offset: 5px;
-  -webkit-box-decoration-break: clone; box-decoration-break: clone;
-}
-.trecho:focus-visible { outline: 3px solid var(--lima-tinta); }
-.trecho:hover { background-size: 100% 42%; }
-.trecho.grifado { background-size: 100% 100%; text-decoration: none; }
-.dica-demo { display: flex; align-items: center; gap: 10px; margin-top: 18px; padding: 12px 14px; border-radius: 14px; background: var(--lima-lavado); font-size: 14px; font-weight: 700; }
-.dica-demo .ponto { width: 10px; height: 10px; border-radius: 50%; background: var(--lima-tinta); flex-shrink: 0; animation: pulsar 1.4s ease-in-out infinite; }
-@keyframes pulsar { 50% { transform: scale(1.6); opacity: .4; } }
-.demo-lado { display: flex; flex-direction: column; gap: 16px; }
-.card-demo { perspective: 1200px; height: 260px; }
-.card-demo .face {
-  position: absolute; inset: 0;
-  border: 2px solid var(--tinta); border-radius: var(--raio);
-  padding: 22px; backface-visibility: hidden;
-  display: flex; flex-direction: column;
-  box-shadow: var(--sombra-dura-g);
-}
-.card-demo .girador { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .7s var(--curva); }
-.card-demo.virado .girador { transform: rotateY(180deg); }
-.face.frente { background: var(--branco); }
-.face.verso { background: var(--lima); transform: rotateY(180deg); }
-.face .rotulo { font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--cinza); display: flex; justify-content: space-between; }
-.face .texto { font-family: var(--display); font-weight: 700; font-size: 22px; line-height: 1.25; letter-spacing: -.02em; margin: auto 0; }
-.face.verso .texto { font-family: var(--texto); font-size: 16px; font-weight: 600; line-height: 1.6; }
-.face .vazio { margin: auto 0; color: var(--cinza2); font-weight: 700; font-size: 15px; text-align: center; }
-.card-demo.nascendo .girador { animation: nascer .6s var(--mola); }
 @keyframes nascer { from { transform: scale(.7) rotate(-6deg); opacity: 0; } }
-.demo-graus { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
-.demo-graus button { border: 2px solid var(--tinta); border-radius: 14px; padding: 10px 6px; font-weight: 800; font-size: 13.5px; line-height: 1.2; box-shadow: var(--sombra-dura); transition: transform .12s, box-shadow .12s; }
-.demo-graus button small { display: block; font-weight: 600; font-size: 11.5px; color: rgba(18, 19, 22, .65); }
-.demo-graus button:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--tinta); }
-.demo-graus button:disabled { opacity: .35; cursor: not-allowed; box-shadow: none; }
-.g1 { background: #FFD9D6; } .g2 { background: var(--manteiga); } .g3 { background: var(--lima); } .g4 { background: var(--ceu); }
-.demo-status { min-height: 48px; padding: 13px 16px; border-radius: 14px; border: 2px dashed var(--tinta); font-weight: 700; font-size: 14px; line-height: 1.5; background: var(--branco); }
-.demo-status b { color: var(--lima-tinta); }
 
 /* ─── Dúvidas ────────────────────────────────────────────────────────── */
 .duvidas { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; padding: 110px 0; }
@@ -987,11 +983,6 @@ h2 {
 }
 .convite h2 { font-size: clamp(36px, 5.2vw, 78px); text-align: left; margin: 0 0 26px; max-width: 1000px; }
 .convite .btn { align-self: flex-start; }
-.convite-adesivos { position: absolute; top: 34px; right: 40px; width: 180px; height: 150px; }
-.convite-adesivos .adesivo { position: absolute; }
-/* Os adesivos da abertura: soltos em volta do título, longe do texto. */
-.abertura-adesivos { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
-.abertura-adesivos .adesivo { z-index: 0; }
 .abertura > .moldura { position: relative; z-index: 1; }
 /* A marca gigante no pé do convite, num tom de lima mais fundo. */
 .marca-gigante {
@@ -1008,13 +999,60 @@ h2 {
 .rodape nav a { text-decoration: none; }
 .rodape nav a:hover { color: var(--tinta); }
 
+/* ─── Depoimentos: a faixa que corre sozinha ────────────────────────────
+   Os cartões passam da direita para a esquerda sem parar. O script duplica a
+   fileira (a cópia é escondida de leitor de tela), e a animação anda
+   exatamente meia faixa: quando a cópia chega onde a original começou, o
+   laço recomeça sem emenda. O ponteiro em cima segura a faixa para ler.
+   Quem pediu menos movimento ganha a fileira parada, rolável com o dedo. */
+.depoimentos {
+  margin: 12px calc(50% - 50vw) 0; overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+.depoimentos-faixa {
+  display: flex; gap: 22px; width: max-content; padding: 10px 0 22px;
+  animation: correr 60s linear infinite;
+}
+.depoimentos:hover .depoimentos-faixa, .depoimentos:focus-within .depoimentos-faixa { animation-play-state: paused; }
+@keyframes correr { to { transform: translateX(calc(-50% - 11px)); } }
+.depoimento {
+  flex: 0 0 360px;
+  display: flex; flex-direction: column; gap: 18px; margin: 0;
+  padding: 24px 24px 22px; background: var(--branco);
+  border: 2px solid var(--tinta); border-radius: 24px; box-shadow: 6px 6px 0 var(--tinta);
+  transition: transform .4s var(--mola), box-shadow .3s var(--curva);
+}
+.depoimento:nth-child(odd) { transform: rotate(-1deg); }
+.depoimento:nth-child(even) { transform: rotate(1deg); }
+.depoimento:hover { transform: translateY(-6px) rotate(0); box-shadow: 9px 10px 0 var(--tinta); }
+.depoimento blockquote { margin: 0; flex: 1; font-size: 16.5px; line-height: 1.55; color: #2A2C31; }
+.depoimento blockquote::before {
+  content: "“"; display: block; height: 34px; margin-bottom: 4px;
+  font-family: var(--display); font-weight: 800; font-size: 64px; line-height: 1; color: var(--lima-funda);
+}
+.depoimento mark { background: var(--lima); color: inherit; border-radius: 4px; padding: 0 3px; }
+.depoimento figcaption { display: flex; align-items: center; gap: 12px; }
+/* A foto da pessoa, na bolinha: um recorte quadrado só do rosto (avatar-*.webp). */
+.depoimento-avatar {
+  flex: none; width: 50px; height: 50px; border-radius: 50%;
+  border: 2px solid var(--tinta); object-fit: cover;
+  background: var(--lilas);
+}
+.depoimento figcaption strong { display: block; font-weight: 800; font-size: 15px; }
+.depoimento figcaption small { display: block; color: var(--cinza); font-size: 13px; font-weight: 600; }
+
+@media (max-width: 720px) {
+  .depoimento { flex-basis: 280px; padding: 20px; }
+  .depoimento blockquote { font-size: 15.5px; }
+}
+
 /* ─── Entrada ao rolar ──────────────────────────────────────────────── */
 .surge { opacity: 0; transform: translateY(34px); transition: opacity .7s var(--curva), transform .8s var(--mola); }
 .surge.visto { opacity: 1; transform: none; }
 
 /* ─── Telas menores ─────────────────────────────────────────────────── */
 @media (max-width: 1020px) {
-  .demo { grid-template-columns: 1fr; padding: 22px; }
   .duvidas { grid-template-columns: 1fr; gap: 10px; }
 }
 @media (max-width: 760px) {
@@ -1068,33 +1106,26 @@ h2 {
   .perfil figcaption strong { font-size: 13px; }
   .perfil figcaption small { display: none; }
   .duelo { grid-template-columns: 1fr; gap: 22px; margin-top: 50px; }
-  .lado { padding: 22px 18px 24px; }
   .lado figcaption strong { font-size: 24px; }
   /* Empilhado, o VS entra na fila entre os dois, em vez de flutuar. */
   .vs { position: relative; left: auto; top: auto; justify-self: center; width: 68px; height: 68px; margin: 0; font-size: 26px; }
   .faixa-rosa h2 { white-space: normal; font-size: clamp(54px, 17vw, 110px); }
-  .demo-graus { grid-template-columns: repeat(2, 1fr); }
   .perguntas summary { font-size: 17px; }
   .perguntas details p { padding-right: 10px; }
   .convite { padding: 30px 22px 0; border-radius: 26px; min-height: 480px; }
-  .convite-adesivos { display: none; }
   .barra .marca { height: 48px; font-size: 22px; padding: 0 16px 2px 12px; }
   .barra .marca .marca-simbolo { width: 24px; height: 24px; }
   .barra .btn { height: 48px; padding: 0 18px; }
-  .adesivo { width: calc(var(--tam, 56px) * .72); height: calc(var(--tam, 56px) * .72); }
-  .abertura-adesivos .some-cel { display: none; }
-  /* No celular, os três que ficam vão para o alto, em volta da marca, e
-     para o vão entre o texto e os botões. */
-  .abertura-adesivos .ad-sorriso { left: 5% !important; top: 3.5% !important; }
-  .abertura-adesivos .ad-alfinete { right: 6% !important; top: 3% !important; }
-  .abertura-adesivos .ad-brilho { left: auto !important; right: 7% !important; top: 74% !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .grifada::before { animation: none; transform: scaleX(1) skewX(-8deg); }
-  .adesivo, .cursor, .dica-demo .ponto { animation: none; }
+  .cursor { animation: none; }
+  .rabiscos path, .rab-nota { transition: none !important; }
+  .depoimentos { overflow-x: auto; -webkit-mask-image: none; mask-image: none; }
+  .depoimentos-faixa { animation: none; padding-inline: 20px; }
   .surge { opacity: 1; transform: none; transition: none; }
-  .papel, .gota, .respira, .aura, .pisca { animation: none; }
+  .lado-antes:hover .lado-foto, .lado-antes:focus-visible .lado-foto { animation: none; }
   .barra { transition: none; }
 }
 </style>
@@ -1130,31 +1161,6 @@ h2 {
   <symbol id="ic-odontologia" viewBox="0 0 32 32"><path d="M9 3c-4 0-6 3-6 7 0 3 1.4 5 2.2 8 .9 3.5 1.2 11 4.3 11 2.6 0 2.2-7 6.5-7s3.9 7 6.5 7c3.1 0 3.4-7.5 4.3-11 .8-3 2.2-5 2.2-8 0-4-2-7-6-7-2.8 0-4.4 1.6-7 1.6S11.8 3 9 3Z" fill="currentColor"/></symbol>
   <symbol id="ic-psicologia" viewBox="0 0 32 32"><path d="M17 3C10.4 3 5 8 5 14.5c0 2.8 1 5.3 2.6 7.3L7 29h11v-4h3.5a3 3 0 0 0 3-3v-3.5l2.8-1.2c.6-.3.8-1 .4-1.5L25 11.5C23.8 6.6 20.8 3 17 3Z" fill="currentColor"/><path d="M12 13a3.5 3.5 0 0 1 6.5-1.8A3 3 0 0 1 21 16a3 3 0 0 1-4 2.8 3 3 0 0 1-5-2.3" fill="none" stroke="#000" stroke-opacity=".14" stroke-width="2.2" stroke-linecap="round"/></symbol>
   <symbol id="ic-administracao" viewBox="0 0 32 32"><rect x="4" y="18" width="6" height="11" rx="1.5" fill="currentColor"/><rect x="13" y="12" width="6" height="17" rx="1.5" fill="currentColor"/><rect x="22" y="6" width="6" height="23" rx="1.5" fill="currentColor"/><path d="M4 12 13 6l5 3 9-6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-  <!-- Os adesivos: alfinete, estrela, brilho e coração. A cor vem de `--cor`. -->
-  <symbol id="a-alfinete" viewBox="0 0 64 64">
-    <path d="M32 44v17" stroke="#121316" stroke-width="3.5" stroke-linecap="round"/>
-    <path d="M22 6h20a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3h-2l2 14c6 2 9 6 9 10a3 3 0 0 1-3 3H17a3 3 0 0 1-3-3c0-4 3-8 9-10l2-14h-2a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3z" style="fill:var(--cor, #F2A0C0)" stroke="#121316" stroke-width="3" stroke-linejoin="round"/>
-    <path d="M28.5 19l-1.2 8.5" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
-  </symbol>
-  <symbol id="a-estrela" viewBox="0 0 64 64">
-    <path d="M32 6l7.1 17.3 18.6 1.4-14.3 12 4.5 18.1L32 45l-15.9 9.8 4.5-18.1-14.3-12 18.6-1.4z" style="fill:var(--cor, #FFE27A)" stroke="#121316" stroke-width="3" stroke-linejoin="round"/>
-  </symbol>
-  <symbol id="a-brilho" viewBox="0 0 64 64">
-    <path d="M32 4C34 22 42 30 60 32 42 34 34 42 32 60 30 42 22 34 4 32 22 30 30 22 32 4z" style="fill:var(--cor, #C6F36B)" stroke="#121316" stroke-width="3" stroke-linejoin="round"/>
-  </symbol>
-  <symbol id="a-sorriso" viewBox="0 0 64 64">
-    <circle cx="32" cy="32" r="26" style="fill:var(--cor, #FFE27A)" stroke="#121316" stroke-width="3"/>
-    <ellipse cx="23" cy="26" rx="3.4" ry="4.6" fill="#121316"/><ellipse cx="41" cy="26" rx="3.4" ry="4.6" fill="#121316"/>
-    <path d="M19 37c3 7 9 10 13 10s10-3 13-10" fill="none" stroke="#121316" stroke-width="3" stroke-width="3.6" stroke-linecap="round"/>
-    <path d="M16 20c2-5 6-8 10-9" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>
-  </symbol>
-  <symbol id="a-raio" viewBox="0 0 64 64">
-    <path d="M37 4 12 36h17l-5 24 28-34H34Z" style="fill:var(--cor, #FFE27A)" stroke="#121316" stroke-width="3" stroke-linejoin="round"/>
-  </symbol>
-  <symbol id="a-coracao" viewBox="0 0 64 64">
-    <path d="M32 54C14 42 6 32 6 22c0-9 7-15 15-15 5 0 9 3 11 7 2-4 6-7 11-7 8 0 15 6 15 15 0 10-8 20-26 32z" style="fill:var(--cor, #DCCBFF)" stroke="#121316" stroke-width="3" stroke-linejoin="round"/>
-    <path d="M15 19c1-4 4-6 7-6" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>
-  </symbol>
   <symbol id="seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
 </svg>
 
@@ -1170,16 +1176,6 @@ h2 {
 <main id="inicio">
   <!-- ═══ Abertura ═══ -->
   <section class="abertura pontilhado">
-    <div class="abertura-adesivos" aria-hidden="true">
-      <svg class="adesivo ad-sorriso" style="left:4%;top:24%;--tam:70px;--giro:-12deg;--cor:var(--manteiga)"><use href="#a-sorriso"/></svg>
-      <svg class="adesivo ad-brilho" style="left:21%;top:7%;--tam:42px;--giro:8deg;--cor:var(--lima);--atraso:-1.5s"><use href="#a-brilho"/></svg>
-      <svg class="adesivo some-cel" style="left:14%;top:52%;--tam:62px;--giro:14deg;--cor:var(--ceu);--atraso:-3s"><use href="#a-estrela"/></svg>
-      <svg class="adesivo ad-alfinete" style="right:4%;top:18%;--tam:66px;--giro:16deg;--cor:var(--rosa);--atraso:-2s"><use href="#a-alfinete"/></svg>
-      <svg class="adesivo some-cel" style="right:22%;top:5%;--tam:52px;--giro:-8deg;--cor:#FFA94D;--atraso:-4s"><use href="#a-raio"/></svg>
-      <svg class="adesivo some-cel" style="right:14%;top:50%;--tam:58px;--giro:-10deg;--cor:var(--lilas);--atraso:-2.5s"><use href="#a-coracao"/></svg>
-      <svg class="adesivo some-cel" style="left:27%;top:63%;--tam:46px;--giro:-6deg;--cor:#FF7B6B;--atraso:-5s"><use href="#a-sorriso"/></svg>
-      <svg class="adesivo some-cel" style="right:27%;top:65%;--tam:40px;--giro:10deg;--cor:var(--lima);--atraso:-3.5s"><use href="#a-brilho"/></svg>
-    </div>
     <div class="moldura">
       <h1 class="titulo"><span class="linha">Estude menos.</span> <span class="linha"><span class="grifada" id="grifada"><span class="grifada-texto" id="grifadaTexto">Lembre mais.</span></span></span></h1>
       <p class="chamada">Escreva e grife seus resumos, transforme qualquer trecho em flashcard com um clique e revise na hora certa. Tudo no navegador, sem instalar nada.</p>
@@ -1213,13 +1209,13 @@ h2 {
                 <span><b style="background:var(--ceu)">◔</b>Pomodoro</span>
                 <span><b style="background:var(--lilas)">✦</b>Agente de IA</span>
               </div>
-              <div class="lado-perfil"><span class="tela-avatar"><img src="/lp/estudante-lilas.jpg" alt="" width="600" height="720"></span><span><strong>Ana</strong><small>R1 · Clínica</small></span></div>
+              <div class="lado-perfil"><span class="tela-avatar"><img src="/lp/estudante-milena.webp" alt="" width="240" height="240"></span><span><strong>Milena</strong><small>R1 · Clínica</small></span></div>
             </div>
             <div class="app-area">
 
               <!-- 1. Dashboard: os números e o mapa de calor. -->
               <div class="cena ativa">
-                <div class="cena-topo"><h5>Bom dia, Ana ☀️</h5><span class="selo-app" style="background:var(--manteiga)">🔥 12 dias seguidos</span></div>
+                <div class="cena-topo"><h5>Bom dia, Milena ☀️</h5><span class="selo-app" style="background:var(--manteiga)">🔥 12 dias seguidos</span></div>
                 <div class="numeros">
                   <div class="numero" style="background:var(--rosa)"><small>Cards revisados</small><b data-conta="248">0</b></div>
                   <div class="numero" style="background:var(--ceu)"><small>Minutos na semana</small><b data-conta="415">0</b></div>
@@ -1322,6 +1318,10 @@ h2 {
         </div>
         </div>
         <div class="computador-base" aria-hidden="true"></div>
+
+        <!-- Os rabiscos das margens: setas e círculos que o script desenha até
+             o que está na tela. -->
+        <svg class="rabiscos" id="rabiscos" aria-hidden="true"></svg>
       </div>
 
       <!-- O fim: a curva do esquecimento, com e sem revisão. -->
@@ -1394,7 +1394,7 @@ h2 {
             <span class="ver-mais" aria-hidden="true">+</span>
             <figcaption><strong>Medicina</strong><small>Do ciclo básico ao internato</small></figcaption>
           </figure>
-          <figure class="perfil surge" role="button" tabindex="0" style="--fundo:#FFA94D;--g:-1.8deg;--dy:16px;--giro-marca:12deg">
+          <figure class="perfil surge" role="button" tabindex="0" style="--fundo:#6FA8FF;--g:-1.8deg;--dy:16px;--giro-marca:12deg">
             <svg class="perfil-marca" aria-hidden="true"><use href="#ic-seminaristas"/></svg>
             <img src="/lp/perfil-seminaristas.webp" alt="Seminarista sorrindo, de batina preta e colarinho clerical" loading="lazy">
             <span class="ver-mais" aria-hidden="true">+</span>
@@ -1420,7 +1420,7 @@ h2 {
             <span class="ver-mais" aria-hidden="true">+</span>
             <figcaption><strong>Professores</strong><small>Aulas e materiais num lugar só</small></figcaption>
           </figure>
-          <figure class="perfil surge" role="button" tabindex="0" style="--fundo:#5EC9A5;--g:2.2deg;--dy:28px;--giro-marca:-14deg">
+          <figure class="perfil surge" role="button" tabindex="0" style="--fundo:var(--manteiga);--g:2.2deg;--dy:28px;--giro-marca:-14deg">
             <svg class="perfil-marca" aria-hidden="true"><use href="#ic-odontologia"/></svg>
             <img src="/lp/perfil-odontologia.webp" alt="Dentista sorrindo, de jaleco escuro, no consultório" loading="lazy">
             <span class="ver-mais" aria-hidden="true">+</span>
@@ -1504,77 +1504,39 @@ h2 {
       <div class="cabeca">
         <h2 class="surge">O Sinapse na prática</h2>
         <p class="surge">O resumo colado do PDF vira texto grifado, e o que foi grifado vira pergunta. Num arquivo só.</p>
-        <a class="btn btn-lima surge" href="/login">Entrar no app</a>
+        <a class="btn btn-lima surge" href="/login">Entrar no sistema</a>
       </div>
 
       <div class="duelo surge">
-        <figure class="lado lado-antes">
-          <span class="lado-selo">Antes</span>
-          <svg viewBox="0 0 320 300" role="img" aria-label="Pessoa descabelada e em pânico, com as mãos na cabeça e papéis voando em volta">
-            <g transform="rotate(-18 48 70)"><g class="papel"><rect x="24" y="40" width="48" height="60" rx="4" fill="#fff" stroke="#121316" stroke-width="3"/><path d="M34 56h28M34 68h28M34 80h18" stroke="#C9C9C9" stroke-width="3" stroke-linecap="round"/></g></g>
-            <g transform="rotate(16 272 58)"><g class="papel" style="animation-delay:-.3s"><rect x="248" y="28" width="48" height="60" rx="4" fill="#fff" stroke="#121316" stroke-width="3"/><path d="M258 44h28M258 56h28M258 68h18" stroke="#C9C9C9" stroke-width="3" stroke-linecap="round"/></g></g>
-            <g transform="rotate(10 40 206)"><g class="papel" style="animation-delay:-.15s"><rect x="16" y="176" width="48" height="60" rx="4" fill="#fff" stroke="#121316" stroke-width="3"/><path d="M26 192h28M26 204h28M26 216h18" stroke="#C9C9C9" stroke-width="3" stroke-linecap="round"/></g></g>
-            <g transform="rotate(-14 282 200)"><g class="papel" style="animation-delay:-.4s"><rect x="258" y="170" width="48" height="60" rx="4" fill="#fff" stroke="#121316" stroke-width="3"/><path d="M268 186h28M268 198h28M268 210h18" stroke="#C9C9C9" stroke-width="3" stroke-linecap="round"/></g></g>
-
-            <path d="M78 300c2-62 34-78 82-78s80 16 82 78Z" fill="#FF6B5E" stroke="#121316" stroke-width="3" stroke-linejoin="round"/>
-            <rect x="148" y="190" width="24" height="38" fill="#F2C1A0" stroke="#121316" stroke-width="3"/>
-            <circle cx="160" cy="150" r="50" fill="#F2C1A0" stroke="#121316" stroke-width="3"/>
-            <path d="M108 150 92 118l20-2-16-32 28 12-4-38 26 26 12-38 12 36 26-26-2 38 30-12-14 32 22 4-20 32c-6-32-26-46-52-46s-46 14-52 46Z" fill="#121316" stroke="#121316" stroke-width="3" stroke-linejoin="round"/>
-            <path d="M128 132l22 8M192 132l-22 8" stroke="#121316" stroke-width="3.5" stroke-linecap="round"/>
-            <path d="M142 154a2 2 0 1 1 2 2 5 5 0 1 1-5-5 8 8 0 1 1 8 8M178 154a2 2 0 1 1 2 2 5 5 0 1 1-5-5 8 8 0 1 1 8 8" fill="none" stroke="#121316" stroke-width="2.6" stroke-linecap="round"/>
-            <ellipse cx="160" cy="184" rx="10" ry="8" fill="#121316"/>
-
-            <path d="M104 248c-18-26-24-60-6-90M216 248c18-26 24-60 6-90" fill="none" stroke="#121316" stroke-width="22" stroke-linecap="round"/>
-            <path d="M104 248c-18-26-24-60-6-90M216 248c18-26 24-60 6-90" fill="none" stroke="#FF6B5E" stroke-width="16" stroke-linecap="round"/>
-            <circle cx="98" cy="150" r="13" fill="#F2C1A0" stroke="#121316" stroke-width="3"/>
-            <circle cx="222" cy="150" r="13" fill="#F2C1A0" stroke="#121316" stroke-width="3"/>
-
-            <path class="gota" d="M232 112q9 13 0 18-9-5 0-18Z" fill="#CFE3FF" stroke="#121316" stroke-width="2.5"/>
-            <path class="gota" style="animation-delay:-.7s" d="M84 120q9 13 0 18-9-5 0-18Z" fill="#CFE3FF" stroke="#121316" stroke-width="2.5"/>
-            <text x="238" y="150" transform="rotate(14 238 150)" font-family="Bricolage Grotesque, sans-serif" font-weight="800" font-size="40" fill="#FF6B5E" stroke="#121316" stroke-width="2">?!</text>
-          </svg>
+        <figure class="lado lado-antes" tabindex="0">
+          <div class="lado-foto">
+            <span class="lado-selo">Antes</span>
+            <img src="/lp/antes-sinapse.webp" alt="Estudante descabelada e tensa, com uma mão na cabeça e folhas na outra, cercada de papéis" width="800" height="1000" loading="lazy">
+          </div>
           <figcaption>
             <strong>Antes do Sinapse</strong>
-            <span>Resumo espalhado em PDF, caderno e 14 abas. Na hora da prova, dá branco.</span>
+            <ul>
+              <li>Resumo espalhado em PDF, caderno e 14 abas</li>
+              <li>Revisão só na véspera, tudo de uma vez</li>
+              <li>Na hora da prova, dá branco</li>
+            </ul>
           </figcaption>
         </figure>
 
         <span class="vs" aria-hidden="true">VS</span>
 
-        <figure class="lado lado-depois">
-          <span class="lado-selo">Depois</span>
-          <svg viewBox="0 0 320 300" role="img" aria-label="Pessoa tranquila, sorrindo de olhos fechados, meditando ao lado dos cards organizados">
-            <circle class="aura" cx="160" cy="168" r="118" fill="#C6F36B" opacity=".45"/>
-            <use class="pisca" href="#a-brilho" x="30" y="36" width="40" height="40" style="--cor:#FFE27A"/>
-            <use class="pisca" href="#a-brilho" x="252" y="54" width="32" height="32" style="--cor:#FFFFFF"/>
-
-            <g transform="rotate(-6 286 236)">
-              <rect x="258" y="226" width="56" height="38" rx="7" fill="#CFE3FF" stroke="#121316" stroke-width="3"/>
-              <rect x="258" y="212" width="56" height="38" rx="7" fill="#DCCBFF" stroke="#121316" stroke-width="3"/>
-              <rect x="258" y="198" width="56" height="38" rx="7" fill="#FFE27A" stroke="#121316" stroke-width="3"/>
-              <path d="M276 217l7 7 13-13" fill="none" stroke="#121316" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </g>
-
-            <g class="respira">
-              <path d="M70 262c0-26 42-32 90-22 48-10 90-4 90 22 0 22-44 26-90 14-46 12-90 8-90-14Z" fill="#DCCBFF" stroke="#121316" stroke-width="3" stroke-linejoin="round"/>
-              <path d="M118 248c-6-52 10-72 42-72s48 20 42 72Z" fill="#5CC97B" stroke="#121316" stroke-width="3" stroke-linejoin="round"/>
-              <path d="M128 192c-24 14-34 34-30 54M192 192c24 14 34 34 30 54" fill="none" stroke="#121316" stroke-width="20" stroke-linecap="round"/>
-              <path d="M128 192c-24 14-34 34-30 54M192 192c24 14 34 34 30 54" fill="none" stroke="#5CC97B" stroke-width="14" stroke-linecap="round"/>
-              <circle cx="98" cy="250" r="11" fill="#F2C1A0" stroke="#121316" stroke-width="3"/>
-              <circle cx="222" cy="250" r="11" fill="#F2C1A0" stroke="#121316" stroke-width="3"/>
-              <rect x="150" y="150" width="20" height="30" fill="#F2C1A0" stroke="#121316" stroke-width="3"/>
-              <circle cx="160" cy="80" r="14" fill="#121316"/>
-              <circle cx="160" cy="128" r="40" fill="#F2C1A0" stroke="#121316" stroke-width="3"/>
-              <path d="M120 128c-2-30 16-42 40-42s42 12 40 42c-10-20-24-26-40-26s-30 6-40 26Z" fill="#121316" stroke="#121316" stroke-width="3" stroke-linejoin="round"/>
-              <path d="M140 132q7 6 14 0M166 132q7 6 14 0" fill="none" stroke="#121316" stroke-width="3" stroke-linecap="round"/>
-              <circle cx="136" cy="146" r="6" fill="#F2A0C0" opacity=".8"/>
-              <circle cx="184" cy="146" r="6" fill="#F2A0C0" opacity=".8"/>
-              <path d="M148 148q12 10 24 0" fill="none" stroke="#121316" stroke-width="3" stroke-linecap="round"/>
-            </g>
-          </svg>
+        <figure class="lado lado-depois" tabindex="0">
+          <div class="lado-foto">
+            <span class="lado-selo">Depois</span>
+            <img src="/lp/depois-sinapse.webp" alt="Estudante sorrindo de orelha a orelha diante do notebook, numa mesa clara" width="800" height="1000" loading="lazy">
+          </div>
           <figcaption>
             <strong>Depois do Sinapse</strong>
-            <span>Tudo num arquivo só, grifado e virado card. Você revisa na hora certa e o conteúdo fica.</span>
+            <ul>
+              <li>Tudo num arquivo só</li>
+              <li>O que você grifa vira card</li>
+              <li>Revisão na hora certa, e o conteúdo fica</li>
+            </ul>
           </figcaption>
         </figure>
       </div>
@@ -1582,47 +1544,44 @@ h2 {
   </section>
 
   <!-- ═══ Revise brincando ═══ -->
-  <section class="faixa-rosa" id="demo">
+  <section class="faixa-rosa" id="depoimentos">
     <div class="moldura">
-      <h2 class="surge">Revise brincando</h2>
+      <h2 class="surge">Quem usa diz...</h2>
       <div class="faixa-rosa-linha">
-        <p>Grife, vire card, revise.<br>Experimente aqui mesmo, sem criar conta.</p>
-        <a class="btn btn-lima" href="/login">Entrar no app</a>
+        <p>Da residência à OAB, quem estuda com o Sinapse<br>conta o que mudou na rotina.</p>
+        <a class="btn btn-lima" href="/login">Entrar no sistema</a>
       </div>
 
-      <div class="demo surge">
-        <div class="demo-folha">
-          <div class="barrinha" aria-hidden="true"><span>↶</span><span>↷</span><span>Título 2</span><span>B</span><span><i>I</i></span><span><u>U</u></span><span style="background:var(--lima);border-color:var(--tinta);color:var(--tinta)">Grifo</span></div>
-          <h3>Síndrome coronariana aguda</h3>
-          <p>Diante de um ECG dentro dos critérios, <span class="trecho" role="button" tabindex="0" data-pergunta="Com ECG dentro dos critérios, é preciso esperar os marcadores de necrose para tratar?" data-resposta="Não. Diante de um ECG dentro dos critérios, não se espera o resultado dos marcadores de necrose para iniciar o tratamento e a terapia de reperfusão.">não se espera o resultado dos marcadores de necrose</span> para iniciar o tratamento e a terapia de reperfusão.</p>
-          <p>A angioplastia primária é o tratamento de escolha, com <span class="trecho" role="button" tabindex="0" data-pergunta="Qual o tempo porta-balão aceitável em hospital com hemodinâmica?" data-resposta="Até 90 minutos (tempo porta-balão) em hospital com serviço de hemodinâmica; até 120 minutos quando é preciso transferir.">tempo porta-balão de até 90 minutos</span> em hospital com hemodinâmica.</p>
-          <p>Na trombólise, <span class="trecho" role="button" tabindex="0" data-pergunta="Quais os critérios de reperfusão após trombólise química?" data-resposta="Redução do supra de ST > 50% em 60 a 90 minutos, melhora da dor, arritmias de reperfusão e pico precoce dos marcadores de necrose.">a redução do supra de ST acima de 50%</span> é um dos critérios de reperfusão.</p>
-          <div class="dica-demo"><span class="ponto"></span> Toque num trecho sublinhado para criar o flashcard.</div>
-        </div>
-
-        <div class="demo-lado">
-          <div class="card-demo" id="cardDemo" role="button" tabindex="0" aria-label="Flashcard: toque para virar">
-            <div class="girador">
-              <div class="face frente">
-                <span class="rotulo"><span>Frente</span><span>SCA</span></span>
-                <p class="vazio" id="demoVazio">Seu card aparece aqui.</p>
-                <p class="texto" id="demoPergunta" hidden></p>
-                <span class="rotulo" id="demoVirar" hidden><span>toque para ver a resposta</span><span>↻</span></span>
-              </div>
-              <div class="face verso">
-                <span class="rotulo"><span>Verso</span><span>do seu resumo</span></span>
-                <p class="texto" id="demoResposta"></p>
-                <span class="rotulo"><span>como foi?</span><span>↓</span></span>
-              </div>
-            </div>
-          </div>
-          <div class="demo-graus" id="demoGraus">
-            <button type="button" class="g1" data-dias="0" disabled>Errei<small>de novo</small></button>
-            <button type="button" class="g2" data-dias="1" disabled>Difícil<small>amanhã</small></button>
-            <button type="button" class="g3" data-dias="3" disabled>Bom<small>em 3 dias</small></button>
-            <button type="button" class="g4" data-dias="8" disabled>Fácil<small>em 8 dias</small></button>
-          </div>
-          <div class="demo-status" id="demoStatus" aria-live="polite">✳ Escolha um trecho à esquerda.</div>
+      <!-- Depoimentos. ATENÇÃO: os textos abaixo são EXEMPLOS de layout, não
+           falas de pessoas reais, e as fotos são de banco de imagem. Troque
+           por depoimentos verdadeiros, com nome, foto e autorização de quem
+           falou, antes de publicar. -->
+      <div class="depoimentos surge" role="region" aria-label="Depoimentos">
+        <div class="depoimentos-faixa" id="depFaixa">
+          <figure class="depoimento">
+            <blockquote>Eu colava o resumo no caderno e esquecia. Agora <mark>o que eu grifo vira card</mark> e a revisão aparece sozinha no dia certo.</blockquote>
+            <figcaption><img class="depoimento-avatar" src="/lp/avatar-mostarda.webp" alt="" width="128" height="128" loading="lazy"><span><strong>Ana L.</strong><small>Residência · Clínica médica</small></span></figcaption>
+          </figure>
+          <figure class="depoimento">
+            <blockquote>Parei de ter 14 abas abertas. <mark>Tudo da matéria fica num arquivo só</mark>, e eu acho o que preciso em segundos.</blockquote>
+            <figcaption><img class="depoimento-avatar" src="/lp/avatar-azul.webp" alt="" width="128" height="128" loading="lazy"><span><strong>Rafael M.</strong><small>Concurso · Área fiscal</small></span></figcaption>
+          </figure>
+          <figure class="depoimento">
+            <blockquote>Os flashcards saem do meu próprio resumo, então <mark>na revisão eu já sei de onde veio</mark> cada pergunta.</blockquote>
+            <figcaption><img class="depoimento-avatar" src="/lp/avatar-laranja.webp" alt="" width="128" height="128" loading="lazy"><span><strong>Júlia S.</strong><small>Vestibular · Medicina</small></span></figcaption>
+          </figure>
+          <figure class="depoimento">
+            <blockquote>O Pomodoro junto do texto me segura na cadeira. <mark>Estudo menos tempo e lembro mais</mark> na semana seguinte.</blockquote>
+            <figcaption><img class="depoimento-avatar" src="/lp/avatar-amarelo.webp" alt="" width="128" height="128" loading="lazy"><span><strong>Pedro C.</strong><small>Graduação · Engenharia</small></span></figcaption>
+          </figure>
+          <figure class="depoimento">
+            <blockquote>Preparo a aula no mesmo arquivo em que estudo. <mark>Grifo o essencial e os cards ficam prontos</mark>.</blockquote>
+            <figcaption><img class="depoimento-avatar" src="/lp/avatar-ola.webp" alt="" width="128" height="128" loading="lazy"><span><strong>Marcelo F.</strong><small>Professor · Biologia</small></span></figcaption>
+          </figure>
+          <figure class="depoimento">
+            <blockquote>Na véspera da OAB eu só abri os cards do dia. <mark>Sem desespero, sem branco</mark>.</blockquote>
+            <figcaption><img class="depoimento-avatar" src="/lp/avatar-rosa.webp" alt="" width="128" height="128" loading="lazy"><span><strong>Luana T.</strong><small>Direito · OAB</small></span></figcaption>
+          </figure>
         </div>
       </div>
     </div>
@@ -1634,7 +1593,7 @@ h2 {
     <div class="perguntas">
       <details>
         <summary>Preciso instalar alguma coisa?<span class="mais" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary>
-        <p>Não. O Sinapse roda no navegador, no computador e no celular. É só entrar no app e abrir o primeiro arquivo.</p>
+        <p>Não. O Sinapse roda no navegador, no computador e no celular. É só entrar no sistema e abrir o primeiro arquivo.</p>
       </details>
       <details>
         <summary>Posso colar o que eu já tenho?<span class="mais" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></span></summary>
@@ -1659,12 +1618,7 @@ h2 {
   <section class="moldura" id="convite">
     <div class="convite surge">
       <h2>Comece a estudar.<br>Veja até onde você chega.</h2>
-      <a class="btn btn-cheio" href="/login">Entrar no app <svg width="18" height="18"><use href="#seta"/></svg></a>
-      <div class="convite-adesivos" aria-hidden="true">
-        <svg class="adesivo" style="left:0;top:10px;--tam:80px;--giro:-12deg;--cor:var(--rosa)"><use href="#a-coracao"/></svg>
-        <svg class="adesivo" style="left:80px;top:0;--tam:70px;--giro:10deg;--cor:var(--manteiga);--atraso:-2s"><use href="#a-estrela"/></svg>
-        <svg class="adesivo" style="left:56px;top:76px;--tam:60px;--giro:-4deg;--cor:var(--ceu);--atraso:-4s"><use href="#a-brilho"/></svg>
-      </div>
+      <a class="btn btn-cheio" href="/login">Entrar no sistema <svg width="18" height="18"><use href="#seta"/></svg></a>
       <div class="marca-gigante" id="marcaGigante" aria-hidden="true"><span style="display:inline-block">sinapse</span></div>
     </div>
   </section>
@@ -1674,7 +1628,7 @@ h2 {
   <nav aria-label="Rodapé">
     <span>© 2026 Sinapse</span>
     <a href="#ferramentas">Gênios</a>
-    <a href="#demo">Demonstração</a>
+    <a href="#depoimentos">Depoimentos</a>
     <a href="#duvidas">Dúvidas</a>
   </nav>
   <a class="marca" href="#inicio"><svg class="marca-simbolo" aria-hidden="true"><use href="#marca"/></svg>sinapse</a>
@@ -1761,6 +1715,123 @@ h2 {
     { ate: 2, titulo: "Agente de IA", texto: "Peça cards e perguntas do seu próprio resumo", cor: "var(--lilas)" }
   ];
   var cenaAtual = 0;
+
+  /* Os rabiscos das margens: cada um aparece numa parte do passeio (cena) a
+     partir de um ponto da rolagem (de), com o recado de um lado e a seta
+     indo até o alvo na tela; os de círculo também contornam o alvo. A mira
+     diz onde, dentro do alvo, a ponta da seta cai; `saida` puxa o começo da
+     seta para baixo do meio do recado e `barrigaBaixo` curva a seta para
+     baixo. */
+  var RABISCOS = [
+    { de: -1, ate: .02, alvo: ".computador-tampa", mira: [0, .16], sobe: .14, saida: .05, barrigaBaixo: true, lado: "esq", texto: "role a página e veja o sistema por dentro", g: -4 },
+    { cena: 0, de: .13, alvo: ".selo-app", circulo: true, abaixo: true, lado: "dir", texto: "12 dias sem falhar!", g: 3 },
+    { cena: 0, de: .21, alvo: ".calor-caixa", mira: [0, .62], lado: "esq", texto: "cada quadradinho é um dia de estudo", g: -3 },
+    { cena: 1, de: .405, alvo: "#digGrifo", ultimaLinha: true, lado: "esq", texto: "grifou…", g: -5 },
+    { cena: 1, de: .44, alvo: "#previa", mira: [1, .3], lado: "dir", texto: "…e já virou card!", g: 4 },
+    { cena: 2, de: .5, alvo: ".deck.aqui", lado: "esq", texto: "um deck por assunto", g: -3 },
+    { cena: 2, de: .565, alvo: "#grauBom", circulo: true, lado: "dir",  texto: "acertou? volta em 3 dias", g: 3 },
+    { cena: 3, de: .64, alvo: "#pomoAnel", circulo: true, lado: "esq", texto: "25 minutos de foco, sem distração", g: -4 },
+    { cena: 4, de: .775, alvo: ".msg.eu", mira: [1, .5], lado: "dir", texto: "pede do seu jeito", g: 3 },
+    { cena: 4, de: .85, alvo: ".ia-cards", mira: [0, .5], lado: "esq", texto: "cards tirados do SEU resumo", g: -3 }
+  ];
+  var rabiscos = $("rabiscos"), SVG_NS = "http://www.w3.org/2000/svg";
+  RABISCOS.forEach(function (r) {
+    r.grupo = document.createElementNS(SVG_NS, "g");
+    ["rab-circulo", "rab-seta", "rab-ponta"].forEach(function (classe) {
+      var traco = document.createElementNS(SVG_NS, "path");
+      traco.setAttribute("class", classe);
+      traco.setAttribute("pathLength", "1");
+      r.grupo.appendChild(traco);
+      r[classe] = traco;
+    });
+    rabiscos.appendChild(r.grupo);
+    r.nota = document.createElement("span");
+    r.nota.className = "rab-nota " + r.lado;
+    r.nota.style.setProperty("--g", r.g + "deg");
+    r.nota.setAttribute("aria-hidden", "true");
+    r.nota.textContent = r.texto;
+    computador.appendChild(r.nota);
+    r.visivel = false;
+  });
+
+  /* O círculo feito à mão: um pouco mais de uma volta, que não fecha
+     certinho e balança de leve no raio. */
+  function elipseAMao(cx, cy, rx, ry) {
+    var d = "", N = 54, a0 = -2.4;
+    for (var k = 0; k <= N; k++) {
+      var t = a0 + (k / N) * Math.PI * 2 * 1.12;
+      var f = 1 + .035 * Math.sin(t * 3 + 1) + .06 * (k / N);
+      d += (k ? " L" : "M") + (cx + Math.cos(t) * rx * f).toFixed(1) + " " + (cy + Math.sin(t) * ry * f).toFixed(1);
+    }
+    return d;
+  }
+
+  /* Mede o alvo na tela (em relação ao computador, sem a escala) e desenha
+     a seta do recado até ele. Sem alvo à vista, não desenha. */
+  function tracarRabisco(r) {
+    var raiz = r.cena === undefined ? computador : cenas[r.cena];
+    var alvo = r.el || (r.el = raiz.querySelector(r.alvo));
+    var caixas = alvo ? alvo.getClientRects() : [];
+    if (!caixas.length) return false;
+    var W = computador.offsetWidth, H = computador.offsetHeight;
+    /* Num texto que quebra linha, a seta pode mirar a última linha dele. */
+    var rc = computador.getBoundingClientRect(), s = rc.width / W, b = caixas[r.ultimaLinha ? caixas.length - 1 : 0];
+    var x = (b.left - rc.left) / s, y = (b.top - rc.top) / s, w = b.width / s, h = b.height / s;
+    var esq = r.lado === "esq", lado = esq ? -1 : 1, folga = W * .007;
+    var ex, ey, circulo = "";
+    if (r.circulo) {
+      var cx = x + w / 2, cy = y + h / 2, rx = w / 2 + W * .014, ry = h / 2 + W * .012;
+      circulo = elipseAMao(cx, cy, rx, ry);
+      ex = cx + lado * (rx * 1.04 + folga); ey = cy;
+    } else {
+      var m = r.mira || [esq ? 0 : 1, .5];
+      ex = x + w * m[0] + lado * folga; ey = y + h * m[1];
+    }
+    /* O recado fica acima do alvo; os que têm `abaixo` ficam embaixo dele,
+       e a seta sai do alto do recado. */
+    var abaixo = !!r.abaixo;
+    /* `sobe` afasta o recado ainda mais para o alto (em largura do computador),
+       e pode levá-lo para cima do computador. */
+    var ly = limitar(ey + (abaixo ? W * .05 : -W * .045) - W * (r.sobe || 0), r.sobe ? -W : H * .1, H * .78);
+    var sx = (esq ? -W * .024 : W * 1.024) + lado * W * (r.saida || 0), sy = abaixo ? ly - W * .008 : ly + W * .01;
+    /* A seta faz uma barriga para o alto (ou para baixo), de lado em relação à linha reta
+       entre o recado e o alvo: um terço da distância, perto ou longe. */
+    var dx = ex - sx, dy = ey - sy, dist = Math.sqrt(dx * dx + dy * dy) || 1;
+    var nx = dy / dist, ny = -dx / dist;
+    if ((ny > 0) !== !!r.barrigaBaixo) { nx = -nx; ny = -ny; }
+    var barriga = dist * .28;
+    var c1x = sx + dx * .3 + nx * barriga, c1y = sy + dy * .3 + ny * barriga;
+    var c2x = sx + dx * .75 + nx * barriga * .7, c2y = sy + dy * .75 + ny * barriga * .7;
+    var ang = Math.atan2(ey - c2y, ex - c2x), pontaLen = W * .013;
+    var largura = Math.max(2, W * .0022);
+    r["rab-circulo"].setAttribute("d", circulo || "M0 0");
+    r["rab-circulo"].style.display = circulo ? "" : "none";
+    r["rab-circulo"].setAttribute("stroke-width", largura * 1.3);
+    r["rab-seta"].setAttribute("d", "M" + sx.toFixed(1) + " " + sy.toFixed(1) + " C" + c1x.toFixed(1) + " " + c1y.toFixed(1) + " " + c2x.toFixed(1) + " " + c2y.toFixed(1) + " " + ex.toFixed(1) + " " + ey.toFixed(1));
+    r["rab-seta"].setAttribute("stroke-width", largura);
+    r["rab-ponta"].setAttribute("d",
+      "M" + (ex - pontaLen * Math.cos(ang - .5)).toFixed(1) + " " + (ey - pontaLen * Math.sin(ang - .5)).toFixed(1) +
+      " L" + ex.toFixed(1) + " " + ey.toFixed(1) +
+      " L" + (ex - pontaLen * Math.cos(ang + .5)).toFixed(1) + " " + (ey - pontaLen * Math.sin(ang + .5)).toFixed(1));
+    r["rab-ponta"].setAttribute("stroke-width", largura);
+    r.nota.style.left = (esq ? -W * .03 : W * 1.03).toFixed(1) + "px";
+    r.nota.style.top = ly.toFixed(1) + "px";
+    r.nota.classList.toggle("abaixo", abaixo);
+    return true;
+  }
+
+  /* A cada quadro, cada rabisco das margens se desenha ou se apaga conforme
+     a parte do passeio. */
+  function pintarRabiscos(p, i) {
+    RABISCOS.forEach(function (r) {
+      var mostra = med.margem && p >= r.de && p < (r.ate || 2) && (r.cena === undefined || r.cena === i);
+      if (mostra === r.visivel) return;
+      if (mostra && !tracarRabisco(r)) return;
+      r.visivel = mostra;
+      r.grupo.classList.toggle("ver", mostra);
+      r.nota.classList.toggle("ver", mostra);
+    });
+  }
 
   /* O mapa de calor: 20 semanas de 7 dias, mais quente nas semanas recentes.
      A onda acende da esquerda, uma coluna de cada vez. */
@@ -1857,6 +1928,12 @@ h2 {
     med.altPc = computador.offsetHeight;
     med.janela = palcoJanela.clientHeight;
     med.estreita = window.innerWidth < 760;
+    /* Os rabiscos das margens só entram se, com o computador no tamanho do
+       passeio, sobra espaço dos lados para eles. */
+    var larguraVista = computador.offsetWidth * Math.min(1, (med.janela - (med.estreita ? 120 : 175)) / med.altPc);
+    med.margem = !med.estreita && (window.innerWidth - larguraVista) / 2 > larguraVista * .155;
+    /* Com outra medida, as setas são refeitas na próxima vez que aparecem. */
+    RABISCOS.forEach(function (r) { r.visivel = false; r.grupo.classList.remove("ver"); r.nota.classList.remove("ver"); });
   }
 
   /* A cada quadro, só o que mudou vai para a página: escrever o mesmo valor
@@ -1912,6 +1989,7 @@ h2 {
     var i = 0;
     while (p >= PASSEIO[i].ate) i++;
     mostrarCena(i);
+    pintarRabiscos(p, i);
 
     /* 1. Dashboard: os números contam e o mapa acende em onda. */
     var conta = suave(trecho(p, .08, .2));
@@ -2253,56 +2331,17 @@ h2 {
     });
   }
 
-  /* ── A demonstração: grifar um trecho cria o card, tocar no card o vira, e
-     o grau diz quando ele voltaria. É o caminho do app, em miniatura. ── */
-  var card = $("cardDemo");
-  var vazio = $("demoVazio"), pergunta = $("demoPergunta");
-  var resposta = $("demoResposta"), virar = $("demoVirar");
-  var graus = document.querySelectorAll("#demoGraus button"), status = $("demoStatus");
-  var temCard = false, feitos = 0;
-
-  document.querySelectorAll(".trecho").forEach(function (t) {
-    t.addEventListener("keydown", function (e) {
-      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); t.click(); }
+  /* ── Depoimentos: a fileira se duplica para a faixa correr sem emenda.
+     A cópia não existe para leitor de tela nem para o Tab. ── */
+  var depFaixa = $("depFaixa");
+  if (depFaixa && !semMovimento) {
+    Array.prototype.slice.call(depFaixa.children).forEach(function (c) {
+      var copia = c.cloneNode(true);
+      copia.setAttribute("aria-hidden", "true");
+      copia.setAttribute("inert", "");
+      depFaixa.appendChild(copia);
     });
-    t.addEventListener("click", function () {
-      document.querySelectorAll(".trecho").forEach(function (x) { x.classList.toggle("grifado", x === t); });
-      card.classList.remove("virado", "nascendo");
-      void card.offsetWidth;
-      card.classList.add("nascendo");
-      vazio.hidden = true;
-      pergunta.hidden = false;
-      virar.hidden = false;
-      pergunta.textContent = t.dataset.pergunta;
-      resposta.textContent = t.dataset.resposta;
-      temCard = true;
-      graus.forEach(function (g) { g.disabled = true; });
-      status.innerHTML = "✳ Card criado. <b>Toque nele</b> para ver a resposta.";
-    });
-  });
-
-  function virarCard() {
-    if (!temCard) return;
-    card.classList.toggle("virado");
-    var aberto = card.classList.contains("virado");
-    graus.forEach(function (g) { g.disabled = !aberto; });
-    if (aberto) status.innerHTML = "✳ E aí, <b>como foi</b>? Escolha abaixo.";
   }
-  card.addEventListener("click", virarCard);
-  card.addEventListener("keydown", function (e) {
-    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); virarCard(); }
-  });
-
-  graus.forEach(function (g) {
-    g.addEventListener("click", function () {
-      var dias = Number(g.dataset.dias);
-      feitos++;
-      var quando = dias === 0 ? "volta <b>ainda nesta sessão</b>" : dias === 1 ? "volta <b>amanhã</b>" : "volta <b>em " + dias + " dias</b>";
-      status.innerHTML = "✳ Esse card " + quando + ". " + (feitos > 1 ? feitos + " revisados." : "Tente outro trecho!");
-      card.classList.remove("virado");
-      graus.forEach(function (x) { x.disabled = true; });
-    });
-  });
 })();
 </script>
 </body>
