@@ -85,18 +85,36 @@ function appSemBarra() {
   };
 }
 
+// A entrada mora em /login, sem a barra do fim no endereço: o pedido é
+// entregue à página login/index.html por dentro, como o rewrite da Vercel faz
+// no deploy, e o endereço que a pessoa vê não muda.
+function loginSemBarra() {
+  return {
+    name: 'login-sem-barra',
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
+        if (req.url === '/login' || req.url?.startsWith('/login?')) {
+          req.url = '/login/index.html' + req.url.slice(6);
+        }
+        next();
+      });
+    },
+  };
+}
+
 export default defineConfig(({ mode }) => {
   // O terceiro argumento vazio lê toda variável do .env, e não só as VITE_.
   const env = loadEnv(mode, process.cwd(), '');
   return {
-    plugins: [apiLocal(env), appSemBarra()],
-    // Duas páginas: a apresentação na raiz (index.html) e o app em /app
-    // (app/index.html). Sem a lista, o build só leva a raiz e o app some do
-    // deploy.
+    plugins: [apiLocal(env), appSemBarra(), loginSemBarra()],
+    // Três páginas: a apresentação na raiz (index.html), a entrada em /login
+    // (login/index.html) e o app em /app (app/index.html). Sem a lista, o
+    // build só leva a raiz e as outras somem do deploy.
     build: {
       rollupOptions: {
         input: {
           landing: 'index.html',
+          login: 'login/index.html',
           app: 'app/index.html',
         },
       },

@@ -8143,7 +8143,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     if (!t || !t.isConnected) return;
     var nova = adicionarLinha(t, null);
     marcarBordas(t);
-    arquivoCorpo.focus();
+    arquivoCorpo.focus({ preventScroll: true });
     porCursorEm(nova.cells[0]);
     pintarMais();
     salvarTexto();
@@ -8153,7 +8153,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     if (!t || !t.isConnected) return;
     var ultima = gradeDa(t).colunas - 1;
     adicionarColuna(t, ultima);
-    arquivoCorpo.focus();
+    arquivoCorpo.focus({ preventScroll: true });
     porCursorEm(celulaEmPos(gradeDa(t), 0, ultima + 1) || t.rows[0].cells[0]);
     pintarMais();
     posicionarMesaBarra();
@@ -9419,6 +9419,47 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     }
   }
 
+  /* Duas imagens lado a lado são duas flutuantes seguidas. Toda imagem nasce
+     com um parágrafo vazio depois dela, e esse parágrafo, entre as duas,
+     ocupa uma linha ao lado da primeira e empurra a segunda essa linha para
+     baixo: elas ficavam em degrau. Com as duas flutuando, o parágrafo vazio
+     do meio sai para depois da fileira, onde o cursor continua tendo lugar.
+     Voltando uma delas para a linha, ela ganha de novo o parágrafo dela. */
+  function paragrafoVazio(el) {
+    return !!el && el.tagName === "P" && el.textContent.replace(/​/g, "").trim() === "" &&
+      !el.querySelector("img, table, hr");
+  }
+  function ehFiguraFlutuante(el) {
+    return !!el && el.classList.contains("figura") && figuraFlutua(el);
+  }
+  function juntarFiguras(fig) {
+    if (figuraFlutua(fig)) {
+      var antes = fig.previousElementSibling;
+      if (paragrafoVazio(antes) && ehFiguraFlutuante(antes.previousElementSibling)) {
+        if (paragrafoVazio(fig.nextElementSibling)) antes.remove();
+        else fig.after(antes);
+      }
+      var depois = fig.nextElementSibling;
+      var seguinte = depois && depois.nextElementSibling;
+      if (paragrafoVazio(depois) && ehFiguraFlutuante(seguinte)) {
+        if (paragrafoVazio(seguinte.nextElementSibling)) depois.remove();
+        else seguinte.after(depois);
+      }
+    } else {
+      var p;
+      if (fig.nextElementSibling && fig.nextElementSibling.classList.contains("figura")) {
+        p = document.createElement("p");
+        p.innerHTML = "<br>";
+        fig.after(p);
+      }
+      if (fig.previousElementSibling && fig.previousElementSibling.classList.contains("figura")) {
+        p = document.createElement("p");
+        p.innerHTML = "<br>";
+        fig.before(p);
+      }
+    }
+  }
+
   barraFigura.addEventListener("mousedown", function (e) { e.preventDefault(); });
   barraFigura.addEventListener("click", function (e) {
     var b = e.target.closest && e.target.closest("button[data-posicao]");
@@ -9429,6 +9470,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     POSICOES_FIGURA.forEach(function (p) { if (p.classe) fig.classList.remove(p.classe); });
     if (nova) fig.classList.add(nova);
     acertarLarguraDaFigura(fig);
+    juntarFiguras(fig);
     pintarFerramentasDaFigura();
     salvarTexto();
   });
@@ -9499,7 +9541,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
       alvo.innerHTML = "<br>";
       arquivoCorpo.appendChild(alvo);
     }
-    arquivoCorpo.focus();
+    arquivoCorpo.focus({ preventScroll: true });
     porCursorEm(alvo, alvo === antes);
     salvarTexto();
   }
@@ -14249,7 +14291,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
       dialogoOverlay.classList.remove("saindo");
       /* O foco volta para o botão que abriu a caixa, e não para o começo da
          página: quem cancelou continua de onde estava. */
-      if (volta && document.contains(volta)) volta.focus();
+      if (volta && document.contains(volta)) volta.focus({ preventScroll: true });
       if (aoTerminar) aoTerminar();
       if (desistiu) desistiu();
     }, OBRA_SAIDA);
@@ -17129,7 +17171,15 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     copia.situacao = "novo";
     /* As listas vão por cópia: compartilhar o array faria mexer numa mexer na
        outra, e duas peças que se editam juntas não são duas peças. */
-    copia.lista = c.lista.slice();
+    copia.lista = c.lista.map(function (a) {
+      /* Os arquivos também: o mesmo objeto nas duas pastas fazia o id novo da
+         cópia ir parar no original, e excluir a cópia deixava o original
+         apontando para um arquivo que o banco já tinha apagado. */
+      var b = {};
+      for (var k in a) if (Object.prototype.hasOwnProperty.call(a, k)) b[k] = a[k];
+      b.tags = (a.tags || []).slice();
+      return b;
+    });
     copia.tags = (c.tags || []).slice();
     PASTAS.splice(PASTAS.indexOf(c) + 1, 0, copia);
     pintarPastas();

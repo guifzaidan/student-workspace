@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entrar · Sinapse</title>
+<meta name="description" content="Entre no Sinapse para continuar seus resumos, flashcards e revisões.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Manrope:wght@400;500;600;700;800&display=swap">
+<style>
+/* ─────────────────────────────────────────────────────────────────────────
+   A tela de entrada do Sinapse.
+
+   Duas partes. À esquerda, uma coluna estreita e centrada: a marca, o
+   título, o botão principal (entrar com o Google), o caminho alternativo
+   (e-mail e senha, que abre o formulário ali mesmo) e, embaixo, para quem é.
+   À direita, um painel lima no padrão do convite da apresentação, com a
+   frase da marca e um mural de gente (os perfis da apresentação) correndo
+   em carrossel. A pele é a da apresentação: contorno preto, sombra dura,
+   folha pontilhada.
+   ───────────────────────────────────────────────────────────────────────── */
+:root {
+  --papel: #F8F8F6;
+  --branco: #FFFFFF;
+  --tinta: #121316;
+  --cinza: #5E6066;
+  --cinza2: #A4A6AB;
+  --fio: #E3E4DE;
+  --rosa: #F2A0C0;
+  --rosa-forte: #E07AA3;
+  --lilas: #DCCBFF;
+  --lima: #C6F36B;
+  --lima-lavado: #EEFBD3;
+  --lima-tinta: #4F7A12;
+  --lima-funda: #A9D84A;
+  --manteiga: #FFE27A;
+  --ceu: #CFE3FF;
+  --sombra-dura: 3px 3px 0 var(--tinta);
+  --curva: cubic-bezier(.2, .8, .2, 1);
+  --mola: cubic-bezier(.2, 1.3, .35, 1);
+  --display: "Bricolage Grotesque", "Manrope", system-ui, sans-serif;
+  --texto: "Manrope", system-ui, sans-serif;
+  color-scheme: light;
+}
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--papel);
+  color: var(--tinta);
+  font-family: var(--texto);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: clip;
+}
+svg { display: block; }
+a { color: inherit; }
+button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+
+/* ─── A tela: duas colunas ───────────────────────────────────────────── */
+.tela { min-height: 100%; height: 100vh; height: 100svh; display: grid; grid-template-columns: minmax(0, 44fr) minmax(0, 56fr); grid-template-rows: minmax(0, 1fr); }
+.lado-entrada {
+  display: flex; align-items: center; justify-content: center;
+  padding: 40px clamp(20px, 5vw, 64px);
+  background-image: radial-gradient(circle, rgba(18, 19, 22, .1) 1.1px, transparent 1.2px);
+  background-size: 22px 22px;
+}
+.entrada { width: min(380px, 100%); animation: chega .7s var(--mola) both; }
+@keyframes chega { from { opacity: 0; transform: translateY(18px); } }
+
+.marca {
+  display: inline-flex; align-items: center; gap: 7px; text-decoration: none; color: var(--tinta);
+  font-family: var(--display); font-weight: 800; font-size: 26px; letter-spacing: -.055em; line-height: 1;
+}
+.marca-simbolo { width: 30px; height: 30px; flex-shrink: 0; transition: transform .6s var(--mola); }
+.marca:hover .marca-simbolo { transform: rotate(60deg); }
+
+.entrada h1 {
+  margin: 56px 0 0; font-family: var(--display); font-weight: 800;
+  font-size: clamp(32px, 3vw, 40px); line-height: 1; letter-spacing: -.05em;
+}
+/* O grifo atrás da palavra, na cor do marca-texto. */
+.grifo { position: relative; z-index: 0; white-space: nowrap; font-style: italic; }
+.grifo::before {
+  content: ""; position: absolute; z-index: -1;
+  left: -.06em; right: -.08em; bottom: .04em; height: .42em;
+  background: var(--lima); border-radius: .12em; transform: skewX(-8deg);
+  transform-origin: left; animation: grifa .7s var(--curva) .35s both;
+}
+@keyframes grifa { from { transform: skewX(-8deg) scaleX(0); } }
+.entrada .sub { margin: 10px 0 34px; color: var(--cinza); font-weight: 500; }
+
+/* ─── Os botões ──────────────────────────────────────────────────────── */
+.btn {
+  width: 100%; height: 54px; padding: 0 22px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  border-radius: 100px; border: 2px solid var(--tinta);
+  font-weight: 800; font-size: 15.5px; text-decoration: none;
+  transition: transform .15s var(--curva), box-shadow .15s var(--curva), background .15s;
+}
+.btn:hover { transform: translate(-2px, -2px); }
+.btn:active { transform: translate(1px, 1px); }
+.btn-google { background: var(--tinta); color: var(--branco); box-shadow: 4px 4px 0 var(--lima); }
+.btn-google:hover { box-shadow: 6px 6px 0 var(--lima); }
+.btn-google .g { width: 22px; height: 22px; border-radius: 50%; background: var(--branco); display: grid; place-items: center; }
+.btn-google .g svg { width: 14px; height: 14px; }
+.btn-lima { background: var(--lima); color: var(--tinta); box-shadow: var(--sombra-dura); }
+.btn-lima:hover { box-shadow: 5px 5px 0 var(--tinta); }
+/* Enquanto falta e-mail ou senha, o botão fica apagado, sem sombra. */
+.btn-lima.apagado { background: #E4E5E1; color: var(--cinza2); border-color: #CDCFD3; box-shadow: none; transform: none; cursor: default; }
+.btn svg.seta { width: 18px; height: 18px; transition: transform .3s var(--mola); }
+.btn:hover svg.seta { transform: translateX(3px); }
+
+.alternar {
+  display: block; margin: 16px auto 0; padding: 4px 8px; border: 0; background: none;
+  font-size: 13.5px; font-weight: 700; color: var(--cinza);
+  text-decoration: underline; text-decoration-color: var(--fio); text-underline-offset: 4px;
+}
+.alternar:hover { color: var(--tinta); text-decoration-color: var(--lima); }
+
+/* O formulário de e-mail e senha: fechado por padrão, abre com mola. */
+/* A altura abre e fecha devagar, e o que está dentro entra deslizando e
+   aparecendo, um campo depois do outro. A borda só é solta (para a sombra do
+   campo em foco aparecer inteira) depois que a gaveta terminou de abrir. */
+.form-email { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .55s var(--curva); }
+.form-email.aberto { grid-template-rows: 1fr; }
+.form-email > div { overflow: hidden; min-height: 0; }
+.form-email.solto > div { overflow: visible; }
+.form-email form > * { opacity: 0; transform: translateY(-10px); transition: opacity .25s ease, transform .3s var(--curva); }
+.form-email.aberto form > * { opacity: 1; transform: none; transition: opacity .4s ease, transform .5s var(--mola); }
+.form-email.aberto form > :nth-child(1) { transition-delay: .12s; }
+.form-email.aberto form > :nth-child(2) { transition-delay: .19s; }
+.form-email.aberto form > :nth-child(3) { transition-delay: .26s; }
+.form-email.aberto form > :nth-child(4) { transition-delay: .33s; }
+/* O texto do link troca sumindo e voltando, sem pular. */
+.alternar { transition: opacity .18s ease, color .2s; }
+.alternar.trocando { opacity: 0; }
+form { display: grid; gap: 10px; padding-top: 18px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.ou { display: flex; align-items: center; gap: 12px; font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--cinza2); }
+.ou::before, .ou::after { content: ""; flex: 1; height: 1.5px; background: var(--fio); }
+.campo { display: grid; gap: 6px; }
+.campo label { font-weight: 800; font-size: 13.5px; }
+.caixa { position: relative; }
+.caixa input {
+  width: 100%; height: 50px; padding: 0 16px;
+  background: var(--branco); border: 2px solid var(--tinta); border-radius: 14px;
+  font-weight: 600; font-size: 15.5px;
+  box-shadow: 0 0 0 var(--tinta);
+  transition: box-shadow .15s var(--curva), transform .15s var(--curva), background .15s;
+}
+.caixa input::placeholder { color: var(--cinza2); font-weight: 500; }
+.caixa input:focus { outline: none; transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--tinta); background: var(--lima-lavado); }
+.caixa input[aria-invalid="true"] { border-color: var(--rosa-forte); box-shadow: 3px 3px 0 var(--rosa-forte); }
+.caixa .com-olho { padding-right: 56px; }
+.olho {
+  position: absolute; top: 50%; right: 7px; transform: translateY(-50%);
+  width: 38px; height: 38px; border: 0; border-radius: 10px; background: transparent;
+  display: grid; place-items: center; color: var(--cinza);
+}
+.olho:hover { background: var(--papel); color: var(--tinta); }
+.olho svg { width: 20px; height: 20px; }
+.erro { margin: 0; color: #B23A6B; font-weight: 700; font-size: 13.5px; }
+.erro:empty { display: none; }
+.btn:focus-visible, .olho:focus-visible, .marca:focus-visible, .alternar:focus-visible { outline: 3px solid var(--lima-tinta); outline-offset: 3px; }
+
+/* Para quem é: como a fileira de logos de clientes, em cinza. */
+.para-quem { margin-top: 60px; text-align: center; }
+.para-quem small { display: block; font-size: 11.5px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--cinza2); }
+/* Os perfis correm como uma fileira de logos, sumindo nas pontas. */
+.para-quem .janela {
+  margin-top: 16px; overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+}
+.para-quem ul { list-style: none; margin: 0; padding: 0 0 0 24px; display: flex; gap: 24px; width: max-content; animation: corre 30s linear infinite; }
+@keyframes corre { to { transform: translateX(-50%); } }
+.para-quem li { font-family: var(--display); font-weight: 800; font-size: 18px; letter-spacing: -.03em; color: #B5B7BB; white-space: nowrap; transition: color .2s; }
+.para-quem li:hover { color: var(--tinta); }
+
+/* ─── O painel ───────────────────────────────────────────────────────── */
+/* No padrão do convite da apresentação: lima liso, contorno preto e sombra
+   dura, a frase em preto no alto e o mural de gente correndo embaixo,
+   num lima mais fundo, subindo de dentro da borda. */
+.painel {
+  position: relative; overflow: hidden; isolation: isolate;
+  margin: 18px 24px 24px 0;
+  border: 2px solid var(--tinta); border-radius: 32px;
+  background: var(--lima); box-shadow: 10px 10px 0 var(--tinta);
+  display: flex; flex-direction: column;
+  padding: clamp(30px, 3.4vw, 48px);
+}
+.painel::before {
+  /* A folha pontilhada, bem de leve. */
+  content: ""; position: absolute; inset: 0; z-index: -1;
+  background: radial-gradient(circle, rgba(18, 19, 22, .14) 1.2px, transparent 1.3px) 0 0 / 24px 24px;
+}
+.frase { position: relative; z-index: 2; max-width: 560px; }
+.frase .selo {
+  display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px;
+  background: var(--branco); border: 2px solid var(--tinta); border-radius: 100px; box-shadow: var(--sombra-dura);
+  font-size: 12.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+}
+.frase .selo i { width: 8px; height: 8px; border-radius: 50%; background: var(--rosa-forte); border: 1.5px solid var(--tinta); }
+.frase h2 { margin: 22px 0 0; font-family: var(--display); font-weight: 800; font-size: clamp(34px, 3.6vw, 56px); line-height: 1; letter-spacing: -.05em; color: var(--tinta); }
+.frase h2 em { font-style: italic; }
+.frase p { margin: 16px 0 0; max-width: 430px; font-weight: 600; color: rgba(18, 19, 22, .72); }
+.rodape {
+  position: absolute; right: 24px; top: 24px; z-index: 3;
+  padding: 8px 16px; border-radius: 100px;
+  background: var(--branco); border: 2px solid var(--tinta); box-shadow: var(--sombra-dura);
+  font-size: 12.5px; font-weight: 700; color: var(--tinta);
+}
+/* O mural: três colunas de cartões de gente que correm sem parar, uma para
+   cima e a do meio para baixo, sumindo nas pontas. Cada coluna leva os
+   cartões duas vezes (o script duplica), e a animação anda metade dela, então
+   a volta não tem emenda. */
+.mural {
+  position: relative; flex: 1; min-height: 0; margin: 26px -6px -60px;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 12%, #000 80%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 12%, #000 80%, transparent);
+}
+.mural-col { overflow: hidden; }
+.mural-trilho { display: flex; flex-direction: column; gap: 18px; padding: 10px 8px 18px 4px; animation: sobe var(--dur, 46s) linear infinite; }
+.mural-col:nth-child(2) .mural-trilho { animation-name: desce; --dur: 52s; }
+.mural-col:nth-child(3) .mural-trilho { --dur: 40s; }
+.mural:hover .mural-trilho { animation-play-state: paused; }
+@keyframes sobe { from { transform: translateY(0); } to { transform: translateY(-50%); } }
+@keyframes desce { from { transform: translateY(-50%); } to { transform: translateY(0); } }
+.pessoa {
+  position: relative; margin: 0; flex-shrink: 0; aspect-ratio: 4 / 5; overflow: hidden;
+  border: 2px solid var(--tinta); border-radius: 20px; background: var(--fundo);
+  box-shadow: 5px 5px 0 var(--tinta);
+  transform: rotate(var(--g, 0deg));
+}
+.pessoa svg { position: absolute; width: 84%; aspect-ratio: 1; right: -12%; top: -3%; color: #fff; opacity: .45; }
+.pessoa img { position: absolute; left: 50%; bottom: 0; max-width: 118%; max-height: 90%; transform: translateX(-50%); }
+.pessoa figcaption {
+  position: absolute; left: 8px; bottom: 8px; max-width: calc(100% - 16px);
+  padding: 4px 10px 5px; border-radius: 11px;
+  background: var(--branco); border: 1.5px solid var(--tinta); box-shadow: 2px 2px 0 var(--tinta);
+  font-family: var(--display); font-weight: 800; font-size: 13.5px; letter-spacing: -.02em; line-height: 1.2;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+
+@media (max-width: 900px) {
+  .tela { grid-template-columns: minmax(0, 1fr); height: auto; }
+  .painel { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="marca" viewBox="0 0 32 32">
+    <g stroke="currentColor" stroke-width="3.6" stroke-linecap="round">
+      <path d="M16 16 18.72 5.86M16 16l10.14-2.72M16 16l7.42 7.42M16 16l-2.72 10.14M16 16 5.86 18.72M16 16 8.58 8.58"/>
+    </g>
+    <g fill="currentColor">
+      <circle cx="16" cy="16" r="4.8"/>
+      <circle cx="19.11" cy="4.41" r="3.4"/><circle cx="27.59" cy="12.89" r="3.4"/><circle cx="24.49" cy="24.49" r="3.4"/>
+      <circle cx="12.89" cy="27.59" r="3.4"/><circle cx="4.41" cy="19.11" r="3.4"/><circle cx="7.51" cy="7.51" r="3.4"/>
+    </g>
+  </symbol>
+  <symbol id="google" viewBox="0 0 24 24">
+    <path fill="#4285F4" d="M23.5 12.3c0-.8-.1-1.6-.2-2.3H12v4.5h6.5a5.5 5.5 0 0 1-2.4 3.6v3h3.9c2.3-2.1 3.5-5.2 3.5-8.8Z"/>
+    <path fill="#34A853" d="M12 24c3.2 0 6-1.1 8-2.9l-3.9-3c-1.1.7-2.5 1.2-4.1 1.2-3.1 0-5.8-2.1-6.7-5H1.3v3.1A12 12 0 0 0 12 24Z"/>
+    <path fill="#FBBC05" d="M5.3 14.3a7.2 7.2 0 0 1 0-4.6V6.6H1.3a12 12 0 0 0 0 10.8l4-3.1Z"/>
+    <path fill="#EA4335" d="M12 4.8c1.8 0 3.3.6 4.6 1.8l3.4-3.4A12 12 0 0 0 1.3 6.6l4 3.1c.9-2.8 3.6-4.9 6.7-4.9Z"/>
+  </symbol>
+  <symbol id="a-estrela" viewBox="0 0 64 64"><path d="M32 6l7.1 17.3 18.6 1.4-14.3 12 4.5 18.1L32 45l-15.9 9.8 4.5-18.1-14.3-12 18.6-1.4z" style="fill:var(--cor, #FFE27A)" stroke="#121316" stroke-width="3" stroke-linejoin="round"/></symbol>
+  <symbol id="a-sorriso" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" style="fill:var(--cor, #FFE27A)" stroke="#121316" stroke-width="3"/><ellipse cx="23" cy="26" rx="3.4" ry="4.6" fill="#121316"/><ellipse cx="41" cy="26" rx="3.4" ry="4.6" fill="#121316"/><path d="M19 37c3 7 9 10 13 10s10-3 13-10" fill="none" stroke="#121316" stroke-width="3.6" stroke-linecap="round"/><path d="M16 20c2-5 6-8 10-9" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/></symbol>
+  <symbol id="a-coracao" viewBox="0 0 64 64"><path d="M32 54C14 42 6 32 6 22c0-9 7-15 15-15 5 0 9 3 11 7 2-4 6-7 11-7 8 0 15 6 15 15 0 10-8 20-26 32z" style="fill:var(--cor, #DCCBFF)" stroke="#121316" stroke-width="3" stroke-linejoin="round"/><path d="M15 19c1-4 4-6 7-6" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/></symbol>
+  <symbol id="a-raio" viewBox="0 0 64 64"><path d="M37 4 12 36h17l-5 24 28-34H34Z" style="fill:var(--cor, #FFE27A)" stroke="#121316" stroke-width="3" stroke-linejoin="round"/></symbol>
+  <symbol id="ic-universitarios" viewBox="0 0 32 32"><path d="M2 12 16 5l14 7-14 7Z" fill="currentColor"/><path d="M8 15.5v6.5c4 3.5 12 3.5 16 0v-6.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M27 13v8" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="27" cy="23.5" r="2.4" fill="currentColor"/></symbol>
+  <symbol id="ic-colegiais" viewBox="0 0 32 32"><path d="M7 27V14a9 9 0 0 1 18 0v13a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2Z" fill="currentColor"/><path d="M12 6V4.5a4 4 0 0 1 8 0V6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M11 29v-8h10v8" fill="none" stroke="#000" stroke-opacity=".12" stroke-width="2.4" stroke-linejoin="round"/></symbol>
+  <symbol id="ic-vestibulandos" viewBox="0 0 32 32"><path d="M21.5 4.5a3.5 3.5 0 0 1 5 5L10 26l-6.5 2 2-6.5Z" fill="currentColor"/><path d="m19 7 5 5" fill="none" stroke="#000" stroke-opacity=".12" stroke-width="2.4" stroke-linecap="round"/></symbol>
+  <symbol id="ic-medicina" viewBox="0 0 32 32"><path d="M7 3H5.5A1.5 1.5 0 0 0 4 4.5V11a7 7 0 0 0 14 0V4.5A1.5 1.5 0 0 0 16.5 3H15" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M11 18v3a7 7 0 0 0 14 0v-3" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="25" cy="15" r="3.6" fill="currentColor"/></symbol>
+  <symbol id="ic-concurseiros" viewBox="0 0 32 32"><rect x="4" y="21" width="24" height="7" rx="2" fill="currentColor"/><rect x="7" y="13" width="21" height="7" rx="2" fill="currentColor"/><rect x="5" y="5" width="20" height="7" rx="2" fill="currentColor"/></symbol>
+  <symbol id="ic-direito" viewBox="0 0 32 32"><path d="M16 4v24M10 28h12M5 8h22" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 9 1.5 18h7Z M27 9l-3.5 9h7Z" fill="currentColor"/><path d="M1.5 18a3.5 3.5 0 0 0 7 0 M23.5 18a3.5 3.5 0 0 0 7 0" fill="currentColor"/></symbol>
+  <symbol id="ic-enfermagem" viewBox="0 0 32 32"><path d="M12 3h8v9h9v8h-9v9h-8v-9H3v-8h9Z" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  <symbol id="ic-engenharia" viewBox="0 0 32 32"><path d="M16 2.5 18.4 6l4.2-1 .8 4.2 4.1 1.4-1.5 4 2.5 3.5-3.5 2.4.5 4.3-4.3.3-1.7 3.9-3.9-1.8L12 28l-1.6-4-4.3-.4.6-4.3-3.5-2.4L5.7 13l-1.5-4 4.1-1.4.9-4.2 4.2 1Z" fill="currentColor"/><circle cx="16" cy="16" r="4.6" fill="#000" fill-opacity=".1"/></symbol>
+  <symbol id="ic-residentes" viewBox="0 0 32 32"><path d="M16 28C8 22 3 17.5 3 11.5A6.5 6.5 0 0 1 16 8.5a6.5 6.5 0 0 1 13 3C29 17.5 24 22 16 28Z" fill="currentColor"/><path d="M6 15h5l2-4 3 8 2-4h8" fill="none" stroke="#000" stroke-opacity=".12" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="ic-professores" viewBox="0 0 32 32"><rect x="3" y="4" width="26" height="17" rx="2.5" fill="currentColor"/><path d="M9 28l4-7M23 28l-4-7M16 21v4" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="ic-pos" viewBox="0 0 32 32"><path d="M12 3h8M13 3v9L5.5 25a2.5 2.5 0 0 0 2.2 3.8h16.6A2.5 2.5 0 0 0 26.5 25L19 12V3" fill="currentColor" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></symbol>
+  <symbol id="ic-idiomas" viewBox="0 0 32 32"><path d="M4 5h15a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-8l-5 4v-4H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" fill="currentColor"/><path d="M23 11h5a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-1v4l-5-4h-6a2 2 0 0 1-2-2v-1" fill="currentColor" fill-opacity=".75"/></symbol>
+  <symbol id="ic-seminaristas" viewBox="0 0 32 32"><path d="M16 2v15M10.5 7.5h11" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round"/><path d="M3 20c4.5-2 9-2 13 1 4-3 8.5-3 13-1v9c-4.5-2-9-2-13 1-4-3-8.5-3-13-1Z" fill="currentColor"/></symbol>
+  <symbol id="ic-odontologia" viewBox="0 0 32 32"><path d="M9 3c-4 0-6 3-6 7 0 3 1.4 5 2.2 8 .9 3.5 1.2 11 4.3 11 2.6 0 2.2-7 6.5-7s3.9 7 6.5 7c3.1 0 3.4-7.5 4.3-11 .8-3 2.2-5 2.2-8 0-4-2-7-6-7-2.8 0-4.4 1.6-7 1.6S11.8 3 9 3Z" fill="currentColor"/></symbol>
+  <symbol id="ic-psicologia" viewBox="0 0 32 32"><path d="M17 3C10.4 3 5 8 5 14.5c0 2.8 1 5.3 2.6 7.3L7 29h11v-4h3.5a3 3 0 0 0 3-3v-3.5l2.8-1.2c.6-.3.8-1 .4-1.5L25 11.5C23.8 6.6 20.8 3 17 3Z" fill="currentColor"/><path d="M12 13a3.5 3.5 0 0 1 6.5-1.8A3 3 0 0 1 21 16a3 3 0 0 1-4 2.8 3 3 0 0 1-5-2.3" fill="none" stroke="#000" stroke-opacity=".14" stroke-width="2.2" stroke-linecap="round"/></symbol>
+  <symbol id="ic-administracao" viewBox="0 0 32 32"><rect x="4" y="18" width="6" height="11" rx="1.5" fill="currentColor"/><rect x="13" y="12" width="6" height="17" rx="1.5" fill="currentColor"/><rect x="22" y="6" width="6" height="23" rx="1.5" fill="currentColor"/><path d="M4 12 13 6l5 3 9-6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="olho-aberto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="olho-fechado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3 3.9M6.6 6.6A17 17 0 0 0 2 12s3.6 7 10 7a9.6 9.6 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2"/></symbol>
+</svg>
+
+<div class="tela">
+  <div class="lado-entrada">
+    <main class="entrada" aria-labelledby="titulo">
+      <a class="marca" href="/" aria-label="Sinapse, voltar para o início">
+        <svg class="marca-simbolo" aria-hidden="true"><use href="#marca"/></svg>
+        sinapse
+      </a>
+
+      <h1 id="titulo">Que bom te <span class="grifo">ver.</span></h1>
+      <p class="sub">Entre para continuar seus resumos, cards e revisões.</p>
+
+      <a class="btn btn-google" href="/app/" id="google">
+        <span class="g" aria-hidden="true"><svg><use href="#google"/></svg></span>
+        Entrar com o Google
+      </a>
+      <button class="alternar" type="button" id="alternar" aria-expanded="false" aria-controls="formEmail">Entrar com e-mail e senha</button>
+
+      <div class="form-email" id="formEmail">
+        <div>
+          <form id="entrar" novalidate>
+            <div class="campo">
+              <label class="sr" for="email">E-mail</label>
+              <div class="caixa">
+                <input id="email" name="email" type="email" autocomplete="email" placeholder="E-mail" required>
+              </div>
+            </div>
+            <div class="campo">
+              <label class="sr" for="senha">Senha</label>
+              <div class="caixa">
+                <input id="senha" class="com-olho" name="senha" type="password" autocomplete="current-password" placeholder="Senha" required>
+                <button class="olho" type="button" id="olho" aria-label="Mostrar a senha" aria-pressed="false">
+                  <svg aria-hidden="true"><use id="olhoIcone" href="#olho-aberto"/></svg>
+                </button>
+              </div>
+            </div>
+            <p class="erro" id="erro" role="alert"></p>
+            <button class="btn btn-lima apagado" type="submit" id="botaoEntrar" aria-disabled="true">Entrar <svg class="seta" aria-hidden="true"><use href="#seta"/></svg></button>
+          </form>
+        </div>
+      </div>
+
+      <div class="para-quem">
+        <small>Feito para</small>
+        <div class="janela">
+          <ul id="perfis">
+            <li>Universitários</li><li>Concurseiros</li><li>Residentes</li><li>Vestibulandos</li><li>Direito e OAB</li><li>Enfermagem</li><li>Engenharia</li><li>Idiomas</li>
+          </ul>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <aside class="painel" aria-hidden="true">
+    <div class="frase">
+      <span class="selo"><i></i>Resumos, cards e revisão</span>
+      <h2>Estude menos. <em>Lembre na hora da prova.</em></h2>
+      <p>Grife o resumo, transforme o trecho em card e deixe a revisão espaçada decidir o que volta amanhã.</p>
+    </div>
+    <span class="rodape">© 2026 Sinapse</span>
+    <div class="mural">
+      <div class="mural-col"><div class="mural-trilho">
+          <figure class="pessoa" style="--fundo:var(--lima);--g:-2deg"><svg><use href="#ic-universitarios"/></svg><img src="/lp/perfil-universitarios.webp" alt="" decoding="async"><figcaption>Universitários</figcaption></figure>
+          <figure class="pessoa" style="--fundo:#FFA94D;--g:2deg"><svg><use href="#ic-seminaristas"/></svg><img src="/lp/perfil-seminaristas.webp" alt="" decoding="async"><figcaption>Seminaristas</figcaption></figure>
+          <figure class="pessoa" style="--fundo:#5EC9A5;--g:2.2deg"><svg><use href="#ic-professores"/></svg><img src="/lp/perfil-professores.webp" alt="" decoding="async"><figcaption>Professores</figcaption></figure>
+          <figure class="pessoa" style="--fundo:#B79BFF;--g:-0.8deg"><svg><use href="#ic-enfermagem"/></svg><img src="/lp/perfil-enfermagem.webp" alt="" decoding="async"><figcaption>Enfermagem</figcaption></figure>
+          <figure class="pessoa" style="--fundo:var(--manteiga);--g:0.8deg"><svg><use href="#ic-medicina"/></svg><img src="/lp/perfil-medicina.webp" alt="" decoding="async"><figcaption>Residência médica</figcaption></figure>
+          <figure class="pessoa" style="--fundo:var(--lima);--g:-2.4deg"><svg><use href="#ic-administracao"/></svg><img src="/lp/perfil-administracao.webp" alt="" decoding="async"><figcaption>Administração e Contábeis</figcaption></figure>
+      </div></div>
+      <div class="mural-col"><div class="mural-trilho">
+          <figure class="pessoa" style="--fundo:#FF7B6B;--g:1.5deg"><svg><use href="#ic-concurseiros"/></svg><img src="/lp/perfil-concurseiros.webp" alt="" decoding="async"><figcaption>Concurseiros</figcaption></figure>
+          <figure class="pessoa" style="--fundo:var(--rosa);--g:-1.5deg"><svg><use href="#ic-colegiais"/></svg><img src="/lp/perfil-colegiais.webp" alt="" decoding="async"><figcaption>Colegiais</figcaption></figure>
+          <figure class="pessoa" style="--fundo:#5EC9A5;--g:-2.2deg"><svg><use href="#ic-odontologia"/></svg><img src="/lp/perfil-odontologia.webp" alt="" decoding="async"><figcaption>Odontologia</figcaption></figure>
+          <figure class="pessoa" style="--fundo:#FF7B6B;--g:1.8deg"><svg><use href="#ic-pos"/></svg><img src="/lp/perfil-pos.webp" alt="" decoding="async"><figcaption>Pós-graduação</figcaption></figure>
+          <figure class="pessoa" style="--fundo:#6FA8FF;--g:-1.2deg"><svg><use href="#ic-engenharia"/></svg><img src="/lp/perfil-engenharia.webp" alt="" decoding="async"><figcaption>Engenharia</figcaption></figure>
+      </div></div>
+      <div class="mural-col"><div class="mural-trilho">
+          <figure class="pessoa" style="--fundo:#FFA94D;--g:-1deg"><svg><use href="#ic-residentes"/></svg><img src="/lp/perfil-residentes.webp" alt="" decoding="async"><figcaption>Medicina</figcaption></figure>
+          <figure class="pessoa" style="--fundo:var(--ceu);--g:1deg"><svg><use href="#ic-direito"/></svg><img src="/lp/perfil-direito.webp" alt="" decoding="async"><figcaption>Direito e OAB</figcaption></figure>
+          <figure class="pessoa" style="--fundo:#FFA94D;--g:1.2deg"><svg><use href="#ic-vestibulandos"/></svg><img src="/lp/perfil-vestibulandos.webp" alt="" decoding="async"><figcaption>Vestibulandos</figcaption></figure>
+          <figure class="pessoa" style="--fundo:var(--lilas);--g:-1.8deg"><svg><use href="#ic-psicologia"/></svg><img src="/lp/perfil-psicologia.webp" alt="" decoding="async"><figcaption>Psicologia</figcaption></figure>
+          <figure class="pessoa" style="--fundo:#FF5E8A;--g:2.4deg"><svg><use href="#ic-idiomas"/></svg><img src="/lp/perfil-idiomas.webp" alt="" decoding="async"><figcaption>Idiomas</figcaption></figure>
+      </div></div>
+    </div>
+  </aside>
+</div>
+
+<script>
+  const form = document.getElementById('entrar');
+  const email = document.getElementById('email');
+  const senha = document.getElementById('senha');
+  const erro = document.getElementById('erro');
+  const olho = document.getElementById('olho');
+  const olhoIcone = document.getElementById('olhoIcone');
+  const alternar = document.getElementById('alternar');
+  const formEmail = document.getElementById('formEmail');
+
+  // O mural do painel: cada coluna leva os cartões duas vezes, para a volta
+  // do carrossel não ter emenda.
+  document.querySelectorAll('.mural-trilho').forEach((t) => { t.innerHTML += t.innerHTML; });
+
+  // "Entrar com e-mail e senha" abre (e fecha) o formulário ali mesmo.
+  alternar.addEventListener('click', () => {
+    const abrir = !formEmail.classList.contains('aberto');
+    formEmail.classList.remove('solto');
+    formEmail.classList.toggle('aberto', abrir);
+    alternar.setAttribute('aria-expanded', String(abrir));
+    alternar.classList.add('trocando');
+    setTimeout(() => {
+      alternar.textContent = abrir ? 'Voltar para o Google' : 'Entrar com e-mail e senha';
+      alternar.classList.remove('trocando');
+    }, 180);
+    if (abrir) setTimeout(() => email.focus({ preventScroll: true }), 420);
+  });
+
+  // Terminada a abertura, a borda é solta para a sombra do foco aparecer.
+  formEmail.addEventListener('transitionend', (e) => {
+    if (e.target === formEmail && e.propertyName === 'grid-template-rows' && formEmail.classList.contains('aberto')) formEmail.classList.add('solto');
+  });
+
+  olho.addEventListener('click', () => {
+    const mostrando = senha.type === 'text';
+    senha.type = mostrando ? 'password' : 'text';
+    olho.setAttribute('aria-pressed', String(!mostrando));
+    olho.setAttribute('aria-label', mostrando ? 'Mostrar a senha' : 'Esconder a senha');
+    olhoIcone.setAttribute('href', mostrando ? '#olho-aberto' : '#olho-fechado');
+  });
+
+  // O botão só acende com e-mail e senha preenchidos.
+  const botaoEntrar = document.getElementById('botaoEntrar');
+  function conferir() {
+    const pronto = email.value.trim() !== '' && senha.value !== '';
+    botaoEntrar.classList.toggle('apagado', !pronto);
+    botaoEntrar.setAttribute('aria-disabled', String(!pronto));
+  }
+  // O aviso some assim que a pessoa volta a digitar no campo que errou.
+  for (const campo of [email, senha]) {
+    campo.addEventListener('input', () => {
+      campo.removeAttribute('aria-invalid');
+      erro.textContent = '';
+      conferir();
+    });
+  }
+
+  // A fileira de perfis vai duplicada: a volta do carrossel não tem emenda.
+  const perfis = document.getElementById('perfis');
+  perfis.innerHTML += perfis.innerHTML.replace(/<li>/g, '<li aria-hidden="true">');
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    let problema = '';
+    if (!email.value.trim()) problema = 'Escreva o seu e-mail.';
+    else if (!email.checkValidity()) problema = 'Esse e-mail não parece certo.';
+    else if (!senha.value) problema = 'Escreva a sua senha.';
+    if (problema) {
+      const campo = !email.value.trim() || !email.checkValidity() ? email : senha;
+      campo.setAttribute('aria-invalid', 'true');
+      campo.focus();
+      erro.textContent = problema;
+      return;
+    }
+    // Ainda não há contas: por enquanto, entrar leva direto ao app.
+    location.href = '/app/';
+  });
+</script>
+</body>
+</html>

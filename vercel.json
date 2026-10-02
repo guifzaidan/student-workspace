@@ -9,6 +9,10 @@
       "destination": "/api/$1"
     },
     {
+      "source": "/login",
+      "destination": "/login/index.html"
+    },
+    {
       "source": "/app",
       "destination": "/app/index.html"
     },

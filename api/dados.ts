@@ -396,9 +396,12 @@ async function gravar(corpo: Record<string, unknown>) {
       const tipo = texto(corpo.tipo) || 'image/png';
       if (!tipo.startsWith('image/')) throw new Error('Só imagem entra por aqui.');
       const id = novoId('img');
+      /* O vínculo com o arquivo só serve para a imagem ir embora junto com
+         ele. Se a tela manda um id que o banco não tem mais, a imagem entra
+         solta em vez de a gravação inteira cair na chave estrangeira. */
       await cx.execute(
         `INSERT INTO sinapse_imagens (id, arquivo_id, nome, tipo, bytes, dados, criada_em)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+         VALUES (?, (SELECT id FROM sinapse_arquivos WHERE id = ?), ?, ?, ?, ?, ?)`,
         [id, texto(corpo.arquivoId) || null, texto(corpo.nome), tipo, bytes, dados, t],
       );
       return { id, url: `/api/imagem?id=${id}` };
