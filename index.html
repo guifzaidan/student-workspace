@@ -162,7 +162,7 @@ h1.titulo {
    texto do app. De tempos em tempos a frase troca, e o grifo troca de cor
    junto: ele recolhe, a frase nova pula no lugar, e ele passa de novo. */
 /* A largura da frase grifada anda com mola: quando ela cresce ou encolhe,
-   o "Estude menos." desliza para o novo lugar em vez de pular, e balança de
+   o "É sobre:" desliza para o novo lugar em vez de pular, e balança de
    leve, como quem abre espaço. */
 .titulo .linha { display: inline-block; }
 .grifada { position: relative; display: inline-block; z-index: 0; text-align: left; white-space: nowrap; vertical-align: top; transition: width .75s var(--mola); }
@@ -178,7 +178,8 @@ h1.titulo {
   transition: transform .35s var(--curva);
 }
 .grifada.cheia::before { transform-origin: left center; transform: scaleX(1) skewX(-8deg); transition: transform .8s var(--curva); }
-.grifada-texto { display: inline-block; font-style: italic; padding-right: .06em; transition: opacity .22s var(--curva), transform .45s var(--mola); }
+/* Teste: a frase grifada escrita à mão, como anotação no caderno. */
+.grifada-texto { display: inline-block; font-family: var(--mao); font-weight: 700; font-size: 1.22em; letter-spacing: -.01em; line-height: .78; padding-right: .06em; transition: opacity .22s var(--curva), transform .45s var(--mola); }
 .grifada-texto.trocando { opacity: 0; transform: translateY(.3em) rotate(-2deg); transition: opacity .18s, transform .18s; }
 .chamada { font-size: clamp(15px, 1.2vw, 16.5px); line-height: 1.6; color: #34363B; max-width: 740px; margin: 0 auto 30px; text-wrap: balance; }
 .acoes { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
@@ -537,6 +538,80 @@ h1.titulo {
 .chat-campo { display: flex; align-items: center; gap: .6em; height: 3em; padding: 0 .4em 0 1.1em; border-radius: 100px; background: var(--branco); border: 1.5px solid var(--tinta); box-shadow: var(--sombra-dura); color: var(--cinza2); font-weight: 600; }
 .chat-campo span { flex: 1; }
 .chat-campo b { width: 2.2em; height: 2.2em; border-radius: 50%; background: var(--lima); border: 1.5px solid var(--tinta); display: grid; place-items: center; color: var(--tinta); }
+
+/* ─── O acabamento da tela ──────────────────────────────────────────────
+   Dentro do computador o app tem cara de produto: cartões brancos ou em
+   tom pastel, borda fina cinza (ou da cor do cartão), sombra baixa e macia,
+   e selos em pastel com borda fina. Só o que salta na cena (a medalha, o
+   balão, o "volta em") ganha uma sombra um pouco mais funda. */
+.tela {
+  --borda-fina: #E6E7EB;
+  --sombra-baixa: 0 1px 2px rgba(16, 24, 40, .04), 0 .3em .9em -.2em rgba(16, 24, 40, .07);
+  --sombra-salta: 0 1px 2px rgba(16, 24, 40, .06), 0 .8em 1.8em -.5em rgba(16, 24, 40, .22);
+  background: #F7F7F5;
+}
+.tela .tela-janela { border-bottom: 1px solid var(--borda-fina); }
+.tela .tela-janela i { border: 1px solid rgba(18, 19, 22, .15); }
+.tela .tela-janela span { border-color: var(--borda-fina); }
+.tela .tela-lado { border-right: 1px solid var(--borda-fina); }
+.tela .lado-marcador {
+  background: var(--lima-lavado); border: 1px solid #CDEBA0;
+  box-shadow: var(--sombra-baixa);
+}
+.tela .lado-menu b { border: 1px solid rgba(18, 19, 22, .1); }
+.tela .lado-perfil { background: #FFFFFF; border: 1px solid var(--borda-fina); box-shadow: var(--sombra-baixa); }
+.tela .tela-avatar { border: 1px solid var(--borda-fina); }
+.tela .selo-app { border: 1px solid rgba(18, 19, 22, .08); box-shadow: none; }
+
+/* Os cartões: brancos, com borda fina e sombra baixa. */
+.tela .calor-caixa, .tela .editor-folha, .tela .editor-cards, .tela .editor-barra,
+.tela .deck, .tela .deck-meta, .tela .pomo-info, .tela .chat-campo, .tela .msg.ia {
+  background: #FFFFFF; border: 1px solid var(--borda-fina); box-shadow: var(--sombra-baixa);
+}
+.tela .sugestoes span { background: #FFFFFF; border: 1px solid var(--borda-fina); }
+
+/* Os números: cartão em tom pastel, com a borda da mesma cor. */
+.tela .numero { border: 1px solid var(--borda, var(--borda-fina)); box-shadow: var(--sombra-baixa); }
+.tela .numero small { color: rgba(18, 19, 22, .6); }
+
+.tela .calor-grade i { background: #F1F2EF; }
+.tela .calor-grade i::after { border: 1px solid rgba(18, 19, 22, .06); }
+.tela .medalha, .tela .mais-card { border: 1px solid #B9DE7E; box-shadow: var(--sombra-salta); }
+
+/* Arquivos. */
+.tela .editor-barra span.grifo { border: 1px solid #B9DE7E; }
+.tela .balao-trecho { box-shadow: var(--sombra-salta); }
+.tela .editor-previa { border-color: var(--borda-fina); }
+.tela .editor-previa.cheia { border: 1px solid #CDEBA0; background: var(--lima-lavado); box-shadow: var(--sombra-baixa); }
+
+/* Decks. */
+.tela .deck.aqui { border-color: #F5C3D6; box-shadow: var(--sombra-salta); }
+.tela .deck > i, .tela .deck em { border: 1px solid rgba(18, 19, 22, .1); }
+.tela .deck-meta span { background: #F1F2EF; border: 0; }
+.tela .deck-meta span i { border-radius: 100px; }
+.tela .flash-face { border: 1px solid var(--borda-fina); box-shadow: var(--sombra-salta); }
+.tela .flash-face.verso { background: var(--lima-lavado); border-color: #CDEBA0; }
+.tela .flash .volta { box-shadow: var(--sombra-salta); }
+.tela .notas-graus span { border: 1px solid rgba(18, 19, 22, .1); box-shadow: var(--sombra-baixa); }
+.tela .notas-graus .apertado { box-shadow: none; }
+
+/* Pomodoro. */
+.tela .pomo-anel { border: 1px solid var(--borda-fina); box-shadow: var(--sombra-salta); }
+/* O anel e as bolinhas dos ciclos em vermelho tomate, como o 🍅. */
+.tela .pomo-anel .arco { stroke: #EF4B3C; }
+.tela .pomo-ciclos i { border: 1px solid rgba(18, 19, 22, .15); }
+.tela .pomo-ciclos i.feito { background: #EF4B3C; border-color: #D23A2C; }
+.tela .pomo-ciclos i.agora { background: linear-gradient(90deg, #EF4B3C 50%, var(--branco) 50%); border-color: #D23A2C; }
+.tela .barras i { border: 1px solid rgba(18, 19, 22, .08); }
+.tela .pomo-botoes span { border: 1px solid var(--borda-fina); box-shadow: var(--sombra-baixa); }
+.tela .pomo-botoes span.escuro { border-color: var(--tinta); }
+
+/* Agente de IA. */
+.tela .sugestoes span.usada { border-color: var(--lilas-forte); background: #F3EDFF; box-shadow: none; }
+.tela .msg { border: 1px solid var(--borda-fina); }
+.tela .msg.eu { border-color: var(--tinta); box-shadow: var(--sombra-baixa); }
+.tela .ia-rosto, .tela .chat-campo b { border: 1px solid rgba(18, 19, 22, .1); }
+.tela .ia-card { border: 1px solid rgba(18, 19, 22, .08); box-shadow: var(--sombra-salta); }
 
 /* A legenda do passeio, em cima do computador: o número e o nome da parte
    do app na tela, e os pontinhos de onde se está. */
@@ -983,6 +1058,23 @@ h2 {
 }
 .convite h2 { font-size: clamp(36px, 5.2vw, 78px); text-align: left; margin: 0 0 26px; max-width: 1000px; }
 .convite .btn { align-self: flex-start; }
+.convite h2, .convite .btn { position: relative; z-index: 2; }
+/* Os adesivos soltos no canto do convite: alfinete, estrela, coração e
+   brilhos, no traço das outras peças (contorno preto e a sombra dura, que no
+   SVG vem do drop-shadow). Cada um balança no seu tempo. */
+.convite-adesivos { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.adesivo {
+  position: absolute;
+  width: var(--tam, 56px); height: var(--tam, 56px);
+  filter: drop-shadow(3px 3px 0 var(--tinta));
+  transform: rotate(var(--giro, 0deg));
+  animation: balanca 6s ease-in-out infinite;
+  animation-delay: var(--atraso, 0s);
+}
+@keyframes balanca {
+  0%, 100% { transform: rotate(var(--giro, 0deg)); }
+  50% { transform: translateY(-9px) rotate(calc(var(--giro, 0deg) + 6deg)); }
+}
 .abertura > .moldura { position: relative; z-index: 1; }
 /* A marca gigante no pé do convite, num tom de lima mais fundo. */
 .marca-gigante {
@@ -1113,6 +1205,10 @@ h2 {
   .perguntas summary { font-size: 17px; }
   .perguntas details p { padding-right: 10px; }
   .convite { padding: 30px 22px 0; border-radius: 26px; min-height: 480px; }
+  /* No celular o título ocupa a largura: os adesivos descem para o vão
+     entre o botão e a marca, menores. */
+  .convite-adesivos { top: auto; height: 46%; }
+  .adesivo { width: calc(var(--tam, 56px) * .7); height: calc(var(--tam, 56px) * .7); }
   .barra .marca { height: 48px; font-size: 22px; padding: 0 16px 2px 12px; }
   .barra .marca .marca-simbolo { width: 24px; height: 24px; }
   .barra .btn { height: 48px; padding: 0 18px; }
@@ -1127,6 +1223,7 @@ h2 {
   .surge { opacity: 1; transform: none; transition: none; }
   .lado-antes:hover .lado-foto, .lado-antes:focus-visible .lado-foto { animation: none; }
   .barra { transition: none; }
+  .adesivo { animation: none; }
 }
 </style>
 </head>
@@ -1177,7 +1274,7 @@ h2 {
   <!-- ═══ Abertura ═══ -->
   <section class="abertura pontilhado">
     <div class="moldura">
-      <h1 class="titulo"><span class="linha">Estude menos.</span> <span class="linha"><span class="grifada" id="grifada"><span class="grifada-texto" id="grifadaTexto">Lembre mais.</span></span></span></h1>
+      <h1 class="titulo"><span class="linha">É sobre:</span> <span class="linha"><span class="grifada" id="grifada"><span class="grifada-texto" id="grifadaTexto">lembrar de tudo.</span></span></span></h1>
       <p class="chamada">Escreva e grife seus resumos, transforme qualquer trecho em flashcard com um clique e revise na hora certa. Tudo no navegador, sem instalar nada.</p>
       <div class="acoes">
         <a class="btn btn-grifo" href="/login">Começar a usar <svg width="18" height="18"><use href="#seta"/></svg></a>
@@ -1217,9 +1314,9 @@ h2 {
               <div class="cena ativa">
                 <div class="cena-topo"><h5>Bom dia, Milena ☀️</h5><span class="selo-app" style="background:var(--manteiga)">🔥 12 dias seguidos</span></div>
                 <div class="numeros">
-                  <div class="numero" style="background:var(--rosa)"><small>Cards revisados</small><b data-conta="248">0</b></div>
-                  <div class="numero" style="background:var(--ceu)"><small>Minutos na semana</small><b data-conta="415">0</b></div>
-                  <div class="numero" style="background:var(--lima)"><small>Acertos</small><b data-conta="86" data-fim="%">0%</b></div>
+                  <div class="numero" style="background:var(--rosa-lavado);--borda:#F5C3D6"><small>Cards revisados</small><b data-conta="248">0</b></div>
+                  <div class="numero" style="background:#EEF4FF;--borda:#CFE0FA"><small>Minutos na semana</small><b data-conta="415">0</b></div>
+                  <div class="numero" style="background:var(--lima-lavado);--borda:#CDEBA0"><small>Acertos</small><b data-conta="86" data-fim="%">0%</b></div>
                 </div>
                 <div class="calor-caixa">
                   <header><span>Seu estudo nas últimas 20 semanas</span><small>menos <i style="background:#F1F2EE"></i><i style="background:#E9F9C9"></i><i style="background:#C6F36B"></i><i style="background:#9BD43A"></i><i style="background:#5E8F1C"></i> mais</small></header>
@@ -1294,7 +1391,7 @@ h2 {
                     <div class="pomo-ciclos"><i class="feito"></i><i class="feito"></i><i class="agora"></i><i></i></div>
                   </div>
                   <div class="pomo-lado">
-                    <div class="pomo-info" style="background:var(--rosa-lavado);border-color:var(--tinta)"><small>Assunto do ciclo</small><strong>SCA · Cardiologia</strong><span>vem do arquivo aberto</span></div>
+                    <div class="pomo-info" style="background:var(--rosa-lavado);border-color:#F5C3D6"><small>Assunto do ciclo</small><strong>SCA · Cardiologia</strong><span>vem do arquivo aberto</span></div>
                     <div class="pomo-info"><small>Foco na semana</small><div class="barras"><i style="--h:45%"></i><i style="--h:70%"></i><i style="--h:30%"></i><i style="--h:85%"></i><i style="--h:60%"></i><i class="hoje" style="--h:95%"></i><i style="--h:12%"></i></div><span>hoje: 3 ciclos · 75 min</span></div>
                     <div class="pomo-botoes"><span class="escuro">Pausar</span><span>Pular</span></div>
                   </div>
@@ -1619,6 +1716,26 @@ h2 {
     <div class="convite surge">
       <h2>Comece a estudar.<br>Veja até onde você chega.</h2>
       <a class="btn btn-cheio" href="/login">Entrar no sistema <svg width="18" height="18"><use href="#seta"/></svg></a>
+      <div class="convite-adesivos" aria-hidden="true">
+        <svg class="adesivo" viewBox="0 0 64 64" style="right:27%;top:7%;--giro:-14deg;--tam:70px;--atraso:-2s">
+          <path d="M32 44v17" stroke="#121316" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"/>
+          <path d="M22 6h20a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3h-2l2 14c6 2 9 6 9 10a3 3 0 0 1-3 3H17a3 3 0 0 1-3-3c0-4 3-8 9-10l2-14h-2a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3z" style="fill:var(--rosa)" stroke="#121316" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+          <path d="M28.5 19l-1.2 8.5" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+        <svg class="adesivo" viewBox="0 0 64 64" style="right:13%;top:4%;--giro:12deg;--tam:88px;--atraso:-1.5s">
+          <path d="M32 6l7.1 17.3 18.6 1.4-14.3 12 4.5 18.1L32 45l-15.9 9.8 4.5-18.1-14.3-12 18.6-1.4z" style="fill:var(--manteiga)" stroke="#121316" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+        </svg>
+        <svg class="adesivo" viewBox="0 0 64 64" style="right:4%;top:20%;--giro:10deg;--tam:80px;--atraso:-4s">
+          <path d="M32 54C14 42 6 32 6 22c0-9 7-15 15-15 5 0 9 3 11 7 2-4 6-7 11-7 8 0 15 6 15 15 0 10-8 20-26 32z" style="fill:var(--lilas)" stroke="#121316" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+          <path d="M15 19c1-4 4-6 7-6" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>
+        </svg>
+        <svg class="adesivo" viewBox="0 0 64 64" style="right:19%;top:30%;--giro:0deg;--tam:46px;--atraso:-3s">
+          <path d="M32 4C34 22 42 30 60 32 42 34 34 42 32 60 30 42 22 34 4 32 22 30 30 22 32 4z" style="fill:var(--ceu)" stroke="#121316" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+        </svg>
+        <svg class="adesivo" viewBox="0 0 64 64" style="right:3%;top:5%;--giro:-8deg;--tam:36px;--atraso:-5s">
+          <path d="M32 4C34 22 42 30 60 32 42 34 34 42 32 60 30 42 22 34 4 32 22 30 30 22 32 4z" style="fill:var(--branco)" stroke="#121316" stroke-width="3" stroke-linejoin="round" stroke-linecap="round"/>
+        </svg>
+      </div>
       <div class="marca-gigante" id="marcaGigante" aria-hidden="true"><span style="display:inline-block">sinapse</span></div>
     </div>
   </section>
@@ -1648,11 +1765,11 @@ h2 {
      de cor junto, passando pelas cores de grifo do app. ── */
   var grifada = $("grifada"), grifadaTexto = $("grifadaTexto");
   var FRASES = [
-    ["Lembre mais.", "var(--lima)"],
-    ["Aprenda mais.", "var(--rosa)"],
-    ["Revise certo.", "var(--manteiga)"],
-    ["Passe na prova.", "var(--ceu)"],
-    ["Vá mais longe.", "var(--lilas)"]
+    ["lembrar de tudo.", "var(--lima)"],
+    ["ter paz.", "var(--rosa)"],
+    ["organização.", "var(--manteiga)"],
+    ["passar na prova.", "var(--ceu)"],
+    ["dormir bem.", "var(--lilas)"]
   ];
   var fraseAtual = 0;
   setTimeout(function () { grifada.classList.add("cheia"); }, semMovimento ? 0 : 500);
@@ -1668,7 +1785,7 @@ h2 {
         document.documentElement.style.setProperty("--grifo-cor", FRASES[fraseAtual][1]);
         var depois = grifadaTexto.offsetWidth;
         grifada.style.width = depois + "px";
-        /* O "Estude menos." reage: escorrega um pouco além para o lado em que
+        /* O "É sobre:" reage: escorrega um pouco além para o lado em que
            vai (a frase cresceu, ele vai para a esquerda) e volta. */
         var vai = depois > antes ? -1 : 1;
         estude.style.setProperty("--empurra", (vai * Math.min(18, Math.abs(depois - antes) * .25 + 6)) + "px");
@@ -1777,6 +1894,18 @@ h2 {
     /* Num texto que quebra linha, a seta pode mirar a última linha dele. */
     var rc = computador.getBoundingClientRect(), s = rc.width / W, b = caixas[r.ultimaLinha ? caixas.length - 1 : 0];
     var x = (b.left - rc.left) / s, y = (b.top - rc.top) / s, w = b.width / s, h = b.height / s;
+    /* A cena pode estar no meio da entrada (mais baixa e um pouco menor).
+       A medida desfaz esse movimento, para a seta mirar onde o alvo para,
+       e não onde ele está passando. */
+    if (r.cena !== undefined) {
+      var cena = cenas[r.cena], cr = cena.getBoundingClientRect();
+      var k = cr.width / s / cena.offsetWidth;
+      var ox = 0, oy = 0;
+      for (var el = cena; el && el !== computador; el = el.offsetParent) { ox += el.offsetLeft; oy += el.offsetTop; }
+      x = ox + (x - (cr.left - rc.left) / s) / k;
+      y = oy + (y - (cr.top - rc.top) / s) / k;
+      w /= k; h /= k;
+    }
     var esq = r.lado === "esq", lado = esq ? -1 : 1, folga = W * .007;
     var ex, ey, circulo = "";
     if (r.circulo) {
