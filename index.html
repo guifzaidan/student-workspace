@@ -646,7 +646,7 @@ h1.titulo {
   stroke-dasharray: 1 2; stroke-dashoffset: 1;
   transition: stroke-dashoffset .25s var(--curva);
 }
-.rabiscos .rab-circulo { stroke: var(--rosa-forte); }
+.rabiscos .rab-circulo { stroke: #EF4B3C; }
 .rabiscos .ver path { stroke-dashoffset: 0; }
 .rabiscos .ver .rab-circulo { transition: stroke-dashoffset .55s var(--curva) .1s; }
 .rabiscos .ver .rab-seta { transition: stroke-dashoffset .6s var(--curva) .35s; }
@@ -1838,7 +1838,7 @@ h2 {
      indo até o alvo na tela; os de círculo também contornam o alvo. A mira
      diz onde, dentro do alvo, a ponta da seta cai; `saida` puxa o começo da
      seta para baixo do meio do recado e `barrigaBaixo` curva a seta para
-     baixo. */
+     baixo. `cor` troca a cor do círculo, que por padrão é vermelho. */
   var RABISCOS = [
     { de: -1, ate: .02, alvo: ".computador-tampa", mira: [0, .16], sobe: .14, saida: .05, barrigaBaixo: true, lado: "esq", texto: "role a página e veja o sistema por dentro", g: -4 },
     { cena: 0, de: .13, alvo: ".selo-app", circulo: true, abaixo: true, lado: "dir", texto: "12 dias sem falhar!", g: 3 },
@@ -1861,6 +1861,7 @@ h2 {
       r.grupo.appendChild(traco);
       r[classe] = traco;
     });
+    if (r.cor) r["rab-circulo"].style.stroke = r.cor;
     rabiscos.appendChild(r.grupo);
     r.nota = document.createElement("span");
     r.nota.className = "rab-nota " + r.lado;

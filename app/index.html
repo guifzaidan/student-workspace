@@ -274,7 +274,7 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
 }
 
 /* ─── Cristal: a folha do topo, do menu e do trilho de estudo ────────── */
-.app-topo, .app-menu, .estudo-trilho, .pagina-cristal, .fab {
+.menu-abrir, .app-menu, .estudo-trilho, .pagina-cristal, .fab {
   --cristal: linear-gradient(180deg,
     color-mix(in srgb, var(--gray4) 12%, var(--white)) 0%,
     color-mix(in srgb, var(--gray4) 46%, var(--white)) 100%);
@@ -284,7 +284,7 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
   --cristal-base: rgba(23, 21, 15, .04);
   --cristal-sombra: 0 1px 2px rgba(20, 22, 30, .05), 0 4px 10px -6px rgba(20, 22, 30, .14);
 }
-:root[data-theme="dark"] .app-topo,
+:root[data-theme="dark"] .menu-abrir,
 :root[data-theme="dark"] .app-menu,
 :root[data-theme="dark"] .estudo-trilho,
 :root[data-theme="dark"] .pagina-cristal,
@@ -297,7 +297,7 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
   --cristal-sombra: 0 1px 2px rgba(0, 0, 0, .25), 0 4px 10px -6px rgba(0, 0, 0, .45);
 }
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .app-topo,
+  :root:not([data-theme="light"]) .menu-abrir,
   :root:not([data-theme="light"]) .app-menu,
   :root:not([data-theme="light"]) .estudo-trilho,
   :root:not([data-theme="light"]) .pagina-cristal,
@@ -318,33 +318,35 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
 .admin-casca {
   display: grid;
   grid-template-columns: 220px minmax(0, 1fr);
-  grid-template-rows: 60px 1fr;
+  grid-template-rows: minmax(0, 1fr);
   height: 100dvh;
   overflow: clip;
   transition: grid-template-columns 0.28s cubic-bezier(0.4,0,0.2,1);
 }
 .admin-casca[data-menu="fechado"] { grid-template-columns: 0px minmax(0, 1fr); }
 
-/* ─── Topo ───────────────────────────────────────────────────────────── */
-.app-topo {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
+/* ─── Botão de reabrir o menu ────────────────────────────────────────── */
+/* Não há cabeçalho: a marca e o botão de recolher moram no topo do menu.
+   Recolhido o menu, sobra este botão no canto, a única porta de volta. */
+.menu-abrir {
+  position: fixed;
+  top: 14px; left: 14px;
   z-index: 300;
-  height: 60px;
-  flex-shrink: 0;
-  padding: 0 28px;
-  background: var(--cristal);
-  border-bottom: 1px solid var(--cristal-borda);
-  box-shadow: inset 0 1px 0 var(--cristal-luz),
-    0 1px 2px rgba(20, 22, 30, .04),
-    0 10px 24px -20px rgba(20, 22, 30, .45);
+  width: 34px; height: 34px;
+  display: none;
+  align-items: center; justify-content: center;
+  border: 1px solid var(--gray3);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--gray2);
+  box-shadow: 0 1px 2px rgba(20, 22, 30, .06);
+  transition: background var(--transition), color var(--transition);
 }
-.topo-esq { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.topo-dir { display: flex; align-items: center; gap: 10px; }
+.menu-abrir:hover, .menu-abrir:focus-visible { outline: none; background: var(--gray4); color: var(--black); }
+.admin-casca[data-menu="fechado"] .menu-abrir { display: flex; }
+/* Com o menu fechado, o conteúdo desce do canto para não ficar sob o botão. */
+.admin-casca[data-menu="fechado"] .app-principal { padding-top: 48px; }
+
 .topo-icone {
   width: 30px;
   height: 30px;
@@ -360,14 +362,6 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
 }
 .topo-icone:hover { background: var(--gray4); color: var(--black); }
 .topo-icone:focus-visible { outline: none; background: var(--gray4); color: var(--black); }
-.topo-icone .sino-ponto {
-  position: absolute;
-  top: 5px; right: 5px;
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: var(--yellow);
-  border: 1.5px solid var(--white);
-}
 .marca-chapa {
   width: 28px; height: 28px;
   border-radius: 6px;
@@ -384,10 +378,6 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
 .topbar-marca-sub {
   font-size: 11px; color: var(--gray2); font-weight: 500; line-height: 1;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.topo-meio {
-  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  display: flex; align-items: center; gap: 12px;
 }
 .seg-rotulo {
   font-size: 10px;
@@ -418,27 +408,31 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
   background: var(--white); border: 1px solid var(--gray3);
   border-radius: 5px; padding: 1px 5px;
 }
+/* O divisor fica acima da conta: o tema fica com o menu, e a conta, sozinha
+   embaixo da linha. */
+.app-menu-conta { flex-shrink: 0; margin-top: 14px; padding: 12px 12px 0; border-top: 1px solid var(--cristal-borda); }
 .topbar-conta {
   display: flex;
   align-items: center;
   gap: 10px;
-  max-width: 260px;
-  padding: 3px 3px 3px 12px;
+  width: 100%;
+  padding: 6px 8px;
   border: 1px solid transparent;
-  border-radius: var(--radius-pill);
+  border-radius: 12px;
+  text-align: left;
   user-select: none;
   transition: background var(--transition), border-color var(--transition);
 }
 .topbar-conta:hover { background: var(--gray4); border-color: var(--gray3); }
 .topbar-conta:focus-visible { outline: none; border-color: var(--gray3); background: var(--gray4); }
-.topbar-conta-texto { display: flex; flex-direction: column; align-items: flex-end; min-width: 0; }
+.topbar-conta-texto { display: flex; flex-direction: column; align-items: flex-start; min-width: 0; flex: 1; }
 .topbar-conta-nome {
   font-size: 12.5px; font-weight: 700; color: var(--black); line-height: 1.35;
-  max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .topbar-conta-email {
   font-size: 11px; font-weight: 500; color: var(--gray2); line-height: 1.35;
-  max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
 }
 .topbar-conta-avatar {
   width: 34px; height: 34px;
@@ -449,9 +443,9 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
   font-size: 12px; font-weight: 800;
   display: flex; align-items: center; justify-content: center;
 }
+/* Abre para cima, a partir do botão no rodapé do menu; o JS põe a posição. */
 .conta-menu {
   position: fixed;
-  top: 56px; right: 16px;
   background: var(--white);
   border: 1px solid var(--gray3);
   border-radius: 12px;
@@ -492,7 +486,7 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
   width: 220px;
   min-width: 220px;
   height: 100%;
-  padding: 20px 0;
+  padding: 16px 0 20px;
   display: flex;
   flex-direction: column;
 }
@@ -502,6 +496,19 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
    é o mesmo dos itens de navegação. */
 /* O respiro embaixo é maior que o de um item para outro: a busca não é a
    primeira linha da navegação, é outra coisa acima dela. */
+/* A marca abre o menu, no lugar do antigo cabeçalho, com o botão de recolher
+   na ponta. Um divisor a separa do que vem embaixo, como o da conta no
+   rodapé. */
+.app-menu-marca {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 10px 16px 20px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--cristal-borda);
+}
+.app-menu-marca .marca-texto { flex: 1; }
 .app-menu-busca { flex-shrink: 0; padding: 0 20px 26px; }
 .app-menu-busca .qs-trigger { width: 100%; }
 .app-menu-busca .qs-trigger-label { flex: 1; text-align: left; }
@@ -578,19 +585,22 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
 .app-menu-rodape {
   flex-shrink: 0;
   margin-top: 12px;
-  padding: 14px 20px 0;
-  border-top: 1px solid var(--cristal-borda);
+  padding: 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.app-menu-linha {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
 }
-.app-menu-rodape > span { font-size: 12px; font-weight: 600; color: var(--gray); }
+.app-menu-linha > span { font-size: 12px; font-weight: 600; color: var(--gray); }
 
 /* ─── Alternador de dois estados ─────────────────────────────────────── */
-/* Um botão só, com um pino que desliza entre os dois lados. Serve o tema e o
-   modo foco: nos dois a pergunta é fechada e cada resposta cabe num ícone,
-   então a peça é a mesma e só muda o que cada lado quer dizer. */
+/* Um botão só, com um pino que desliza entre os dois lados. Serve o tema: a
+   pergunta é fechada e cada resposta cabe num ícone. */
 .seg {
   --seg-w: 30px;
   --seg-gap: 2px;
@@ -754,7 +764,8 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
 
    O teto caiu de 1320px para 980px porque os dois tetos discordavam: a folha
    ia até 1320px enquanto a medida do texto trava em 92ch, e a diferença, mais
-   de 400px no modo foco, virava uma faixa branca à direita de toda linha.
+   de 400px com o menu e o painel recolhidos, virava uma faixa branca à
+   direita de toda linha.
    Folha não é área de leitura; ela existe para segurar o texto. Com 980px o
    respiro que sobra é pequeno, e o que sobra dele a centralização do corpo
    divide dos dois lados. A largura da leitura não mudou: quem manda nela
@@ -892,7 +903,7 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
 .btn-primary:hover:not(:disabled)::after { left: 150%; }
 .btn-primary:active:not(:disabled) { transform: scale(0.97) translateY(0); box-shadow: none; }
 .btn-secondary { background: var(--white); color: var(--black); border-color: var(--gray3); }
-.btn-secondary:hover:not(:disabled) { border-color: var(--yellow); background: var(--yd); transform: translateY(-1px); }
+.btn-secondary:hover:not(:disabled) { border-color: var(--gray2); background: var(--gray4); transform: translateY(-1px); }
 .btn-ghost { background: transparent; color: var(--gray); border-color: transparent; padding: 6px 10px; font-size: 12px; }
 .btn-ghost:hover:not(:disabled) { color: var(--black); background: var(--bg); }
 .btn-sm { padding: 6px 14px; font-size: 12px; }
@@ -952,7 +963,7 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
   background: var(--yd);
   text-decoration-color: color-mix(in srgb, var(--yellow-forte) 62%, var(--black));
 }
-.arquivo-corpo a:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--yd); }
+.arquivo-corpo a:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--gray4); }
 
 /* A imagem é um bloco à parte, e não se edita: o cursor não entra nela, então
    ela não se parte ao meio quando se escreve em volta. Clicar abre a prévia, e
@@ -1750,7 +1761,7 @@ body.puxando-coluna * { cursor: col-resize !important; }
   cursor: text;
   transition: width var(--transition-spring), box-shadow var(--transition);
 }
-.be-menus:focus-within { width: 190px; box-shadow: 0 0 0 2px var(--yb); color: var(--gray); }
+.be-menus:focus-within { width: 190px; box-shadow: 0 0 0 3px var(--gray4); color: var(--gray); }
 .be-menus input {
   width: 100%;
   min-width: 0;
@@ -1775,7 +1786,7 @@ body.puxando-coluna * { cursor: col-resize !important; }
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
-.be-tamanho input:focus { outline: none; border-color: var(--yellow); }
+.be-tamanho input:focus { outline: none; border-color: var(--gray2); }
 /* O "A" da cor do texto leva embaixo a última cor escolhida, como no Docs:
    clicar de novo na mesma cor é o gesto mais comum. */
 .be-cor { flex-direction: column; gap: 1px; }
@@ -1846,7 +1857,7 @@ body.puxando-coluna * { cursor: col-resize !important; }
   font-size: 12.5px;
   font-weight: 700;
 }
-.be-margem-livre input:focus { outline: none; border-color: var(--yellow); }
+.be-margem-livre input:focus { outline: none; border-color: var(--gray2); }
 .be-amostra.active { box-shadow: 0 0 0 2px var(--white), 0 0 0 3.5px var(--gray2); }
 
 /* As folhas A4. A folha do texto perde a moldura de card e passa a ter a
@@ -2200,8 +2211,8 @@ mark.grifo[data-cor="vermelho"] { --gr-cor: var(--gr-vermelho); }
   color: var(--gray);
   transition: all var(--transition-spring);
 }
-.ctrl:hover { border-color: var(--yellow); background: var(--yd); color: var(--black); transform: translateY(-1px); }
-/* O interruptor do foco, o mesmo no Pomodoro e no topo. É a mecânica do switch
+.ctrl:hover { border-color: var(--gray2); background: var(--gray4); color: var(--black); transform: translateY(-1px); }
+/* O interruptor do foco do Pomodoro. É a mecânica do switch
    de tema: um botão só, com um pino que desliza entre os dois lados. O ícone
    não é alvo, é decoração que troca de cor - quem recebe o clique é o botão
    inteiro.
@@ -2408,6 +2419,7 @@ input:checked + .switch::after { transform: translateX(14px); }
   transition: border-color var(--transition-spring), box-shadow var(--transition-spring);
 }
 .form-input::placeholder { color: var(--gray2); font-weight: 400; }
+.form-input:hover { border-color: var(--gray2); }
 .form-input:focus { border-color: var(--gray2); box-shadow: 0 0 0 3px var(--gray4); }
 textarea.form-input { resize: vertical; min-height: 84px; line-height: 1.55; }
 /* Os campos da gaveta crescem com o texto até um teto, e só dali rolam: com a
@@ -3428,8 +3440,11 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
 .faixa-falha .motivo { font-weight: 500; color: var(--gray); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .faixa-falha .btn { margin-left: auto; flex-shrink: 0; }
 
-/* O giro do canto do topo, que aparece enquanto alguma coisa é gravada. */
+/* O giro do canto de cima, que aparece enquanto alguma coisa é gravada. */
 .gravando-aviso {
+  position: fixed;
+  top: 14px; right: 20px;
+  z-index: 300;
   display: flex;
   align-items: center;
   gap: 7px;
@@ -3623,7 +3638,7 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
 .atividade-acao:focus-visible { outline: none; background: var(--gray4); color: var(--black); box-shadow: 0 0 0 2px var(--gray2); }
 /* O play é a ação que faz o ciclo andar: ele é o único que carrega o acento. */
 .atividade-acao.tocar { color: var(--yellow-forte); }
-.atividade-acao.tocar:hover { background: var(--yd); color: var(--yellow-forte); }
+.atividade-acao.tocar:hover { background: var(--gray4); color: var(--yellow-forte); }
 .atividade-balao.rodando .atividade-acao.tocar { color: var(--gray2); }
 .atividade-balao.rodando .atividade-acao.tocar:hover { background: var(--gray4); color: var(--black); }
 
@@ -3792,7 +3807,7 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
   transition: background 0.12s;
 }
 .arquivo-linha:last-child { border-bottom: none; }
-.arquivo-linha:hover, .arquivo-linha:focus-within { background: color-mix(in srgb, var(--yellow) 5%, var(--white)); }
+.arquivo-linha:hover, .arquivo-linha:focus-within { background: var(--gray4); }
 .arquivo-linha-abrir { position: absolute; inset: 0; }
 .arquivo-linha-abrir:focus-visible { outline: none; }
 /* As ações ficam na linha, e não soltas por cima dela: o espaço já está
@@ -4179,7 +4194,7 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
 .admin-table td { padding: 13px 16px; font-size: 13px; color: var(--black); border-bottom: 1px solid var(--gray3); vertical-align: middle; }
 .admin-table tr:last-child td { border-bottom: none; }
 .admin-table tbody tr { cursor: pointer; transition: background 0.12s; }
-.admin-table tbody tr:hover { background: color-mix(in srgb, var(--yellow) 5%, var(--white)); }
+.admin-table tbody tr:hover { background: var(--gray4); }
 .td-frente { font-weight: 600; max-width: 420px; }
 .td-sub { font-size: 11.5px; font-weight: 500; color: var(--gray2); margin-top: 2px; }
 .col-num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
@@ -4702,7 +4717,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
   .estudo-area, .estudo-area[data-trilho="fechado"] { grid-template-columns: var(--col-indice) minmax(0, 1fr); }
   .estudo-trilho {
     position: fixed;
-    top: 60px; right: 0; bottom: 0;
+    top: 0; right: 0; bottom: 0;
     z-index: 290;
     width: min(var(--trilho-largura), 90vw);
     transform: translateX(101%);
@@ -4714,7 +4729,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
   .trilho-topo .painel-fechar { display: grid; }
   /* O fundo do trilho flutuante: tocar nele fecha o trilho. Um degrau abaixo
      dele, e só o suficiente de sombra para dizer que o texto está atrás. */
-  .trilho-fundo { position: fixed; inset: 60px 0 0 0; z-index: 289; background: rgba(18,19,22,0.28); border: none; animation: fadeIn .2s ease both; cursor: default; }
+  .trilho-fundo { position: fixed; inset: 0; z-index: 289; background: rgba(18,19,22,0.28); border: none; animation: fadeIn .2s ease both; cursor: default; }
   .folha { padding: 34px 30px 48px; }
 }
 /* Abaixo disso o texto precisa de toda a largura, e o índice sai da grade:
@@ -4725,7 +4740,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
   .estudo-area > .arquivo-indice,
   .estudo-area[data-indice="fechado"] > .arquivo-indice {
     position: fixed;
-    top: 60px; left: 0; bottom: 0;
+    top: 0; left: 0; bottom: 0;
     z-index: 292;
     width: min(300px, 86vw);
     padding: 20px 10px 30px 18px;
@@ -4736,24 +4751,18 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
   }
   .estudo-area[data-indice="aberto"] > .arquivo-indice { transform: none; }
   .arquivo-indice-titulo .painel-fechar { display: grid; }
-  .indice-fundo { position: fixed; inset: 60px 0 0 0; z-index: 291; background: rgba(18,19,22,0.28); border: none; animation: fadeIn .2s ease both; cursor: default; }
+  .indice-fundo { position: fixed; inset: 0; z-index: 291; background: rgba(18,19,22,0.28); border: none; animation: fadeIn .2s ease both; cursor: default; }
   /* Com uma coluna só, um `grid-column: 1 / 3` inventaria uma segunda faixa
      implícita e jogaria o texto para fora da tela. */
   .estudo-area > .trilha-tela,
   .estudo-area > .admin-content-wrap { grid-column: 1; }
 }
-@media (max-width: 900px) {
-  .topbar-conta { padding: 0; max-width: none; }
-  .topbar-conta-texto { display: none; }
-  .app-topo { padding: 0 14px; }
-  .topbar-marca-sub { display: none; }
-}
 @media (max-width: 768px) {
   .admin-casca, .admin-casca[data-menu="fechado"] { grid-template-columns: 1fr; }
   .app-menu {
     position: fixed;
-    top: 60px; left: 0;
-    height: calc(100dvh - 60px);
+    top: 0; left: 0;
+    height: 100dvh;
     z-index: 300;
     transform: translateX(-100%);
     transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
@@ -4841,12 +4850,14 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
   .be-grupo:has(> .be-fonte:only-child) { display: none; }
   /* No celular o aviso desce logo abaixo do cabeçalho, onde o olho já está, e
      não embaixo, onde disputava lugar com a barra de navegação e o polegar. */
-  .toast-cais { top: 68px; bottom: auto; right: 12px; left: 12px; align-items: stretch; flex-direction: column-reverse; z-index: 100000; }
+  .toast-cais { top: 12px; bottom: auto; right: 12px; left: 12px; align-items: stretch; flex-direction: column-reverse; z-index: 100000; }
   .toast-balao { width: auto; }
 
-  /* O modo foco recolhe o menu e o trilho, e no celular os dois já vivem
-     recolhidos: a chave não fazia nada que se visse, e tomava o cabeçalho. */
-  .topo-meio { display: none; }
+  /* No celular não há botão de reabrir o menu: quem o abre é o "Mais" da
+     barra de baixo. */
+  .menu-abrir,
+  .admin-casca[data-menu="fechado"] .menu-abrir { display: none; }
+  .admin-casca[data-menu="fechado"] .app-principal { padding-top: 0; }
 
   /* Filtros numa linha que rola de lado, e a busca inteira na de baixo: com
      tudo quebrando junto, os gatilhos ficavam espremidos em três tamanhos. */
@@ -4946,18 +4957,6 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
   .pomodoro-grade { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 560px) {
-  /* Centrado em absoluto, o modo foco passa por cima da marca, a centralização
-     ignora quem já está na linha. Nesta largura ele volta a ser um item dela, e
-     os três dividem o espaço em vez de disputá-lo.
-
-     O rótulo sai junto: a chave sozinha já diz o que faz, e o `title` e o
-     `aria-label` continuam carregando o nome para quem precisar dele. */
-  .topo-meio { position: static; transform: none; flex-shrink: 0; }
-  .seg-rotulo { display: none; }
-  /* Quem cede é a marca, que já corta com reticências; a chave e a conta têm
-     tamanho fixo e não encolhem. */
-  .topo-dir { flex-shrink: 0; }
-
   .graus { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .revisao-card { padding: 24px 20px; }
   .revisao-frente { font-size: 19px; }
@@ -5166,79 +5165,46 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
 
 <div class="admin-casca" id="casca" data-menu="aberto">
 
-  <!-- ═══ Topo ═══ -->
-  <header class="app-topo">
-    <div class="topo-esq">
-      <button type="button" class="topo-icone" id="btnMenu" title="Alternar menu" aria-label="Alternar menu">
-        <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.6" stroke-linecap="round">
-          <line x1="2" y1="4" x2="14" y2="4"/><line x1="2" y1="8" x2="14" y2="8"/><line x1="2" y1="12" x2="14" y2="12"/>
-        </svg>
-      </button>
-      <div class="marca-chapa" aria-hidden="true">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <!-- Sinapse: dois ramos neurais na diagonal, cada um se abrindo em
-               duas terminações, com a fenda aberta entre eles e o sinal
-               atravessando no meio. O ponto é cheio, como os três pontos do
-               "Mais" na barra de baixo; o resto é contorno. -->
-          <path d="M3 20l5.5-5.5"/>
-          <path d="M8.5 14.5l2.9.9"/>
-          <path d="M8.5 14.5l-.9-2.9"/>
-          <circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/>
-          <path d="M21 4l-5.5 5.5"/>
-          <path d="M15.5 9.5l-2.9-.9"/>
-          <path d="M15.5 9.5l.9 2.9"/>
-        </svg>
-      </div>
-      <div class="marca-texto">
-        <div class="topbar-marca-nome">Sinapse</div>
-        <div class="topbar-marca-sub">Estudo ativo e revisão espaçada</div>
-      </div>
-    </div>
+  <!-- ═══ Sem cabeçalho ═══ -->
+  <!-- A marca mora no topo do menu. Com o menu recolhido (na mão ou pelo modo
+       foco), este botão é a porta de volta; no celular quem abre é o "Mais". -->
+  <button type="button" class="menu-abrir" id="btnMenuAbrir" title="Abrir menu" aria-label="Abrir menu">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M9 4v16"/><path d="m13 10 2 2-2 2"/></svg>
+  </button>
 
-    <div class="topo-meio">
-      <span class="seg-rotulo">Modo foco</span>
-      <!-- Um ícone só, à direita, como o de um controle remoto. O slot da
-           esquerda é vazio de propósito: é onde o pino descansa quando a chave
-           está desligada. -->
-      <button type="button" class="foco-seg pequeno" id="segFoco" data-ligado="false"
-        role="switch" aria-checked="false" aria-label="Modo foco"
-        title="Recolhe o menu e o painel de estudo, deixando só o conteúdo">
-        <span class="foco-seg-thumb" aria-hidden="true"></span>
-        <span class="foco-seg-vazio" aria-hidden="true"></span>
-        <span class="foco-seg-ico" aria-hidden="true">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v9"/><path d="M18.36 6.64a9 9 0 1 1-12.72 0"/></svg>
-        </span>
-      </button>
-    </div>
-
-    <div class="topo-dir">
-      <button type="button" class="topo-icone" id="btnRevisar" title="12 cards para revisar hoje" aria-label="12 cards para revisar hoje">
-        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M18 8a6 6 0 1 0-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/>
-        </svg>
-        <span class="sino-ponto" aria-hidden="true"></span>
-      </button>
-
-      <span class="gravando-aviso" id="gravandoAviso" role="status" hidden>
-        <span class="dux-spinner sm" aria-hidden="true"></span>
-        Gravando
-      </span>
-
-      <div style="position:relative">
-        <button type="button" class="topbar-conta" id="btnConta" aria-haspopup="menu" aria-expanded="false" aria-label="Conta de Milena Zaidan">
-          <span class="topbar-conta-texto">
-            <span class="topbar-conta-nome">Milena Zaidan</span>
-            <span class="topbar-conta-email">R1 Clínica Médica</span>
-          </span>
-          <span class="topbar-conta-avatar" aria-hidden="true">MZ</span>
-        </button>
-      </div>
-    </div>
-  </header>
+  <span class="gravando-aviso" id="gravandoAviso" role="status" hidden>
+    <span class="dux-spinner sm" aria-hidden="true"></span>
+    Gravando
+  </span>
 
   <!-- ═══ Menu lateral ═══ -->
   <aside class="app-menu" id="menu">
     <div class="app-menu-dentro">
+
+      <div class="app-menu-marca">
+        <div class="marca-chapa" aria-hidden="true">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <!-- Sinapse: dois ramos neurais na diagonal, cada um se abrindo em
+                 duas terminações, com a fenda aberta entre eles e o sinal
+                 atravessando no meio. O ponto é cheio, como os três pontos do
+                 "Mais" na barra de baixo; o resto é contorno. -->
+            <path d="M3 20l5.5-5.5"/>
+            <path d="M8.5 14.5l2.9.9"/>
+            <path d="M8.5 14.5l-.9-2.9"/>
+            <circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/>
+            <path d="M21 4l-5.5 5.5"/>
+            <path d="M15.5 9.5l-2.9-.9"/>
+            <path d="M15.5 9.5l.9 2.9"/>
+          </svg>
+        </div>
+        <div class="marca-texto">
+          <div class="topbar-marca-nome">Sinapse</div>
+          <div class="topbar-marca-sub">Estudo ativo e revisão espaçada</div>
+        </div>
+        <button type="button" class="topo-icone" id="btnMenu" title="Recolher menu" aria-label="Recolher menu">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M9 4v16"/><path d="m16 10-2 2 2 2"/></svg>
+        </button>
+      </div>
 
       <!-- Fora da área que rola, como o rodapé: a busca é do app inteiro, e não
            mais um item da lista de navegação. -->
@@ -5294,14 +5260,28 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
       </div>
 
       <div class="app-menu-rodape">
-        <span>Tema</span>
-        <button type="button" class="seg" id="temaSeg" data-lado="a" aria-label="Alternar tema">
-          <span class="seg-thumb" aria-hidden="true"></span>
-          <span class="seg-opt on" id="optClaro" aria-hidden="true">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4"/></svg>
-          </span>
-          <span class="seg-opt" id="optEscuro" aria-hidden="true">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+        <div class="app-menu-linha">
+          <span>Tema</span>
+          <button type="button" class="seg" id="temaSeg" data-lado="a" aria-label="Alternar tema">
+            <span class="seg-thumb" aria-hidden="true"></span>
+            <span class="seg-opt on" id="optClaro" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.2 5.2l1.4 1.4M17.4 17.4l1.4 1.4M18.8 5.2l-1.4 1.4M6.6 17.4l-1.4 1.4"/></svg>
+            </span>
+            <span class="seg-opt" id="optEscuro" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- A conta fecha o menu, abaixo do tema: é coisa de quem usa, não de
+           navegação, e no rodapé fica sempre à vista sem disputar o topo. -->
+      <div class="app-menu-conta">
+        <button type="button" class="topbar-conta" id="btnConta" aria-haspopup="menu" aria-expanded="false" aria-label="Conta de Milena Zaidan">
+          <span class="topbar-conta-avatar" aria-hidden="true">MZ</span>
+          <span class="topbar-conta-texto">
+            <span class="topbar-conta-nome">Milena Zaidan</span>
+            <span class="topbar-conta-email">R1 Clínica Médica</span>
           </span>
         </button>
       </div>
@@ -6934,49 +6914,6 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
   });
   pintarSeg();
 
-  /* ═══ Modo foco ══════════════════════════════════════════════════════
-     Recolhe o menu e o painel de estudo e devolve a tela ao conteúdo. Sai
-     repondo o que estava aberto antes, e não um padrão: quem tinha o painel
-     fechado não quer vê-lo aparecer ao desligar o foco.
-
-     Fica antes do bloco do menu porque `ajustarLargura` já roda na partida e
-     precisa do switcher montado. */
-  var segFoco = $("segFoco"), focoAntes = null;
-  function focoLigado() { return segFoco.dataset.ligado === "true"; }
-  function pintarFoco(ligado) {
-    segFoco.dataset.ligado = String(ligado);
-    segFoco.setAttribute("aria-checked", String(ligado));
-  }
-  /* Abrir o menu ou o painel na mão desliga o foco sem repor nada: a pessoa
-     acabou de dizer o que quer ver, e restaurar o estado anterior desfaria
-     isso. O switcher só deixa de mentir sobre o que está na tela. */
-  function desistirDoFoco() {
-    if (!focoLigado()) return;
-    focoAntes = null;
-    pintarFoco(false);
-  }
-  segFoco.addEventListener("click", function () {
-    var ligar = !focoLigado();
-    pintarFoco(ligar);
-    if (ligar) {
-      /* O índice entra junto: ele é moldura como o resto, e deixá-lo de pé
-         fazia a área de escrita crescer só para a direita. */
-      focoAntes = { menu: casca.dataset.menu, trilho: area.dataset.trilho, indice: area.dataset.indice };
-      casca.dataset.menu = "fechado";
-      area.dataset.trilho = "fechado";
-      area.dataset.indice = "fechado";
-      tirarFundo();
-      pintarLados();
-      return;
-    }
-    if (!focoAntes) return;
-    casca.dataset.menu = focoAntes.menu;
-    area.dataset.trilho = focoAntes.trilho;
-    area.dataset.indice = focoAntes.indice || "aberto";
-    focoAntes = null;
-    pintarLados();
-  });
-
   /* ═══ Menu e trilho ══════════════════════════════════════════════════ */
   var mqCelular = window.matchMedia("(max-width: 768px)");
   var mqTrilho = window.matchMedia("(max-width: 1180px)");
@@ -6998,17 +6935,16 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
   function alternarMenu() {
     var aberto = casca.dataset.menu === "aberto";
     casca.dataset.menu = aberto ? "fechado" : "aberto";
-    if (!aberto) desistirDoFoco();
     if (mqCelular.matches && !aberto) porFundo(); else tirarFundo();
   }
   $("btnMenu").addEventListener("click", alternarMenu);
+  $("btnMenuAbrir").addEventListener("click", alternarMenu);
   $("navInfMais").addEventListener("click", alternarMenu);
 
   function alternarTrilho(forcar) {
     var aberto = area.dataset.trilho === "aberto";
     var novo = forcar === undefined ? !aberto : forcar;
     area.dataset.trilho = novo ? "aberto" : "fechado";
-    if (novo) desistirDoFoco();
     if (novo && mqTrilho.matches && mqIndice.matches && area.dataset.indice === "aberto") alternarIndice(false);
     acertarFundoTrilho();
     pintarLados();
@@ -7028,7 +6964,6 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     var aberto = area.dataset.indice !== "fechado";
     var novo = forcar === undefined ? !aberto : forcar;
     area.dataset.indice = novo ? "aberto" : "fechado";
-    if (novo) desistirDoFoco();
     /* Painel sobre painel não: abrir o índice flutuante fecha o trilho
        flutuante, e vice-versa (abaixo). */
     if (novo && mqIndice.matches && mqTrilho.matches && area.dataset.trilho === "aberto") alternarTrilho(false);
@@ -7088,15 +7023,13 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     alternarTrilho(false);
   });
 
-  /* Trocar de faixa de largura repõe os dois no padrão daquela faixa, então o
-     foco não sobrevive: a chave desliga junto para não apontar o contrário. */
+  /* Trocar de faixa de largura repõe os dois no padrão daquela faixa. */
   function ajustarLargura() {
     casca.dataset.menu = mqCelular.matches ? "fechado" : "aberto";
     area.dataset.trilho = mqTrilho.matches ? "fechado" : "aberto";
     /* O índice acompanha: coluna aberta na tela larga, painel fechado na
        estreita. */
     area.dataset.indice = mqIndice.matches ? "fechado" : "aberto";
-    desistirDoFoco();
     tirarFundo();
     acertarFundoTrilho();
     acertarFundoIndice();
@@ -7132,6 +7065,10 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
       '<button type="button" class="conta-menu-item" role="menuitem">Meu desempenho</button>' +
       '<button type="button" class="conta-menu-item" role="menuitem">Configurações</button>' +
       '<button type="button" class="conta-menu-item sair" role="menuitem">Sair</button>';
+    var r = btnConta.getBoundingClientRect();
+    menuConta.style.left = r.left + "px";
+    menuConta.style.width = r.width + "px";
+    menuConta.style.bottom = (window.innerHeight - r.top + 8) + "px";
     document.body.appendChild(menuConta);
     btnConta.setAttribute("aria-expanded", "true");
     Array.prototype.forEach.call(menuConta.querySelectorAll(".conta-menu-item"), function (b) {
@@ -17739,15 +17676,14 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
   /* ═══ Ações simples do cabeçalho ═════════════════════════════════════ */
   $("btnNovoDoc").addEventListener("click", gavetaNovoArquivo);
   $("btnNovaPasta").addEventListener("click", gavetaNovaPasta);
-  /* As três portas para a revisão, e o que muda entre elas é só o recorte: o
-     sino e o botão da tela de decks abrem o acervo todo; o de dentro de um deck
+  /* As portas para a revisão, e o que muda entre elas é só o recorte: o
+     botão da tela de decks abre o acervo todo; o de dentro de um deck
      abre aquele deck. `montarFila` vem depois de `irPaginaAtual` porque a
      entrada na tela também monta, mandar o escopo depois é o que faz a segunda
      chamada valer. */
   $("btnNovoDeck").addEventListener("click", gavetaNovoDeck);
   $("btnNovoDeckTela").addEventListener("click", gavetaNovoDeck);
   $("btnFilaHoje").addEventListener("click", function () { irPaginaAtual("revisao"); montarFila(""); });
-  $("btnRevisar").addEventListener("click", function () { irPaginaAtual("revisao"); montarFila(""); });
   $("btnRevisarDeck").addEventListener("click", function () {
     irPaginaAtual("revisao");
     montarFila(deckAberto ? deckAberto.nome : "");

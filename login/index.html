@@ -14,10 +14,12 @@
 
    Duas partes. À esquerda, uma coluna estreita e centrada: a marca, o
    título, o botão principal (entrar com o Google), o caminho alternativo
-   (e-mail e senha, que abre o formulário ali mesmo) e, embaixo, para quem é.
+   (e-mail e senha, que abre o formulário ali mesmo).
    À direita, um painel lima no padrão do convite da apresentação, com a
-   frase da marca e um mural de gente (os perfis da apresentação) correndo
-   em carrossel. A pele é a da apresentação: contorno preto, sombra dura,
+   frase da marca e peças do app soltas por todo o painel (flashcard,
+   deck, mapa mental, Pomodoro, mapa de calor, agente de IA, turma, semana,
+   grifo, revisão, questão, arquivos, som de foco, selos e adesivos),
+   arrumadas em quatro colunas. A pele é a da apresentação: contorno preto, sombra dura,
    folha pontilhada.
    ───────────────────────────────────────────────────────────────────────── */
 :root {
@@ -27,6 +29,7 @@
   --cinza: #5E6066;
   --cinza2: #A4A6AB;
   --fio: #E3E4DE;
+  --cinza-claro: #F0F0EE; /* hover e foco, o mesmo cinza do app */
   --rosa: #F2A0C0;
   --rosa-forte: #E07AA3;
   --lilas: #DCCBFF;
@@ -103,8 +106,7 @@ button { cursor: pointer; }
 }
 .btn:hover { transform: translate(-2px, -2px); }
 .btn:active { transform: translate(1px, 1px); }
-.btn-google { background: var(--tinta); color: var(--branco); box-shadow: 4px 4px 0 var(--lima); }
-.btn-google:hover { box-shadow: 6px 6px 0 var(--lima); }
+.btn-google { background: var(--tinta); color: var(--branco); }
 .btn-google .g { width: 22px; height: 22px; border-radius: 50%; background: var(--branco); display: grid; place-items: center; }
 .btn-google .g svg { width: 14px; height: 14px; }
 .btn-lima { background: var(--lima); color: var(--tinta); box-shadow: var(--sombra-dura); }
@@ -119,7 +121,7 @@ button { cursor: pointer; }
   font-size: 13.5px; font-weight: 700; color: var(--cinza);
   text-decoration: underline; text-decoration-color: var(--fio); text-underline-offset: 4px;
 }
-.alternar:hover { color: var(--tinta); text-decoration-color: var(--lima); }
+.alternar:hover { color: var(--tinta); text-decoration-color: var(--cinza2); }
 
 /* O formulário de e-mail e senha: fechado por padrão, abre com mola. */
 /* A altura abre e fecha devagar, e o que está dentro entra deslizando e
@@ -152,8 +154,9 @@ form { display: grid; gap: 10px; padding-top: 18px; }
   box-shadow: 0 0 0 var(--tinta);
   transition: box-shadow .15s var(--curva), transform .15s var(--curva), background .15s;
 }
+.caixa input:hover { background: var(--cinza-claro); }
 .caixa input::placeholder { color: var(--cinza2); font-weight: 500; }
-.caixa input:focus { outline: none; transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--tinta); background: var(--lima-lavado); }
+.caixa input:focus { outline: none; transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--tinta); background: var(--cinza-claro); }
 .caixa input[aria-invalid="true"] { border-color: var(--rosa-forte); box-shadow: 3px 3px 0 var(--rosa-forte); }
 .caixa .com-olho { padding-right: 56px; }
 .olho {
@@ -165,26 +168,11 @@ form { display: grid; gap: 10px; padding-top: 18px; }
 .olho svg { width: 20px; height: 20px; }
 .erro { margin: 0; color: #B23A6B; font-weight: 700; font-size: 13.5px; }
 .erro:empty { display: none; }
-.btn:focus-visible, .olho:focus-visible, .marca:focus-visible, .alternar:focus-visible { outline: 3px solid var(--lima-tinta); outline-offset: 3px; }
-
-/* Para quem é: como a fileira de logos de clientes, em cinza. */
-.para-quem { margin-top: 60px; text-align: center; }
-.para-quem small { display: block; font-size: 11.5px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--cinza2); }
-/* Os perfis correm como uma fileira de logos, sumindo nas pontas. */
-.para-quem .janela {
-  margin-top: 16px; overflow: hidden;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
-}
-.para-quem ul { list-style: none; margin: 0; padding: 0 0 0 24px; display: flex; gap: 24px; width: max-content; animation: corre 30s linear infinite; }
-@keyframes corre { to { transform: translateX(-50%); } }
-.para-quem li { font-family: var(--display); font-weight: 800; font-size: 18px; letter-spacing: -.03em; color: #B5B7BB; white-space: nowrap; transition: color .2s; }
-.para-quem li:hover { color: var(--tinta); }
+.btn:focus-visible, .olho:focus-visible, .marca:focus-visible, .alternar:focus-visible { outline: 3px solid var(--cinza2); outline-offset: 3px; }
 
 /* ─── O painel ───────────────────────────────────────────────────────── */
 /* No padrão do convite da apresentação: lima liso, contorno preto e sombra
-   dura, a frase em preto no alto e o mural de gente correndo embaixo,
-   num lima mais fundo, subindo de dentro da borda. */
+   dura, a frase em preto no alto e as peças do app embaixo. */
 .painel {
   position: relative; overflow: hidden; isolation: isolate;
   margin: 18px 24px 24px 0;
@@ -192,11 +180,6 @@ form { display: grid; gap: 10px; padding-top: 18px; }
   background: var(--lima); box-shadow: 10px 10px 0 var(--tinta);
   display: flex; flex-direction: column;
   padding: clamp(30px, 3.4vw, 48px);
-}
-.painel::before {
-  /* A folha pontilhada, bem de leve. */
-  content: ""; position: absolute; inset: 0; z-index: -1;
-  background: radial-gradient(circle, rgba(18, 19, 22, .14) 1.2px, transparent 1.3px) 0 0 / 24px 24px;
 }
 .frase { position: relative; z-index: 2; max-width: 560px; }
 .frase .selo {
@@ -214,38 +197,216 @@ form { display: grid; gap: 10px; padding-top: 18px; }
   background: var(--branco); border: 2px solid var(--tinta); box-shadow: var(--sombra-dura);
   font-size: 12.5px; font-weight: 700; color: var(--tinta);
 }
-/* O mural: três colunas de cartões de gente que correm sem parar, uma para
-   cima e a do meio para baixo, sumindo nas pontas. Cada coluna leva os
-   cartões duas vezes (o script duplica), e a animação anda metade dela, então
-   a volta não tem emenda. */
-.mural {
-  position: relative; flex: 1; min-height: 0; margin: 26px -6px -60px;
-  display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
-  -webkit-mask-image: linear-gradient(180deg, transparent, #000 12%, #000 80%, transparent);
-  mask-image: linear-gradient(180deg, transparent, #000 12%, #000 80%, transparent);
+/* As peças do app soltas no lima, cobrindo o painel inteiro: o flashcard
+   que vira, o deck do dia, o Pomodoro correndo, a sequência de dias, o mapa
+   de calor, o agente de IA respondendo, a lista de hoje, o trecho grifado que
+   vira card, os botões da revisão, avisos e adesivos. Cada uma na pele do
+   painel (contorno preto e sombra dura), um pouco girada e boiando no seu
+   ritmo. Ficam em quatro colunas, como um mosaico, cada uma com a sua
+   pilha de peças. O tamanho sai do espaço embaixo da frase (1em é 1,4% da
+   largura dele), então o arranjo é o mesmo em qualquer tela. */
+.vitrine {
+  position: relative; flex: 1; min-height: 0; margin-top: 18px;
+  container-type: size;
 }
-.mural-col { overflow: hidden; }
-.mural-trilho { display: flex; flex-direction: column; gap: 18px; padding: 10px 8px 18px 4px; animation: sobe var(--dur, 46s) linear infinite; }
-.mural-col:nth-child(2) .mural-trilho { animation-name: desce; --dur: 52s; }
-.mural-col:nth-child(3) .mural-trilho { --dur: 40s; }
-.mural:hover .mural-trilho { animation-play-state: paused; }
-@keyframes sobe { from { transform: translateY(0); } to { transform: translateY(-50%); } }
-@keyframes desce { from { transform: translateY(-50%); } to { transform: translateY(0); } }
-.pessoa {
-  position: relative; margin: 0; flex-shrink: 0; aspect-ratio: 4 / 5; overflow: hidden;
-  border: 2px solid var(--tinta); border-radius: 20px; background: var(--fundo);
-  box-shadow: 5px 5px 0 var(--tinta);
+.pecas {
+  position: absolute; inset: 0; font-size: min(1.4cqw, 2.1cqh);
+  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0 1.3em; align-items: start;
+  -webkit-mask-image: linear-gradient(180deg, #000 90%, transparent);
+  mask-image: linear-gradient(180deg, #000 90%, transparent);
+}
+/* Cada coluna empilha as suas peças; a segunda e a quarta descem um pouco,
+   como num mosaico, e a inclinação alterna de leve, sem bagunçar a fileira. */
+.coluna { display: flex; flex-direction: column; gap: 1.1em; padding: .6em .3em 0 0; }
+.coluna:nth-child(even) { padding-top: 2.6em; }
+.coluna > .peca { position: relative; width: auto; }
+.coluna > :nth-child(odd) { --g: -1.2deg; }
+.coluna > :nth-child(even) { --g: 1.2deg; }
+.coluna > .p-selo, .coluna > .p-etiq { align-self: flex-start; }
+.coluna > :nth-child(even).p-selo { align-self: flex-end; }
+.peca {
+  position: absolute; margin: 0;
+  background: var(--branco); border: 2px solid var(--tinta); border-radius: 1.3em;
+  box-shadow: 4px 4px 0 var(--tinta);
   transform: rotate(var(--g, 0deg));
+  animation: chega-peca .7s var(--mola) var(--entra, .2s) both, boia var(--boia, 6s) ease-in-out calc(var(--entra, .2s) + .7s) infinite;
 }
-.pessoa svg { position: absolute; width: 84%; aspect-ratio: 1; right: -12%; top: -3%; color: #fff; opacity: .45; }
-.pessoa img { position: absolute; left: 50%; bottom: 0; max-width: 118%; max-height: 90%; transform: translateX(-50%); }
-.pessoa figcaption {
-  position: absolute; left: 8px; bottom: 8px; max-width: calc(100% - 16px);
-  padding: 4px 10px 5px; border-radius: 11px;
-  background: var(--branco); border: 1.5px solid var(--tinta); box-shadow: 2px 2px 0 var(--tinta);
-  font-family: var(--display); font-weight: 800; font-size: 13.5px; letter-spacing: -.02em; line-height: 1.2;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+@keyframes chega-peca { from { opacity: 0; transform: translateY(1.6em) rotate(var(--g, 0deg)) scale(.92); } }
+@keyframes boia { 50% { transform: translateY(-.3em) rotate(var(--g, 0deg)); } }
+.peca-rotulo { display: block; font-size: .74em; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--cinza); }
+.peca small { font-weight: 700; color: var(--cinza); }
+
+/* O flashcard: a frente e o verso, virando sozinho de tempos em tempos. */
+.p-flash { width: 22em; height: 12.5em; --g: -4deg; --entra: .1s; --boia: 7s; background: none; border: 0; box-shadow: none; perspective: 60em; }
+.flash-giro { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; animation: vira 9s var(--curva) 1.6s infinite; }
+@keyframes vira { 0%, 40% { transform: none; } 50%, 90% { transform: rotateY(180deg); } 100% { transform: rotateY(360deg); } }
+.flash-face {
+  position: absolute; inset: 0; padding: 1.2em 1.4em;
+  display: flex; flex-direction: column; justify-content: space-between;
+  background: var(--branco); border: 2px solid var(--tinta); border-radius: 1.3em; box-shadow: 4px 4px 0 var(--tinta);
+  backface-visibility: hidden;
 }
+.flash-face.verso { background: var(--lima-lavado); transform: rotateY(180deg); }
+.flash-face strong { font-family: var(--display); font-weight: 800; font-size: 1.6em; line-height: 1.12; letter-spacing: -.03em; }
+.flash-face p { margin: 0; font-weight: 600; font-size: 1.08em; line-height: 1.4; }
+.flash-face small { font-size: .82em; }
+
+/* O deck do dia, com a barra do que já foi revisado. */
+.p-deck { width: 15em; padding: 1em 1.2em 1.1em; background: #FCE3EC; --g: 2.5deg; --entra: .2s; --boia: 6.2s; }
+.p-deck strong { display: block; margin-top: .25em; font-family: var(--display); font-weight: 800; font-size: 1.45em; letter-spacing: -.03em; }
+.p-deck small { display: block; font-size: .85em; }
+.barra-deck { height: .7em; margin-top: .7em; border-radius: 100px; background: var(--branco); border: 1.5px solid var(--tinta); overflow: hidden; }
+.barra-deck i { display: block; height: 100%; width: 68%; background: var(--rosa-forte); animation: enche 1.4s var(--curva) 1s both; }
+@keyframes enche { from { width: 0; } }
+
+/* O Pomodoro: o anel vermelho esvazia e o relógio conta para trás. */
+.p-pomo { width: 15em; padding: 1em; --g: 3deg; --entra: .3s; --boia: 6.5s; display: grid; justify-items: center; gap: .7em; }
+.pomo-anel { position: relative; width: 10.5em; aspect-ratio: 1; }
+.pomo-anel svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.pomo-anel circle { fill: none; stroke-width: 11; }
+.pomo-anel .trilho { stroke: #EFEFEA; }
+.pomo-anel .arco { stroke: #EF4B3C; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: var(--pomo, .48); transition: stroke-dashoffset 1s linear; }
+.pomo-anel div { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+.pomo-anel b { font-family: var(--display); font-weight: 800; font-size: 2.3em; letter-spacing: -.04em; line-height: 1; font-variant-numeric: tabular-nums; }
+.pomo-anel small { margin-top: .3em; font-size: .8em; }
+.pomo-anel small em { font-style: normal; color: var(--tinta); background: var(--lima-lavado); border-radius: .4em; padding: .05em .4em; }
+.pomo-ciclos { display: flex; gap: .45em; }
+.pomo-ciclos i { width: 1em; height: 1em; border-radius: 50%; border: 1.5px solid var(--tinta); background: var(--branco); }
+.pomo-ciclos i.feito { background: #EF4B3C; }
+.pomo-ciclos i.agora { background: linear-gradient(90deg, #EF4B3C 50%, var(--branco) 50%); }
+
+/* Os selos: a sequência de dias, os acertos e o aviso de amanhã. */
+.p-selo { padding: .6em 1.1em; border-radius: 100px; font-weight: 800; white-space: nowrap; }
+.p-seq { font-size: 1.1em; background: var(--manteiga); --g: -6deg; --entra: .4s; --boia: 5.5s; }
+.p-acertos { background: var(--lilas); --g: 5deg; --entra: .5s; --boia: 5.8s; }
+.p-aviso { background: var(--ceu); --g: -3deg; --entra: .75s; --boia: 6.4s; }
+
+/* O mapa de calor das últimas semanas, que acende em onda. */
+.p-calor { width: 18em; padding: 1em 1.1em; --g: 2deg; --entra: .35s; --boia: 7.2s; }
+.mini-calor { display: grid; grid-template-rows: repeat(7, 1fr); grid-auto-flow: column; gap: .25em; margin: .6em 0 .5em; }
+.mini-calor i { aspect-ratio: 1; border-radius: .25em; background: var(--cor, #F1F2EE); border: 1px solid rgba(18, 19, 22, .1); animation: acende .45s var(--mola) var(--atraso, 0s) both; }
+@keyframes acende { from { transform: scale(0); } }
+.p-calor small { font-size: .8em; }
+
+/* O agente de IA: o pedido e a resposta, que se digita de tempos em tempos. */
+.p-chat { width: 21em; padding: 1em 1.1em 1.1em; background: #F3EDFF; --g: -2deg; --entra: .55s; --boia: 6.6s; }
+.msg { margin: .55em 0 0; padding: .55em .8em; border-radius: .9em; border: 1.5px solid var(--tinta); font-weight: 700; font-size: .92em; line-height: 1.35; }
+.msg.eu { margin-left: 2.5em; background: var(--tinta); color: var(--branco); border-bottom-right-radius: .25em; }
+.msg.ia { margin-right: 1.5em; background: var(--branco); border-bottom-left-radius: .25em; animation: responde 8s var(--mola) 1.5s infinite; }
+@keyframes responde { 0%, 8% { opacity: 0; transform: translateY(.5em) scale(.9); } 14%, 90% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+
+/* A lista de hoje, que vai se riscando. */
+.p-hoje { width: 14.5em; padding: 1em 1.1em 1.1em; --g: -3.5deg; --entra: .6s; --boia: 6.9s; }
+.p-hoje ul { list-style: none; margin: .5em 0 0; padding: 0; display: grid; gap: .45em; font-weight: 700; font-size: .92em; }
+.p-hoje li { display: flex; align-items: center; gap: .5em; }
+.p-hoje li::before { content: ""; width: 1.1em; height: 1.1em; flex-shrink: 0; border-radius: .35em; border: 1.5px solid var(--tinta); background: var(--branco); }
+.p-hoje li.ok { color: var(--cinza); text-decoration: line-through; text-decoration-color: var(--rosa-forte); text-decoration-thickness: 2px; }
+.p-hoje li.ok::before { background: var(--lima) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M3.5 8.5l3 3 6-7' fill='none' stroke='%23121316' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 80% no-repeat; }
+
+/* O trecho grifado: a marca-texto passa, e o balão oferece o card. */
+.p-grifo { width: 26em; padding: 1.1em 1.3em 1.4em; --g: 2deg; --entra: .7s; --boia: 7.5s; }
+.p-grifo p { margin: .5em 0 0; font-weight: 600; font-size: 1.05em; line-height: 1.6; color: #2E3036; }
+.marcado {
+  background: linear-gradient(var(--lima), var(--lima)) left center / 100% 100% no-repeat;
+  border-radius: .25em; padding: .05em .1em; box-decoration-break: clone; -webkit-box-decoration-break: clone;
+  animation: grifa-trecho 9s var(--curva) 1.2s infinite;
+}
+@keyframes grifa-trecho { 0% { background-size: 0% 100%; } 12%, 88% { background-size: 100% 100%; } 100% { background-size: 0% 100%; } }
+.balao {
+  position: absolute; right: 1.2em; bottom: -1.3em;
+  display: flex; gap: .25em; padding: .3em; border-radius: 100px;
+  background: var(--tinta); box-shadow: 3px 3px 0 var(--lima-funda);
+  animation: balao 9s var(--mola) 1.2s infinite;
+}
+@keyframes balao { 0%, 14% { opacity: 0; transform: translateY(.6em) scale(.8); } 20%, 84% { opacity: 1; transform: none; } 92%, 100% { opacity: 0; transform: translateY(.6em) scale(.8); } }
+.balao span { padding: .35em .8em; border-radius: 100px; font-weight: 700; font-size: .85em; color: rgba(255, 255, 255, .7); white-space: nowrap; }
+.balao span.ativo { background: var(--lima); color: var(--tinta); font-weight: 800; }
+
+/* Os botões da revisão. */
+.p-graus { padding: .9em 1em 1em; --g: -3deg; --entra: .85s; --boia: 6.8s; }
+.graus { display: flex; gap: .5em; margin-top: .55em; }
+.graus span { flex: 1; display: grid; gap: .1em; padding: .45em .3em; border-radius: .9em; border: 1.5px solid var(--tinta); font-weight: 800; font-size: .92em; text-align: center; }
+.graus span small { font-size: .78em; color: rgba(18, 19, 22, .6); }
+.graus .errei { background: #FFE3DF; }
+.graus .bom { background: var(--lima); box-shadow: 2px 2px 0 var(--tinta); }
+.graus .facil { background: var(--ceu); }
+
+/* O mapa mental: o assunto no meio e os ramos em volta. */
+.p-mapa { width: 12em; padding: .9em 1em 1em; background: var(--lima-lavado); --g: -4deg; --entra: .25s; --boia: 6.1s; }
+.p-mapa svg { display: block; width: 100%; height: 8em; margin-top: .4em; overflow: visible; }
+.p-mapa path { fill: none; stroke: var(--tinta); stroke-width: 1.6; stroke-linecap: round; stroke-dasharray: 1; stroke-dashoffset: 0; animation: traca 1s var(--curva) 1.2s both; }
+@keyframes traca { from { stroke-dashoffset: 1; } }
+.p-mapa rect { stroke: var(--tinta); stroke-width: 1.6; }
+.p-mapa text { font: 800 7.5px var(--texto); fill: var(--tinta); text-anchor: middle; dominant-baseline: central; }
+
+/* A turma: quem está estudando junto agora. */
+.p-turma { width: 11.5em; padding: .9em 1em 1em; background: var(--manteiga); --g: 3deg; --entra: .65s; --boia: 6.3s; }
+.p-turma strong { display: block; margin-top: .2em; font-family: var(--display); font-weight: 800; font-size: 1.2em; letter-spacing: -.03em; }
+.rostos { display: flex; margin: .55em 0 .4em; }
+.rostos img { width: 2.3em; height: 2.3em; border-radius: 50%; object-fit: cover; object-position: top; border: 1.5px solid var(--tinta); margin-left: -.55em; background: var(--branco); }
+.rostos img:first-child { margin-left: 0; }
+.rostos span { width: 2.3em; height: 2.3em; border-radius: 50%; border: 1.5px solid var(--tinta); margin-left: -.55em; background: var(--tinta); color: var(--branco); display: grid; place-items: center; font-weight: 800; font-size: .8em; }
+.p-turma small { display: flex; align-items: center; gap: .4em; font-size: .8em; }
+.p-turma small::before { content: ""; width: .6em; height: .6em; border-radius: 50%; background: #2FAE5B; animation: pisca 1.6s ease-in-out infinite; }
+@keyframes pisca { 50% { opacity: .3; } }
+
+/* A semana: os minutos de cada dia, em barras que crescem. */
+.p-semana { width: 14em; padding: .9em 1em 1em; --g: -2.5deg; --entra: .8s; --boia: 7.1s; }
+.p-semana header { display: flex; justify-content: space-between; align-items: baseline; }
+.p-semana header b { font-family: var(--display); font-weight: 800; font-size: 1.1em; }
+.barras-semana { display: flex; align-items: flex-end; gap: .35em; height: 5em; margin-top: .6em; }
+.barras-semana span { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: .25em; height: 100%; font-size: .72em; font-weight: 800; color: var(--cinza); }
+.barras-semana i { width: 100%; height: var(--h); border-radius: .35em .35em .15em .15em; background: var(--ceu); border: 1.5px solid var(--tinta); transform-origin: bottom; animation: cresce .7s var(--mola) var(--atraso, 1s) both; }
+.barras-semana .hoje i { background: var(--rosa); }
+.barras-semana .hoje { color: var(--tinta); }
+@keyframes cresce { from { transform: scaleY(0); } }
+
+.p-prova { background: var(--branco); --g: 2deg; --entra: .3s; --boia: 5.9s; }
+.p-criados { background: var(--rosa); --g: 3deg; --entra: 1s; --boia: 5.7s; }
+
+
+/* A notificação: hora de revisar. */
+.p-push { width: 17em; padding: .75em .9em; display: flex; align-items: center; gap: .7em; border-radius: 1.1em; --g: -2deg; --entra: .45s; --boia: 6.4s; }
+.p-push > i { width: 2.4em; height: 2.4em; flex-shrink: 0; border-radius: .7em; border: 1.5px solid var(--tinta); background: var(--lima); display: grid; place-items: center; font-style: normal; }
+.p-push b { display: block; font-size: .95em; }
+.p-push small { display: block; font-size: .8em; }
+
+/* A questão de múltipla escolha, com a certa acendendo. */
+.p-quiz { width: 16em; padding: .9em 1em 1em; --g: 3deg; --entra: .5s; --boia: 7.3s; }
+.p-quiz strong { display: block; margin: .3em 0 .5em; font-size: .95em; line-height: 1.3; }
+.p-quiz ol { list-style: none; margin: 0; padding: 0; display: grid; gap: .3em; counter-reset: alt; }
+.p-quiz li { counter-increment: alt; display: flex; align-items: center; gap: .5em; padding: .3em .5em; border-radius: .6em; border: 1.5px solid var(--fio); font-weight: 700; font-size: .85em; }
+.p-quiz li::before { content: counter(alt, upper-alpha); width: 1.5em; height: 1.5em; flex-shrink: 0; border-radius: 50%; border: 1.5px solid var(--tinta); display: grid; place-items: center; font-size: .85em; font-weight: 800; }
+.p-quiz li.certa { animation: certa 7s var(--curva) 2s infinite; }
+@keyframes certa { 0%, 20% { background: transparent; border-color: var(--fio); } 28%, 90% { background: var(--lima-lavado); border-color: var(--tinta); } 100% { background: transparent; border-color: var(--fio); } }
+
+/* A pasta de arquivos. */
+.p-pasta { width: 13em; padding: .9em 1em 1em; background: var(--ceu); --g: -3deg; --entra: .7s; --boia: 6.7s; }
+.p-pasta ul { list-style: none; margin: .45em 0 0; padding: 0; display: grid; gap: .3em; }
+.p-pasta li { display: flex; align-items: center; gap: .45em; padding: .3em .5em; border-radius: .55em; background: var(--branco); border: 1.5px solid var(--tinta); font-weight: 700; font-size: .82em; white-space: nowrap; }
+.p-pasta li i { width: .8em; height: 1em; flex-shrink: 0; border-radius: .15em; background: var(--c, var(--rosa)); border: 1.2px solid var(--tinta); }
+
+/* O som de foco tocando. */
+.p-som { width: 15em; padding: .65em .8em; display: flex; align-items: center; gap: .7em; border-radius: 100px; background: var(--tinta); color: var(--branco); --g: -4deg; --entra: .6s; --boia: 5.4s; }
+.p-som > i { width: 2.2em; height: 2.2em; flex-shrink: 0; border-radius: 50%; background: var(--lima); display: grid; place-items: center; color: var(--tinta); font-style: normal; font-size: .9em; }
+.p-som b { display: block; font-size: .88em; }
+.p-som small { display: block; font-size: .72em; color: rgba(255, 255, 255, .6); }
+.ondas { display: flex; align-items: center; gap: .18em; height: 1.4em; margin-left: auto; }
+.ondas u { width: .22em; height: 100%; border-radius: 1em; background: var(--lima); transform-origin: center; animation: onda .9s ease-in-out var(--a, 0s) infinite alternate; }
+@keyframes onda { from { transform: scaleY(.25); } }
+
+/* As etiquetas, num montinho. */
+.p-etiq { display: flex; gap: .35em; padding: .55em; border-radius: 1em; --g: 2deg; --entra: .9s; --boia: 6.2s; }
+.p-etiq span { padding: .25em .7em; border-radius: 100px; border: 1.5px solid var(--tinta); background: var(--c); font-weight: 800; font-size: .82em; white-space: nowrap; }
+.p-nivel { background: var(--tinta); color: var(--branco); --g: -5deg; --entra: .85s; --boia: 5.2s; }
+
+/* Os adesivos, colados por cima das peças. */
+.adesivo {
+  position: absolute; z-index: 25; width: 4.2em; height: 4.2em; pointer-events: none;
+  transform: rotate(var(--g, 0deg));
+  animation: chega-peca .6s var(--mola) var(--entra, 1s) both, balanca 4s ease-in-out calc(var(--entra, 1s) + .6s) infinite;
+}
+@keyframes balanca { 50% { transform: rotate(calc(var(--g, 0deg) + 10deg)) scale(1.06); } }
 
 @media (max-width: 900px) {
   .tela { grid-template-columns: minmax(0, 1fr); height: auto; }
@@ -279,22 +440,6 @@ form { display: grid; gap: 10px; padding-top: 18px; }
   <symbol id="a-sorriso" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" style="fill:var(--cor, #FFE27A)" stroke="#121316" stroke-width="3"/><ellipse cx="23" cy="26" rx="3.4" ry="4.6" fill="#121316"/><ellipse cx="41" cy="26" rx="3.4" ry="4.6" fill="#121316"/><path d="M19 37c3 7 9 10 13 10s10-3 13-10" fill="none" stroke="#121316" stroke-width="3.6" stroke-linecap="round"/><path d="M16 20c2-5 6-8 10-9" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/></symbol>
   <symbol id="a-coracao" viewBox="0 0 64 64"><path d="M32 54C14 42 6 32 6 22c0-9 7-15 15-15 5 0 9 3 11 7 2-4 6-7 11-7 8 0 15 6 15 15 0 10-8 20-26 32z" style="fill:var(--cor, #DCCBFF)" stroke="#121316" stroke-width="3" stroke-linejoin="round"/><path d="M15 19c1-4 4-6 7-6" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/></symbol>
   <symbol id="a-raio" viewBox="0 0 64 64"><path d="M37 4 12 36h17l-5 24 28-34H34Z" style="fill:var(--cor, #FFE27A)" stroke="#121316" stroke-width="3" stroke-linejoin="round"/></symbol>
-  <symbol id="ic-universitarios" viewBox="0 0 32 32"><path d="M2 12 16 5l14 7-14 7Z" fill="currentColor"/><path d="M8 15.5v6.5c4 3.5 12 3.5 16 0v-6.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M27 13v8" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="27" cy="23.5" r="2.4" fill="currentColor"/></symbol>
-  <symbol id="ic-colegiais" viewBox="0 0 32 32"><path d="M7 27V14a9 9 0 0 1 18 0v13a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2Z" fill="currentColor"/><path d="M12 6V4.5a4 4 0 0 1 8 0V6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M11 29v-8h10v8" fill="none" stroke="#000" stroke-opacity=".12" stroke-width="2.4" stroke-linejoin="round"/></symbol>
-  <symbol id="ic-vestibulandos" viewBox="0 0 32 32"><path d="M21.5 4.5a3.5 3.5 0 0 1 5 5L10 26l-6.5 2 2-6.5Z" fill="currentColor"/><path d="m19 7 5 5" fill="none" stroke="#000" stroke-opacity=".12" stroke-width="2.4" stroke-linecap="round"/></symbol>
-  <symbol id="ic-medicina" viewBox="0 0 32 32"><path d="M7 3H5.5A1.5 1.5 0 0 0 4 4.5V11a7 7 0 0 0 14 0V4.5A1.5 1.5 0 0 0 16.5 3H15" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M11 18v3a7 7 0 0 0 14 0v-3" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="25" cy="15" r="3.6" fill="currentColor"/></symbol>
-  <symbol id="ic-concurseiros" viewBox="0 0 32 32"><rect x="4" y="21" width="24" height="7" rx="2" fill="currentColor"/><rect x="7" y="13" width="21" height="7" rx="2" fill="currentColor"/><rect x="5" y="5" width="20" height="7" rx="2" fill="currentColor"/></symbol>
-  <symbol id="ic-direito" viewBox="0 0 32 32"><path d="M16 4v24M10 28h12M5 8h22" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 9 1.5 18h7Z M27 9l-3.5 9h7Z" fill="currentColor"/><path d="M1.5 18a3.5 3.5 0 0 0 7 0 M23.5 18a3.5 3.5 0 0 0 7 0" fill="currentColor"/></symbol>
-  <symbol id="ic-enfermagem" viewBox="0 0 32 32"><path d="M12 3h8v9h9v8h-9v9h-8v-9H3v-8h9Z" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
-  <symbol id="ic-engenharia" viewBox="0 0 32 32"><path d="M16 2.5 18.4 6l4.2-1 .8 4.2 4.1 1.4-1.5 4 2.5 3.5-3.5 2.4.5 4.3-4.3.3-1.7 3.9-3.9-1.8L12 28l-1.6-4-4.3-.4.6-4.3-3.5-2.4L5.7 13l-1.5-4 4.1-1.4.9-4.2 4.2 1Z" fill="currentColor"/><circle cx="16" cy="16" r="4.6" fill="#000" fill-opacity=".1"/></symbol>
-  <symbol id="ic-residentes" viewBox="0 0 32 32"><path d="M16 28C8 22 3 17.5 3 11.5A6.5 6.5 0 0 1 16 8.5a6.5 6.5 0 0 1 13 3C29 17.5 24 22 16 28Z" fill="currentColor"/><path d="M6 15h5l2-4 3 8 2-4h8" fill="none" stroke="#000" stroke-opacity=".12" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-  <symbol id="ic-professores" viewBox="0 0 32 32"><rect x="3" y="4" width="26" height="17" rx="2.5" fill="currentColor"/><path d="M9 28l4-7M23 28l-4-7M16 21v4" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
-  <symbol id="ic-pos" viewBox="0 0 32 32"><path d="M12 3h8M13 3v9L5.5 25a2.5 2.5 0 0 0 2.2 3.8h16.6A2.5 2.5 0 0 0 26.5 25L19 12V3" fill="currentColor" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></symbol>
-  <symbol id="ic-idiomas" viewBox="0 0 32 32"><path d="M4 5h15a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-8l-5 4v-4H4a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" fill="currentColor"/><path d="M23 11h5a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-1v4l-5-4h-6a2 2 0 0 1-2-2v-1" fill="currentColor" fill-opacity=".75"/></symbol>
-  <symbol id="ic-seminaristas" viewBox="0 0 32 32"><path d="M16 2v15M10.5 7.5h11" fill="none" stroke="currentColor" stroke-width="3.6" stroke-linecap="round"/><path d="M3 20c4.5-2 9-2 13 1 4-3 8.5-3 13-1v9c-4.5-2-9-2-13 1-4-3-8.5-3-13-1Z" fill="currentColor"/></symbol>
-  <symbol id="ic-odontologia" viewBox="0 0 32 32"><path d="M9 3c-4 0-6 3-6 7 0 3 1.4 5 2.2 8 .9 3.5 1.2 11 4.3 11 2.6 0 2.2-7 6.5-7s3.9 7 6.5 7c3.1 0 3.4-7.5 4.3-11 .8-3 2.2-5 2.2-8 0-4-2-7-6-7-2.8 0-4.4 1.6-7 1.6S11.8 3 9 3Z" fill="currentColor"/></symbol>
-  <symbol id="ic-psicologia" viewBox="0 0 32 32"><path d="M17 3C10.4 3 5 8 5 14.5c0 2.8 1 5.3 2.6 7.3L7 29h11v-4h3.5a3 3 0 0 0 3-3v-3.5l2.8-1.2c.6-.3.8-1 .4-1.5L25 11.5C23.8 6.6 20.8 3 17 3Z" fill="currentColor"/><path d="M12 13a3.5 3.5 0 0 1 6.5-1.8A3 3 0 0 1 21 16a3 3 0 0 1-4 2.8 3 3 0 0 1-5-2.3" fill="none" stroke="#000" stroke-opacity=".14" stroke-width="2.2" stroke-linecap="round"/></symbol>
-  <symbol id="ic-administracao" viewBox="0 0 32 32"><rect x="4" y="18" width="6" height="11" rx="1.5" fill="currentColor"/><rect x="13" y="12" width="6" height="17" rx="1.5" fill="currentColor"/><rect x="22" y="6" width="6" height="23" rx="1.5" fill="currentColor"/><path d="M4 12 13 6l5 3 9-6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
   <symbol id="seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
   <symbol id="olho-aberto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
   <symbol id="olho-fechado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3 3.9M6.6 6.6A17 17 0 0 0 2 12s3.6 7 10 7a9.6 9.6 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2"/></symbol>
@@ -340,15 +485,6 @@ form { display: grid; gap: 10px; padding-top: 18px; }
           </form>
         </div>
       </div>
-
-      <div class="para-quem">
-        <small>Feito para</small>
-        <div class="janela">
-          <ul id="perfis">
-            <li>Universitários</li><li>Concurseiros</li><li>Residentes</li><li>Vestibulandos</li><li>Direito e OAB</li><li>Enfermagem</li><li>Engenharia</li><li>Idiomas</li>
-          </ul>
-        </div>
-      </div>
     </main>
   </div>
 
@@ -359,29 +495,105 @@ form { display: grid; gap: 10px; padding-top: 18px; }
       <p>Grife o resumo, transforme o trecho em card e deixe a revisão espaçada decidir o que volta amanhã.</p>
     </div>
     <span class="rodape">© 2026 Sinapse</span>
-    <div class="mural">
-      <div class="mural-col"><div class="mural-trilho">
-          <figure class="pessoa" style="--fundo:var(--lima);--g:-2deg"><svg><use href="#ic-universitarios"/></svg><img src="/lp/perfil-universitarios.webp" alt="" decoding="async"><figcaption>Universitários</figcaption></figure>
-          <figure class="pessoa" style="--fundo:#FFA94D;--g:2deg"><svg><use href="#ic-seminaristas"/></svg><img src="/lp/perfil-seminaristas.webp" alt="" decoding="async"><figcaption>Seminaristas</figcaption></figure>
-          <figure class="pessoa" style="--fundo:#5EC9A5;--g:2.2deg"><svg><use href="#ic-professores"/></svg><img src="/lp/perfil-professores.webp" alt="" decoding="async"><figcaption>Professores</figcaption></figure>
-          <figure class="pessoa" style="--fundo:#B79BFF;--g:-0.8deg"><svg><use href="#ic-enfermagem"/></svg><img src="/lp/perfil-enfermagem.webp" alt="" decoding="async"><figcaption>Enfermagem</figcaption></figure>
-          <figure class="pessoa" style="--fundo:var(--manteiga);--g:0.8deg"><svg><use href="#ic-medicina"/></svg><img src="/lp/perfil-medicina.webp" alt="" decoding="async"><figcaption>Residência médica</figcaption></figure>
-          <figure class="pessoa" style="--fundo:var(--lima);--g:-2.4deg"><svg><use href="#ic-administracao"/></svg><img src="/lp/perfil-administracao.webp" alt="" decoding="async"><figcaption>Administração e Contábeis</figcaption></figure>
-      </div></div>
-      <div class="mural-col"><div class="mural-trilho">
-          <figure class="pessoa" style="--fundo:#FF7B6B;--g:1.5deg"><svg><use href="#ic-concurseiros"/></svg><img src="/lp/perfil-concurseiros.webp" alt="" decoding="async"><figcaption>Concurseiros</figcaption></figure>
-          <figure class="pessoa" style="--fundo:var(--rosa);--g:-1.5deg"><svg><use href="#ic-colegiais"/></svg><img src="/lp/perfil-colegiais.webp" alt="" decoding="async"><figcaption>Colegiais</figcaption></figure>
-          <figure class="pessoa" style="--fundo:#5EC9A5;--g:-2.2deg"><svg><use href="#ic-odontologia"/></svg><img src="/lp/perfil-odontologia.webp" alt="" decoding="async"><figcaption>Odontologia</figcaption></figure>
-          <figure class="pessoa" style="--fundo:#FF7B6B;--g:1.8deg"><svg><use href="#ic-pos"/></svg><img src="/lp/perfil-pos.webp" alt="" decoding="async"><figcaption>Pós-graduação</figcaption></figure>
-          <figure class="pessoa" style="--fundo:#6FA8FF;--g:-1.2deg"><svg><use href="#ic-engenharia"/></svg><img src="/lp/perfil-engenharia.webp" alt="" decoding="async"><figcaption>Engenharia</figcaption></figure>
-      </div></div>
-      <div class="mural-col"><div class="mural-trilho">
-          <figure class="pessoa" style="--fundo:#FFA94D;--g:-1deg"><svg><use href="#ic-residentes"/></svg><img src="/lp/perfil-residentes.webp" alt="" decoding="async"><figcaption>Medicina</figcaption></figure>
-          <figure class="pessoa" style="--fundo:var(--ceu);--g:1deg"><svg><use href="#ic-direito"/></svg><img src="/lp/perfil-direito.webp" alt="" decoding="async"><figcaption>Direito e OAB</figcaption></figure>
-          <figure class="pessoa" style="--fundo:#FFA94D;--g:1.2deg"><svg><use href="#ic-vestibulandos"/></svg><img src="/lp/perfil-vestibulandos.webp" alt="" decoding="async"><figcaption>Vestibulandos</figcaption></figure>
-          <figure class="pessoa" style="--fundo:var(--lilas);--g:-1.8deg"><svg><use href="#ic-psicologia"/></svg><img src="/lp/perfil-psicologia.webp" alt="" decoding="async"><figcaption>Psicologia</figcaption></figure>
-          <figure class="pessoa" style="--fundo:#FF5E8A;--g:2.4deg"><svg><use href="#ic-idiomas"/></svg><img src="/lp/perfil-idiomas.webp" alt="" decoding="async"><figcaption>Idiomas</figcaption></figure>
-      </div></div>
+    <div class="vitrine">
+      <div class="pecas">
+        <div class="coluna">
+          <div class="peca p-flash">
+            <div class="flash-giro">
+              <div class="flash-face"><span class="peca-rotulo">Direito constitucional</span><strong>O que torna uma súmula vinculante?</strong><small>toque para ver a resposta</small></div>
+              <div class="flash-face verso"><span class="peca-rotulo">Resposta</span><p>Aprovada por 2/3 do STF, obriga o Judiciário e a administração pública.</p><small>do seu resumo · art. 103-A</small></div>
+            </div>
+          </div>
+          <span class="peca p-selo p-seq">🔥 12 dias seguidos</span>
+          <div class="peca p-calor">
+            <span class="peca-rotulo">Seu estudo</span>
+            <div class="mini-calor" id="miniCalor"></div>
+            <small>últimas 12 semanas</small>
+          </div>
+          <span class="peca p-selo p-prova">📚 OAB 1ª fase em 42 dias</span>
+          <div class="peca p-grifo">
+            <span class="peca-rotulo">Resumo · Controle de constitucionalidade</span>
+            <p>A ADI pode ser proposta pelos legitimados do art. 103, e <span class="marcado">a decisão vincula todos os órgãos</span>.</p>
+            <div class="balao"><span>Grifo</span><span>Nota</span><span class="ativo">Criar card</span></div>
+          </div>
+        </div>
+        <div class="coluna">
+          <div class="peca p-deck">
+            <span class="peca-rotulo">Deck</span>
+            <strong>Direito Penal</strong>
+            <small>42 cards · 8 para hoje</small>
+            <div class="barra-deck"><i></i></div>
+          </div>
+          <div class="peca p-quiz">
+            <span class="peca-rotulo">Questão · OAB</span>
+            <strong>Quem pode propor ADI?</strong>
+            <ol><li>Qualquer cidadão</li><li class="certa">Os legitimados do art. 103</li><li>Só o Procurador-Geral</li></ol>
+          </div>
+          <span class="peca p-selo p-acertos">86% de acertos ↑</span>
+          <div class="peca p-chat">
+            <span class="peca-rotulo">Agente de IA</span>
+            <p class="msg eu">Cria 5 cards do meu resumo de ADI</p>
+            <p class="msg ia">Pronto! 5 cards no deck Constitucional ✦</p>
+          </div>
+          <div class="peca p-pasta">
+            <span class="peca-rotulo">Arquivos</span>
+            <ul><li><i style="--c:var(--rosa)"></i>Resumo ADI e ADC</li><li><i style="--c:var(--lima)"></i>Súmulas do STF</li><li><i style="--c:var(--lilas)"></i>Crimes contra a vida</li></ul>
+          </div>
+        </div>
+        <div class="coluna">
+          <div class="peca p-mapa">
+            <span class="peca-rotulo">Mapa mental</span>
+            <svg viewBox="0 0 120 80" aria-hidden="true">
+              <path pathLength="1" d="M60 40 C40 40 34 16 18 14"/><path pathLength="1" d="M60 40 C80 40 86 16 102 14"/><path pathLength="1" d="M60 40 C40 40 34 64 18 66"/><path pathLength="1" d="M60 40 C80 40 86 64 102 66"/>
+              <rect x="38" y="31" width="44" height="18" rx="9" fill="#C6F36B"/><text x="60" y="40">Controle</text>
+              <rect x="2" y="6" width="32" height="16" rx="8" fill="#FFFFFF"/><text x="18" y="14">ADI</text>
+              <rect x="86" y="6" width="32" height="16" rx="8" fill="#FFFFFF"/><text x="102" y="14">ADC</text>
+              <rect x="2" y="58" width="32" height="16" rx="8" fill="#FFFFFF"/><text x="18" y="66">ADPF</text>
+              <rect x="86" y="58" width="32" height="16" rx="8" fill="#FFFFFF"/><text x="102" y="66">ADO</text>
+            </svg>
+          </div>
+          <div class="peca p-push"><i>⏰</i><span><b>Hora de revisar</b><small>8 cards de Penal esperando</small></span></div>
+          <div class="peca p-semana">
+            <header><span class="peca-rotulo">Esta semana</span><b>6h 55</b></header>
+            <div class="barras-semana">
+              <span><i style="--h:45%;--atraso:1.1s"></i>S</span><span><i style="--h:70%;--atraso:1.16s"></i>T</span><span><i style="--h:35%;--atraso:1.22s"></i>Q</span><span><i style="--h:85%;--atraso:1.28s"></i>Q</span><span><i style="--h:60%;--atraso:1.34s"></i>S</span><span><i style="--h:25%;--atraso:1.4s"></i>S</span><span class="hoje"><i style="--h:95%;--atraso:1.46s"></i>D</span>
+            </div>
+          </div>
+          <span class="peca p-selo p-nivel">⭐ Nível 7</span>
+          <div class="peca p-som"><i>▶</i><span><b>Chuva na biblioteca</b><small>som de foco</small></span><span class="ondas"><u></u><u style="--a:.2s"></u><u style="--a:.4s"></u><u style="--a:.1s"></u><u style="--a:.3s"></u></span></div>
+          <span class="peca p-selo p-aviso">⏰ 8 cards voltam amanhã</span>
+          <div class="peca p-etiq"><span style="--c:#FFE3DF">Penal</span><span style="--c:var(--lilas)">Civil</span><span style="--c:var(--lima)">Constitucional</span></div>
+        </div>
+        <div class="coluna">
+          <div class="peca p-pomo">
+            <span class="peca-rotulo">Pomodoro</span>
+            <div class="pomo-anel" id="pomoAnel">
+              <svg viewBox="0 0 120 120"><circle class="trilho" cx="60" cy="60" r="52" pathLength="1"/><circle class="arco" cx="60" cy="60" r="52" pathLength="1"/></svg>
+              <div><b id="pomoTempo">13:01</b><small>foco em <em>Direito</em></small></div>
+            </div>
+            <div class="pomo-ciclos"><i class="feito"></i><i class="feito"></i><i class="agora"></i><i></i></div>
+          </div>
+          <div class="peca p-hoje">
+            <span class="peca-rotulo">Hoje</span>
+            <ul><li class="ok">Penal · 12 cards</li><li class="ok">2 pomodoros</li><li>Constitucional · 8 cards</li><li>Resumo de ADPF</li></ul>
+          </div>
+          <div class="peca p-turma">
+            <span class="peca-rotulo">Turma</span>
+            <strong>OAB 2026</strong>
+            <div class="rostos"><img src="/lp/perfil-direito.webp" alt="" decoding="async"><img src="/lp/perfil-concurseiros.webp" alt="" decoding="async"><img src="/lp/perfil-universitarios.webp" alt="" decoding="async"><img src="/lp/estudante-milena.webp" alt="" decoding="async"><span>+9</span></div>
+            <small>5 estudando agora</small>
+          </div>
+          <div class="peca p-graus">
+            <span class="peca-rotulo">Como foi?</span>
+            <div class="graus"><span class="errei">Errei<small>1 min</small></span><span class="bom">Bom<small>3 dias</small></span><span class="facil">Fácil<small>7 dias</small></span></div>
+          </div>
+          <span class="peca p-selo p-criados">+3 cards criados agora</span>
+        </div>
+        <svg class="adesivo" style="left:22%;top:22%;--g:12deg;--entra:1s"><use href="#a-estrela"/></svg>
+        <svg class="adesivo" style="left:72%;top:31%;--g:-10deg;--entra:1.15s"><use href="#a-raio"/></svg>
+        <svg class="adesivo" style="left:47%;top:58%;--g:-8deg;--entra:1.3s"><use href="#a-sorriso"/></svg>
+        <svg class="adesivo" style="left:21%;top:86%;--g:10deg;--entra:1.45s;--cor:#F2A0C0"><use href="#a-coracao"/></svg>
+      </div>
     </div>
   </aside>
 </div>
@@ -396,9 +608,35 @@ form { display: grid; gap: 10px; padding-top: 18px; }
   const alternar = document.getElementById('alternar');
   const formEmail = document.getElementById('formEmail');
 
-  // O mural do painel: cada coluna leva os cartões duas vezes, para a volta
-  // do carrossel não ter emenda.
-  document.querySelectorAll('.mural-trilho').forEach((t) => { t.innerHTML += t.innerHTML; });
+  // O mapa de calor do painel: 12 semanas de 7 dias, mais quente nas
+  // recentes, acendendo da esquerda, uma coluna de cada vez.
+  const miniCalor = document.getElementById('miniCalor');
+  const TONS_CALOR = ['', '#E9F9C9', '#C6F36B', '#9BD43A', '#5E8F1C'];
+  let semente = 3;
+  for (let col = 0; col < 12; col++) {
+    for (let dia = 0; dia < 7; dia++) {
+      semente = (semente * 53 + 17) % 97;
+      let forca = semente % 5;
+      if (col > 7 && forca < 2) forca += 2;
+      const cel = document.createElement('i');
+      if (forca) cel.style.setProperty('--cor', TONS_CALOR[forca]);
+      cel.style.setProperty('--atraso', (.9 + col * .06 + dia * .02) + 's');
+      miniCalor.appendChild(cel);
+    }
+  }
+
+  // O Pomodoro do painel: o relógio conta para trás e o anel esvazia junto.
+  const pomoAnel = document.getElementById('pomoAnel');
+  const pomoTempo = document.getElementById('pomoTempo');
+  let restam = 13 * 60 + 1;
+  const pintarPomo = () => {
+    pomoTempo.textContent = String(Math.floor(restam / 60)).padStart(2, '0') + ':' + String(restam % 60).padStart(2, '0');
+    pomoAnel.style.setProperty('--pomo', String(1 - restam / 1500));
+  };
+  pintarPomo();
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    setInterval(() => { restam = restam > 0 ? restam - 1 : 1500; pintarPomo(); }, 1000);
+  }
 
   // "Entrar com e-mail e senha" abre (e fecha) o formulário ali mesmo.
   alternar.addEventListener('click', () => {
@@ -442,10 +680,6 @@ form { display: grid; gap: 10px; padding-top: 18px; }
       conferir();
     });
   }
-
-  // A fileira de perfis vai duplicada: a volta do carrossel não tem emenda.
-  const perfis = document.getElementById('perfis');
-  perfis.innerHTML += perfis.innerHTML.replace(/<li>/g, '<li aria-hidden="true">');
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
