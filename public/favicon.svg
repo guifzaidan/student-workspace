@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- O símbolo da marca, o mesmo do menu, da landing e do login: o núcleo
+       e as seis ligações, de pontas redondas. Em tinta na aba clara, e em
+       branco na aba escura, onde a tinta sumiria. -->
+  <style>
+    .s { color: #121316; }
+    @media (prefers-color-scheme: dark) { .s { color: #F4F4F2; } }
+  </style>
+  <g class="s">
+    <g stroke="currentColor" stroke-width="3.6" stroke-linecap="round">
+      <path d="M16 16 18.72 5.86M16 16l10.14-2.72M16 16l7.42 7.42M16 16l-2.72 10.14M16 16 5.86 18.72M16 16 8.58 8.58"/>
+    </g>
+    <g fill="currentColor">
+      <circle cx="16" cy="16" r="4.8"/>
+      <circle cx="19.11" cy="4.41" r="3.4"/><circle cx="27.59" cy="12.89" r="3.4"/><circle cx="24.49" cy="24.49" r="3.4"/>
+      <circle cx="12.89" cy="27.59" r="3.4"/><circle cx="4.41" cy="19.11" r="3.4"/><circle cx="7.51" cy="7.51" r="3.4"/>
+    </g>
+  </g>
+</svg>

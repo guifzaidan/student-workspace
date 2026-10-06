@@ -2,7 +2,8 @@
 //  A porta única do Sinapse para o banco.
 //
 //  GET  /api/dados          devolve o estado inteiro: pastas com arquivos,
-//                           decks com flashcards, e os números dos relatórios.
+//                           decks com flashcards, o banco de questões com as
+//                           provas feitas, e os números dos relatórios.
 //  POST /api/dados          recebe { acao, ... } e grava.
 //
 //  Uma porta só, e não uma por recurso, porque a tela carrega tudo de uma vez
@@ -51,6 +52,40 @@ function notas(v: unknown): unknown[] {
   }
 }
 
+/* As alternativas de uma questão: texto por texto, sem as vazias, de 2 a 5.
+   Vêm da tela e vão para o banco pelo mesmo crivo, para uma questão gravada
+   nunca ter uma alternativa em branco que a prova mostraria como opção. */
+const TETO_ALTERNATIVAS = 5;
+function alternativas(v: unknown): string[] {
+  let lido: unknown = v;
+  if (typeof v === 'string') {
+    try { lido = JSON.parse(v); } catch { return []; }
+  }
+  return Array.isArray(lido)
+    ? lido.map((a) => texto(a).trim()).filter(Boolean).slice(0, TETO_ALTERNATIVAS)
+    : [];
+}
+
+/** A questão pronta para gravar, ou um recado do que falta nela. */
+function questaoDe(corpo: Record<string, unknown>) {
+  const enunciado = texto(corpo.enunciado).trim();
+  /* A certa acompanha a alternativa, e não a posição: tirar uma vazia de
+     cima dela não pode fazer outra virar a certa. */
+  const cruas = Array.isArray(corpo.alternativas) ? corpo.alternativas.map((a) => texto(a).trim()) : [];
+  const pedida = Math.round(numero(corpo.correta, -1));
+  const alts: string[] = [];
+  let correta = -1;
+  cruas.forEach((a, i) => {
+    if (!a || alts.length >= TETO_ALTERNATIVAS) return;
+    if (i === pedida) correta = alts.length;
+    alts.push(a);
+  });
+  if (!enunciado) throw new Error('A questão precisa de um enunciado.');
+  if (alts.length < 2) throw new Error('A questão precisa de pelo menos duas alternativas.');
+  if (correta < 0 || correta >= alts.length) throw new Error('Marque qual alternativa é a certa.');
+  return { enunciado, alts, correta, explicacao: texto(corpo.explicacao).trim() };
+}
+
 /** O dia de hoje em ISO, sem hora: é assim que a fila do dia é comparada. */
 function hoje(): string {
   return new Date().toISOString().slice(0, 10);
@@ -59,7 +94,7 @@ function hoje(): string {
 // ── Leitura ──────────────────────────────────────────────────────────────────
 async function lerTudo() {
   const cx = db();
-  const [pastas, arquivos, decks, cards, rascunhos, revisoes, ciclos, acessos] = await Promise.all([
+  const [pastas, arquivos, decks, cards, rascunhos, revisoes, ciclos, acessos, questoes, provas] = await Promise.all([
     cx.execute('SELECT * FROM sinapse_pastas ORDER BY posicao, criada_em'),
     cx.execute('SELECT * FROM sinapse_arquivos ORDER BY posicao, criado_em'),
     cx.execute('SELECT * FROM sinapse_decks ORDER BY posicao, criado_em'),
@@ -83,6 +118,10 @@ async function lerTudo() {
     cx.execute('SELECT hora, minutos FROM sinapse_acessos WHERE hora >= ? ORDER BY hora', [
       new Date(Date.now() - 84 * 86400000).toISOString().slice(0, 13),
     ]),
+    // A mais nova primeiro, que é a ordem em que o banco as lista.
+    cx.execute('SELECT * FROM sinapse_questoes ORDER BY criada_em DESC'),
+    // As últimas cinquenta provas bastam para o histórico e para a média.
+    cx.execute('SELECT * FROM sinapse_provas ORDER BY feita_em DESC LIMIT 50'),
   ]);
 
   const porPasta = new Map<string, Linha[]>();
@@ -96,6 +135,7 @@ async function lerTudo() {
       corpo: texto(linha.corpo),
       notas: notas(linha.notas),
       margem: numero(linha.margem, 2.54) || 2.54,
+      postits: notas(linha.postits),
     });
     porPasta.set(texto(linha.pasta_id), arr);
   }
@@ -165,6 +205,27 @@ async function lerTudo() {
     acessos: (acessos.rows as unknown as Linha[]).map((l) => ({
       hora: texto(l.hora),
       minutos: numero(l.minutos),
+    })),
+    questoes: (questoes.rows as unknown as Linha[]).map((l) => ({
+      id: texto(l.id),
+      arquivoId: texto(l.arquivo_id),
+      enunciado: texto(l.enunciado),
+      alternativas: alternativas(l.alternativas),
+      correta: numero(l.correta),
+      explicacao: texto(l.explicacao),
+      trecho: texto(l.trecho),
+      origem: texto(l.origem),
+      acertos: numero(l.acertos),
+      tentativas: numero(l.tentativas),
+      criadaEm: texto(l.criada_em),
+    })),
+    provas: (provas.rows as unknown as Linha[]).map((l) => ({
+      id: texto(l.id),
+      escopo: texto(l.escopo),
+      total: numero(l.total),
+      acertos: numero(l.acertos),
+      segundos: numero(l.segundos),
+      feitaEm: texto(l.feita_em),
     })),
   };
 }
@@ -238,7 +299,9 @@ async function gravar(corpo: Record<string, unknown>) {
     }
     case 'arquivo.salvar':
       await cx.execute(
-        'UPDATE sinapse_arquivos SET nome = ?, descricao = ?, corpo = ?, notas = ?, margem = ?, atualizado_em = ? WHERE id = ?',
+        `UPDATE sinapse_arquivos
+            SET nome = ?, descricao = ?, corpo = ?, notas = ?, margem = ?, postits = COALESCE(?, postits), atualizado_em = ?
+          WHERE id = ?`,
         [
           texto(corpo.nome), texto(corpo.desc), texto(corpo.corpo),
           /* As notas viajam já serializadas: elas se prendem a marcas dentro do
@@ -246,6 +309,9 @@ async function gravar(corpo: Record<string, unknown>) {
              uma nota apontar para uma marca que a outra escrita ainda não tem. */
           JSON.stringify(Array.isArray(corpo.notas) ? corpo.notas : []),
           numero(corpo.margem, 2.54) || 2.54,
+          /* Os post-its só são trocados quando a tela os manda: uma aba aberta
+             antes deles existirem salva o texto sem apagá-los. */
+          Array.isArray(corpo.postits) ? JSON.stringify(corpo.postits) : null,
           t, texto(corpo.id),
         ],
       );
@@ -409,6 +475,64 @@ async function gravar(corpo: Record<string, unknown>) {
     case 'imagem.excluir':
       await cx.execute('DELETE FROM sinapse_imagens WHERE id = ?', [texto(corpo.id)]);
       return { ok: true };
+
+    case 'questao.criar': {
+      const q = questaoDe(corpo);
+      const id = novoId('qst');
+      /* O arquivo entra pelo mesmo subselect da imagem: um id que o banco não
+         tem mais deixa a questão solta, em vez de derrubar a gravação. */
+      await cx.execute(
+        `INSERT INTO sinapse_questoes
+           (id, arquivo_id, enunciado, alternativas, correta, explicacao, trecho, origem, criada_em, atualizada_em)
+         VALUES (?, (SELECT id FROM sinapse_arquivos WHERE id = ?), ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [id, texto(corpo.arquivoId) || null, q.enunciado, JSON.stringify(q.alts), q.correta, q.explicacao,
+         texto(corpo.trecho), texto(corpo.origem), t, t],
+      );
+      return { id };
+    }
+    case 'questao.salvar': {
+      const q = questaoDe(corpo);
+      await cx.execute(
+        `UPDATE sinapse_questoes
+            SET enunciado = ?, alternativas = ?, correta = ?, explicacao = ?, atualizada_em = ?
+          WHERE id = ?`,
+        [q.enunciado, JSON.stringify(q.alts), q.correta, q.explicacao, t, texto(corpo.id)],
+      );
+      return { ok: true };
+    }
+    case 'questao.excluir':
+      await cx.execute('DELETE FROM sinapse_questoes WHERE id = ?', [texto(corpo.id)]);
+      return { ok: true };
+
+    /* A prova chega inteira no fim: o histórico entra e cada questão soma a
+       sua tentativa na mesma transação, para a nota da prova e o acerto das
+       questões nunca contarem histórias diferentes. Questão que sumiu no meio
+       da prova só não soma: o UPDATE dela não acha linha. */
+    case 'prova.registrar': {
+      const respostas = (Array.isArray(corpo.respostas) ? corpo.respostas : [])
+        .map((x) => x as Record<string, unknown>)
+        .map((x) => ({ q: texto(x.questaoId), escolhida: Math.round(numero(x.escolhida, -1)), certa: !!x.certa }))
+        .filter((x) => x.q);
+      if (!respostas.length) throw new Error('A prova não tem respostas.');
+      const id = novoId('prv');
+      const acertos = respostas.filter((x) => x.certa).length;
+      const escritas: { sql: string; args: (string | number)[] }[] = [
+        {
+          sql: `INSERT INTO sinapse_provas (id, escopo, total, acertos, segundos, respostas, feita_em)
+                VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          args: [id, texto(corpo.escopo), respostas.length, acertos,
+                 Math.max(0, Math.round(numero(corpo.segundos))), JSON.stringify(respostas), t],
+        },
+        ...respostas.map((x) => ({
+          sql: `UPDATE sinapse_questoes
+                   SET tentativas = tentativas + 1, acertos = acertos + ?
+                 WHERE id = ?`,
+          args: [x.certa ? 1 : 0, x.q],
+        })),
+      ];
+      await cx.batch(escritas, 'write');
+      return { id };
+    }
 
     case 'ciclo.comecar': {
       const r = await cx.execute(

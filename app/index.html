@@ -6,6 +6,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sinapse</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Manrope:wght@400;500;700;800&display=swap">
@@ -411,6 +412,7 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
   background: var(--white); border: 1px solid var(--gray3);
   border-radius: 5px; padding: 1px 5px;
 }
+.app-menu-conta { flex-shrink: 0; margin-top: 14px; padding: 12px 12px 0; border-top: 1px solid var(--cristal-borda); }
 .topbar-conta {
   display: flex;
   align-items: center;
@@ -455,64 +457,6 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
   overflow: hidden;
   animation: panelUp .18s ease both;
 }
-/* ─── O canto de cima ───────────────────────────────────────────────────
-   Uma faixa fina no alto da área principal, só com o que é de quem usa: o
-   Inbox e a conta, encostados à direita e soltos no fundo, sem chapa: o
-   cinza só aparece sob o ponteiro. As telas começam abaixo dela, com um
-   respiro de 24px que separa o botão de cada tela da conta logo acima. */
-.app-topo {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 20px;
-  padding: 12px 24px 0;
-}
-.topo-inbox {
-  position: relative;
-  width: 38px; height: 38px;
-  display: grid; place-items: center;
-  border: 0;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--gray);
-  transition: background var(--transition), color var(--transition);
-}
-.topo-inbox:hover, .topo-inbox:focus-visible { outline: none; background: var(--gray4); color: var(--black); }
-.topo-inbox.ativo { color: var(--black); }
-/* O número do que espera hoje, na quina do ícone. */
-.topo-inbox-selo {
-  position: absolute;
-  top: -6px; right: -6px;
-  min-width: 18px; height: 18px;
-  padding: 0 5px;
-  border-radius: var(--radius-pill);
-  background: var(--yellow);
-  color: var(--on-yellow);
-  border: 2px solid var(--bg);
-  font-size: 10px; font-weight: 800; line-height: 14px;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-}
-.app-topo .topbar-conta { width: auto; max-width: 260px; padding: 4px 10px 4px 4px; border-color: transparent; background: transparent; }
-.app-topo .topbar-conta:hover, .app-topo .topbar-conta:focus-visible { background: var(--gray4); border-color: transparent; }
-.app-topo .topbar-conta[aria-expanded="true"] { background: var(--gray4); }
-.app-topo .topbar-conta-avatar { width: 30px; height: 30px; font-size: 11px; }
-.app-principal .admin-content-wrap { padding-top: 24px; }
-.app-principal .trilha-tela { padding-top: 24px; }
-/* Com o menu recolhido, o botão de reabrir mora na quina de cima, à
-   esquerda da faixa: o conteúdo não precisa mais descer para ele. */
-.admin-casca[data-menu="fechado"] .app-principal { padding-top: 0; }
-/* No celular a faixa segue o respiro lateral das telas, e a conta fica só
-   com o avatar: o nome por extenso disputaria a largura com o Inbox. */
-@media (max-width: 768px) {
-  .app-topo { padding: 10px 14px 0; }
-}
-@media (max-width: 560px) {
-  .app-topo .topbar-conta-texto { display: none; }
-  .app-topo .topbar-conta { padding: 3px; border-radius: var(--radius-pill); }
-}
-
 .conta-menu-aviso { padding: 12px 14px; border-bottom: 1px solid var(--gray3); background: var(--bg); }
 .conta-menu-aviso p { font-size: 11px; font-weight: 500; color: var(--gray2); line-height: 1.5; }
 .conta-menu-item {
@@ -544,7 +488,7 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
   width: 220px;
   min-width: 220px;
   height: 100%;
-  padding: 16px 0 20px;
+  padding: 16px 0 12px;
   display: flex;
   flex-direction: column;
 }
@@ -1308,6 +1252,10 @@ body.puxando-imagem * { cursor: nwse-resize !important; user-select: none; }
 .arquivo-corpo table.tabela-texto :is(th, td) > :is(h1, h2, h3):first-child { margin-top: 0; }
 .arquivo-corpo table.tabela-texto :is(th, td) ul,
 .arquivo-corpo table.tabela-texto :is(th, td) ol { margin-bottom: 6px; }
+/* A imagem na célula ocupa a largura dela e tem teto de altura menor que o do
+   texto: uma foto alta esticaria a linha inteira da tabela. */
+.arquivo-corpo table.tabela-texto :is(th, td) .figura { margin: 4px 0 8px; }
+.arquivo-corpo table.tabela-texto :is(th, td) .figura img { max-height: 240px; }
 .arquivo-corpo table.tabela-texto tr:last-child td { border-bottom: none; }
 /* Com células mescladas, "a última da linha" deixa de ser "a da borda": uma
    célula alta na última coluna faz a vizinha virar a última da linha de baixo,
@@ -1729,7 +1677,7 @@ body.puxando-coluna * { cursor: col-resize !important; }
 /* O X dos painéis flutuantes: quando o índice ou o trilho cobrem a tela, o
    botão que os abriu fica embaixo deles, e sair precisa de uma porta à vista.
    Na tela larga eles são colunas, e o X não aparece. */
-.painel-fechar { display: none; flex-shrink: 0; width: 30px; height: 30px; border-radius: var(--radius-sm); place-items: center; color: var(--gray); margin-left: 6px; transition: background var(--transition), color var(--transition); }
+.painel-fechar { display: none; flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; place-items: center; color: var(--gray); margin-left: 6px; transition: background var(--transition), color var(--transition); }
 .painel-fechar:hover { background: var(--gray4); color: var(--black); }
 .barra-lado[aria-pressed="true"] { background: var(--gray3); color: var(--black); border-color: transparent; }
 .barra-edicao {
@@ -3200,7 +3148,7 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
   width: 32px;
   height: 32px;
   border: 1px solid var(--gray3);
-  border-radius: var(--radius-md);
+  border-radius: 50%;
   background: none;
   color: var(--gray2);
   flex-shrink: 0;
@@ -3554,7 +3502,7 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
 .toast-balao.saindo { animation: toastOut 0.32s cubic-bezier(0.4,0,1,1) both; }
 .toast-titulo { font-size: 13px; font-weight: 700; line-height: 1.3; }
 .toast-msg { font-size: 11.5px; color: var(--gray); margin-top: 2px; line-height: 1.45; }
-.toast-fechar { width: 20px; height: 20px; border-radius: 5px; display: grid; place-items: center; color: var(--gray2); opacity: .7; flex-shrink: 0; transition: opacity .15s; }
+.toast-fechar { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; color: var(--gray2); opacity: .7; flex-shrink: 0; transition: opacity .15s; }
 .toast-fechar:hover { opacity: 1; }
 
 /* ─── Balão do ciclo em andamento ────────────────────────────────────
@@ -4591,6 +4539,223 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
   .revisao-card, .revisao-fim, .revisao-fim-ico, .placar-item, .graus:not([hidden]) > .grau { animation: none; }
 }
 
+/* ─── Banco de questões ─────────────────────────────────────────────── */
+/* As alternativas na gaveta: o círculo que marca a certa, a letra, o campo e
+   o X que tira. A linha da certa acende o círculo, e só ele: o resto da linha
+   continua campo, para escrever. */
+.questao-alts { display: flex; flex-direction: column; gap: 8px; }
+.questao-alts-lista { display: flex; flex-direction: column; gap: 8px; }
+.questao-alt { display: flex; align-items: flex-start; gap: 8px; }
+.questao-alt-marca {
+  flex-shrink: 0;
+  width: 22px; height: 22px;
+  margin-top: 8px;
+  border-radius: 50%;
+  border: 1.5px solid var(--gray2);
+  background: var(--white);
+  color: transparent;
+  display: grid; place-items: center;
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+.questao-alt-marca:hover { border-color: var(--green); }
+.questao-alt.certa .questao-alt-marca { background: var(--green); border-color: var(--green); color: #fff; }
+.questao-alt-letra { flex-shrink: 0; width: 14px; margin-top: 9px; font-size: 12px; font-weight: 800; color: var(--gray2); }
+.questao-alt.certa .questao-alt-letra { color: var(--green); }
+.questao-alt-campo { flex: 1; min-width: 0; min-height: 38px; resize: none; }
+.questao-alt-tirar {
+  flex-shrink: 0;
+  width: 28px; height: 28px;
+  margin-top: 5px;
+  border-radius: var(--radius-sm);
+  display: grid; place-items: center;
+  color: var(--gray2);
+  transition: background var(--transition), color var(--transition);
+}
+.questao-alt-tirar:hover:not(:disabled) { background: var(--red-soft); color: var(--red); }
+.questao-alt-tirar:disabled { opacity: .35; cursor: default; }
+.questao-mais {
+  align-self: flex-start;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 10px;
+  margin-left: 22px;
+  border-radius: var(--radius-sm);
+  font-size: 12.5px; font-weight: 700;
+  color: var(--gray);
+  transition: background var(--transition), color var(--transition);
+}
+.questao-mais:hover { background: var(--gray4); color: var(--black); }
+.questao-dica { margin: 0; font-size: 11.5px; color: var(--gray2); line-height: 1.5; }
+
+/* ─── A prova ───────────────────────────────────────────────────────── */
+/* Cada alternativa é uma linha inteira clicável, com a letra num círculo. A
+   escolhida acende em tinta; na correção, a certa fica verde e a errada que se
+   escolheu, vermelha. */
+.alternativas { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+.alternativa {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid var(--gray3);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  text-align: left;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--black);
+  transition: border-color var(--transition), background var(--transition);
+}
+button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
+.alternativa-letra {
+  flex-shrink: 0;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid var(--gray3);
+  display: grid; place-items: center;
+  font-size: 12px; font-weight: 800;
+  color: var(--gray);
+  transition: background var(--transition), border-color var(--transition), color var(--transition);
+}
+.alternativa-texto { flex: 1; min-width: 0; padding-top: 1px; white-space: pre-line; }
+.alternativa[aria-checked="true"] { border-color: var(--black); background: var(--yd); }
+.alternativa[aria-checked="true"] .alternativa-letra { background: var(--black); border-color: var(--black); color: var(--white); }
+.alternativa.estatica { cursor: default; padding: 9px 12px; font-size: 14px; }
+.alternativa.certa { border-color: var(--green); background: var(--green-soft); }
+.alternativa.certa .alternativa-letra { background: var(--green); border-color: var(--green); color: #fff; }
+.alternativa.errada { border-color: var(--red); background: var(--red-soft); }
+.alternativa.errada .alternativa-letra { background: var(--red); border-color: var(--red); color: #fff; }
+.alternativa-sua {
+  flex-shrink: 0;
+  align-self: center;
+  font-size: 10.5px; font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--gray);
+}
+.prova-acoes { flex-direction: row; }
+.prova-acoes .btn { flex: 1; justify-content: center; }
+.prova-acoes .btn:first-child { flex: 0 0 auto; }
+
+/* A correção: um cartão por questão, abaixo do resultado. */
+#provaFim { gap: 18px; }
+.prova-correcao { width: 100%; max-width: 620px; display: flex; flex-direction: column; gap: 12px; padding-bottom: 24px; }
+.correcao-item {
+  background: var(--white);
+  border: 1.5px solid var(--gray3);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.correcao-topo { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.correcao-num {
+  min-width: 0;
+  font-size: 10.5px; font-weight: 800;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--gray2);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.correcao-enunciado { margin: 6px 0 0; font-size: 15.5px; font-weight: 700; line-height: 1.45; }
+.correcao-item .alternativas { margin-top: 10px; }
+.correcao-explicacao { margin: 10px 0 0; font-size: 13.5px; line-height: 1.55; color: var(--gray); white-space: pre-line; }
+@media (max-width: 560px) {
+  .alternativa { font-size: 14px; padding: 10px 12px; }
+  .correcao-item { padding: 16px; }
+}
+
+/* ─── Post-its ──────────────────────────────────────────────────────────
+   Soltos sobre a folha, numa camada por cima do texto e fora dele: não entram
+   no que se grava como corpo, no índice, na seleção de trecho nem na
+   impressão. As cores são de papel de verdade e não mudam no tema escuro, e a
+   letra é sempre escura, porque o fundo é sempre claro. */
+.postits { position: absolute; inset: 0; z-index: 6; pointer-events: none; }
+.postit {
+  --pi-cor: #FFE98A;
+  position: absolute;
+  width: 210px;
+  min-height: 150px;
+  display: flex;
+  flex-direction: column;
+  pointer-events: auto;
+  background: var(--pi-cor);
+  color: #121316;
+  border-radius: 3px 3px 14px 3px;
+  box-shadow: 0 1px 2px rgba(18, 19, 22, .1), 0 12px 24px -12px rgba(18, 19, 22, .4);
+  transform: rotate(var(--pi-giro, -1deg));
+  transition: transform .2s var(--curva-anti), box-shadow .2s var(--curva-anti);
+}
+.postit:hover, .postit:focus-within { transform: rotate(0deg); z-index: 2; }
+.postit.arrastando {
+  transform: rotate(0deg) scale(1.03);
+  box-shadow: 0 2px 4px rgba(18, 19, 22, .12), 0 22px 40px -14px rgba(18, 19, 22, .5);
+  transition: none;
+  z-index: 3;
+}
+/* A faixa de cima é por onde se arrasta, como a cola de um post-it. */
+.postit-topo {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  height: 28px;
+  padding: 0 4px;
+  border-radius: 3px 3px 0 0;
+  background: rgba(18, 19, 22, .06);
+  cursor: grab;
+  touch-action: none;
+}
+.postit.arrastando .postit-topo { cursor: grabbing; }
+.postit-topo button {
+  width: 24px; height: 24px;
+  display: grid; place-items: center;
+  border-radius: 6px;
+  color: rgba(18, 19, 22, .55);
+  opacity: 0;
+  transition: opacity var(--transition), background var(--transition), color var(--transition);
+}
+.postit:hover .postit-topo button,
+.postit:focus-within .postit-topo button,
+.postit-topo button[aria-expanded="true"] { opacity: 1; }
+.postit-topo button:hover { background: rgba(18, 19, 22, .08); color: #121316; }
+.postit-topo button:focus-visible { opacity: 1; outline: 2px solid rgba(18, 19, 22, .5); outline-offset: 0; }
+@media (hover: none) { .postit-topo button { opacity: 1; } }
+.postit-bolinha { width: 12px; height: 12px; border-radius: 50%; background: var(--pi-cor); border: 1.5px solid rgba(18, 19, 22, .45); }
+.postit-cores { display: flex; gap: 6px; padding: 8px 10px 2px; }
+.postit-cores[hidden] { display: none; }
+.postit-cores button {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(18, 19, 22, .25);
+  transition: transform var(--transition);
+}
+.postit-cores button:hover { transform: scale(1.15); }
+.postit-cores button[aria-pressed="true"] { border-color: #121316; box-shadow: 0 0 0 2px rgba(255, 255, 255, .7) inset; }
+.postit-texto {
+  flex: 1;
+  width: 100%;
+  min-height: 110px;
+  padding: 8px 12px 14px;
+  border: none;
+  outline: none;
+  resize: none;
+  overflow: hidden;
+  background: transparent;
+  color: #121316;
+  font-size: 13.5px;
+  line-height: 1.5;
+  font-weight: 500;
+}
+.postit-texto::placeholder { color: rgba(18, 19, 22, .45); }
+@media (max-width: 560px) {
+  .postit { width: 170px; min-height: 130px; }
+  .postit-texto { min-height: 90px; font-size: 13px; }
+}
+
 /* ─── Pomodoro em tela cheia ─────────────────────────────────────────── */
 .pomodoro-grade { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 14px; align-items: start; }
 .palco-timer { display: flex; flex-direction: column; align-items: center; padding: 30px 20px 34px; }
@@ -5288,6 +5453,13 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
 
         <p class="app-menu-secao"><span>Ferramentas</span></p>
 
+        <!-- O banco de questões: o que se tirou dos textos para treinar em prova. -->
+        <button type="button" class="nav-leaf" data-ir="questoes">
+          <span class="nav-leaf-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6h10M10 12h10M10 18h10"/><path d="m3.5 6 1.5 1.5L7.5 5M3.5 12l1.5 1.5L7.5 11"/><circle cx="5.25" cy="18" r="1.6"/></svg></span>
+          <span class="nav-leaf-texto">Questões</span>
+          <span class="nav-leaf-conta" id="contaQuestoes" hidden></span>
+        </button>
+
         <button type="button" class="nav-leaf" data-ir="decks">
           <span class="nav-leaf-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="14" height="13" rx="2.5"/><path d="M8 3h10a3 3 0 0 1 3 3v10"/></svg></span>
           <span class="nav-leaf-texto">Decks</span>
@@ -5316,27 +5488,22 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
         </div>
       </div>
 
+      <!-- A conta fecha o menu, abaixo do tema: é coisa de quem usa, não de
+           navegação, e no rodapé fica sempre à vista sem disputar o topo. -->
+      <div class="app-menu-conta">
+        <button type="button" class="topbar-conta" id="btnConta" aria-haspopup="menu" aria-expanded="false" aria-label="Conta de Milena Zaidan">
+          <span class="topbar-conta-avatar" aria-hidden="true">MZ</span>
+          <span class="topbar-conta-texto">
+            <span class="topbar-conta-nome">Milena Zaidan</span>
+            <span class="topbar-conta-email">R1 Clínica Médica</span>
+          </span>
+        </button>
+      </div>
     </div>
   </aside>
 
   <!-- ═══ Conteúdo ═══ -->
   <main class="app-principal">
-    <!-- O canto de quem usa: o atalho do Inbox, com o que espera por hoje, e
-         a conta. Fica fora das telas, então acompanha todas elas. O botão do
-         Inbox navega como o item do menu (`data-ir`), e acende junto com ele. -->
-    <div class="app-topo">
-      <button type="button" class="topo-inbox" data-ir="inbox" title="Inbox" aria-label="Inbox">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13h4l2 3h4l2-3h4"/><path d="M5.4 5.5 3 13v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5l-2.4-7.5A2 2 0 0 0 16.7 4H7.3a2 2 0 0 0-1.9 1.5Z"/></svg>
-        <span class="topo-inbox-selo" id="seloInboxTopo" hidden></span>
-      </button>
-      <button type="button" class="topbar-conta" id="btnConta" aria-haspopup="menu" aria-expanded="false" aria-label="Conta de Milena Zaidan">
-        <span class="topbar-conta-avatar" aria-hidden="true">MZ</span>
-        <span class="topbar-conta-texto">
-          <span class="topbar-conta-nome">Milena Zaidan</span>
-          <span class="topbar-conta-email">R1 Clínica Médica</span>
-        </span>
-      </button>
-    </div>
     <div class="faixa-falha" id="faixaFalha" role="status" hidden>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
       <span>Sem conexão com o banco.</span>
@@ -5675,6 +5842,9 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
           <button type="button" class="be-btn" data-cmd="mapa" title="Inserir mapa mental" aria-label="Inserir mapa mental">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="9.5" width="7" height="5" rx="2"/><circle cx="4" cy="5" r="2"/><circle cx="20" cy="5" r="2"/><circle cx="4" cy="19" r="2"/><circle cx="20" cy="19" r="2"/><path d="M5.6 6.2 8.5 10M18.4 6.2 15.5 10M5.6 17.8l2.9-3.3M18.4 17.8l-2.9-3.3"/></svg>
           </button>
+          <button type="button" class="be-btn" data-cmd="postit" title="Colar um post-it" aria-label="Colar um post-it">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h14a2 2 0 0 1 2 2v9l-7 7H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"/><path d="M14 21v-5a2 2 0 0 1 2-2h5"/></svg>
+          </button>
           </div>
           <div class="be-grupo">
           <button type="button" class="be-btn be-com-seta" data-menu="alinhar" title="Alinhar" aria-label="Alinhar" aria-haspopup="menu" aria-expanded="false">
@@ -5728,6 +5898,8 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
           <div class="arquivo-corpo" id="arquivoCorpo" contenteditable="true"
             role="textbox" aria-multiline="true" aria-label="Texto do arquivo"
             spellcheck="true"></div>
+          <!-- Os post-its, soltos por cima do texto. -->
+          <div class="postits" id="camadaPostits" aria-label="Post-its"></div>
 
         </article>
        </div>
@@ -6034,6 +6206,154 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
       </div>
     </section>
 
+    <!-- ═══ Tela: Banco de questões ═══
+         As questões de múltipla escolha tiradas dos textos, e as provas feitas
+         com elas. A questão nasce do balão de seleção, como o flashcard, ou
+         escrita à mão aqui. -->
+    <section class="pagina pagina-cristal" data-pagina="questoes" hidden>
+      <div class="admin-content-wrap">
+       <div class="admin-page-header">
+         <div style="min-width:0">
+           <h1 class="admin-page-title">Banco de questões</h1>
+           <p class="admin-page-desc">As questões tiradas dos seus textos, para treinar em prova.</p>
+         </div>
+         <div class="cabecalho-acoes">
+           <button type="button" class="btn btn-secondary btn-cabecalho" id="btnNovaQuestao">
+             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+             Nova questão
+           </button>
+           <button type="button" class="btn btn-primary btn-cabecalho" id="btnFazerProva">
+             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6l1 2h3v16H5V5h3Z"/><path d="m9 13 2 2 4-4"/></svg>
+             Fazer prova
+           </button>
+         </div>
+       </div>
+
+       <div class="kpi-fila" id="kpisQuestoes"></div>
+       <div id="barraQuestoes"></div>
+
+       <div class="admin-table-wrap">
+         <div class="admin-table-rolagem">
+           <table class="admin-table">
+             <thead>
+               <tr>
+                 <th>Questão</th>
+                 <th>Situação</th>
+                 <th style="text-align:right">Acertos</th>
+                 <th><span class="vh">Ações</span></th>
+               </tr>
+             </thead>
+             <tbody id="corpoQuestoes"></tbody>
+           </table>
+         </div>
+         <div class="admin-empty" id="vazioQuestoes" hidden>
+           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6h10M10 12h10M10 18h10"/><path d="m3.5 6 1.5 1.5L7.5 5M3.5 12l1.5 1.5L7.5 11"/><circle cx="5.25" cy="18" r="1.6"/></svg>
+           <span id="vazioQuestoesTexto"></span>
+         </div>
+       </div>
+
+       <div class="bloco-cabecalho">
+         <h2 class="bloco-titulo-solto">Provas feitas</h2>
+       </div>
+       <div class="admin-table-wrap">
+         <div class="admin-table-rolagem">
+           <table class="admin-table">
+             <thead>
+               <tr>
+                 <th>Quando</th>
+                 <th>Recorte</th>
+                 <th style="text-align:right">Nota</th>
+                 <th style="text-align:right">Tempo</th>
+               </tr>
+             </thead>
+             <tbody id="corpoProvas"></tbody>
+           </table>
+         </div>
+         <div class="admin-empty" id="vazioProvas" hidden>
+           <span><b>Nenhuma prova feita ainda.</b><br>Monte a primeira pelo botão Fazer prova.</span>
+         </div>
+       </div>
+      </div>
+    </section>
+
+    <!-- ═══ Tela: Prova ═══
+         Como numa prova de verdade: a questão, as alternativas, e a correção
+         só na entrega. Não tem item no menu, chega-se a ela pelo banco. -->
+    <section class="pagina pagina-cristal" data-pagina="prova" hidden>
+      <div class="admin-content-wrap">
+       <div class="admin-page-header">
+         <div style="min-width:0">
+           <h1 class="admin-page-title" id="provaTitulo">Prova</h1>
+           <p class="admin-page-desc" id="provaEscopo"></p>
+         </div>
+         <div class="cabecalho-acoes">
+           <button type="button" class="btn btn-secondary btn-cabecalho" id="btnSairProva">Sair da prova</button>
+         </div>
+       </div>
+
+       <div class="revisao-palco" id="provaPalco" hidden>
+         <div class="barra-fila">
+           <div class="barra-fila-topo">
+             <span id="provaEtapa">Questão</span>
+             <b id="provaProgresso">1 de 1</b>
+           </div>
+           <div class="barra-trilho">
+             <div class="barra-cheia" id="provaBarra" style="width:0%"></div>
+           </div>
+           <div class="barra-fila-placar">
+             <span class="placar-item volta" id="provaRespondidas"><b>0</b> respondidas</span>
+             <span class="placar-item volta" id="provaRelogio">
+               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 1.5M9 2h6"/></svg>
+               <b>0:00</b>
+             </span>
+           </div>
+         </div>
+
+         <div class="revisao-pista">
+           <article class="revisao-card" id="provaCard">
+             <div class="revisao-cabeca">
+               <p class="revisao-origem" id="provaOrigem"></p>
+             </div>
+             <h2 class="revisao-frente" id="provaEnunciado"></h2>
+             <div class="alternativas" id="provaAlternativas" role="radiogroup" aria-labelledby="provaEnunciado"></div>
+           </article>
+         </div>
+
+         <div class="revisao-acoes prova-acoes">
+           <button type="button" class="btn btn-secondary" id="btnProvaAnterior">
+             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+             Anterior
+           </button>
+           <button type="button" class="btn btn-primary" id="btnProvaProxima">
+             <span id="provaProximaRotulo">Próxima</span>
+             <kbd class="tecla clara">enter</kbd>
+           </button>
+         </div>
+       </div>
+
+       <div class="revisao-palco" id="provaFim" hidden>
+         <div class="revisao-fim">
+           <span class="revisao-fim-ico" aria-hidden="true">
+             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6l1 2h3v16H5V5h3Z"/><path d="m9 13 2 2 4-4"/></svg>
+           </span>
+           <div>
+             <h2 id="provaNota"></h2>
+             <p id="provaResumo"></p>
+           </div>
+           <div class="kpi-fila revisao-fim-numeros" id="provaFimNumeros"></div>
+           <div class="revisao-fim-acoes">
+             <button type="button" class="btn btn-secondary btn-sm" id="btnRefazerErradas">Refazer as erradas</button>
+             <button type="button" class="btn btn-secondary btn-sm" id="btnOutraProva">Nova prova</button>
+             <button type="button" class="btn btn-primary btn-sm" id="btnFimBanco">Voltar ao banco</button>
+           </div>
+         </div>
+         <!-- A correção, questão por questão: a resposta dada, a certa, a
+              explicação e o trecho de onde a questão saiu. -->
+         <div class="prova-correcao" id="provaCorrecao"></div>
+       </div>
+      </div>
+    </section>
+
     <!-- ═══ Tela: Pomodoro ═══ -->
     <section class="pagina pagina-cristal" data-pagina="pomodoro" hidden>
       <div class="admin-content-wrap">
@@ -6170,6 +6490,11 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
          flashcard tinha outro símbolo. -->
     <button type="button" class="topo-icone" id="btnCriarCard" title="Criar flashcard" aria-label="Criar flashcard">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="14" height="13" rx="2.5"/><path d="M8 3h10a3 3 0 0 1 3 3v10"/></svg>
+    </button>
+    <!-- O trecho vira uma questão de múltipla escolha para o banco: ele entra
+         como a alternativa certa, e o resto se escreve na gaveta. -->
+    <button type="button" class="topo-icone" id="btnCriarQuestao" title="Criar questão" aria-label="Criar questão">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 6h10M10 12h10M10 18h10"/><path d="m3.5 6 1.5 1.5L7.5 5M3.5 12l1.5 1.5L7.5 11"/><circle cx="5.25" cy="18" r="1.6"/></svg>
     </button>
     <button type="button" class="topo-icone" id="btnLink" title="Inserir link (Ctrl+K)" aria-label="Inserir link" aria-expanded="false">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></svg>
@@ -6715,7 +7040,8 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
           /* Campo por campo: o que não estiver aqui não chega à tela, e foi
              assim que a margem gravada sumia a cada refresh. */
           return { id: a.id, nome: a.nome, desc: a.desc, tags: a.tags || [],
-                   corpo: a.corpo, comentarios: a.notas || [], margem: a.margem };
+                   corpo: a.corpo, comentarios: a.notas || [], margem: a.margem,
+                   postits: a.postits || [] };
         })
       });
     });
@@ -6787,9 +7113,22 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     REVISOES = d.revisoesPorDia || [];
     FOCO_HOJE = d.focoHoje || { minutos: 0, ciclos: 0 };
     ACESSOS = (d.acessos || []).map(function (a) { return { hora: a.hora, minutos: a.minutos }; });
+
+    /* A questão volta presa ao arquivo pela referência, como o rascunho: é de
+       lá que sai a pasta para o filtro e a origem para a prova. */
+    QUESTOES = (d.questoes || []).map(function (q) {
+      return { id: q.id, arquivo: arquivoPorId[q.arquivoId] || null, enunciado: q.enunciado,
+               alternativas: q.alternativas || [], correta: q.correta || 0, explicacao: q.explicacao || "",
+               trecho: q.trecho || "", origem: q.origem || "", acertos: q.acertos || 0, tentativas: q.tentativas || 0 };
+    });
+    PROVAS = (d.provas || []).map(function (pv) {
+      return { escopo: pv.escopo, total: pv.total, acertos: pv.acertos, segundos: pv.segundos, feitaEm: pv.feitaEm };
+    });
   }
 
   var REVISOES = [], FOCO_HOJE = { minutos: 0, ciclos: 0 }, ACESSOS = [];
+  /* O banco de questões e as provas feitas, as mais novas primeiro. */
+  var QUESTOES = [], PROVAS = [];
 
   function emHoras(min) {
     if (!min) return "0h";
@@ -6862,6 +7201,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
        em toda tela, e só se atualizaria ao abrir o Inbox, dizendo "3" um dia
        inteiro depois de os três terem sido feitos. */
     pintarInbox();
+    pintarQuestoes();
     desenhar();
     /* A fila não é remontada aqui: quem a monta é a entrada na tela de revisão.
        Refazê-la a cada repintura jogaria fora uma sessão em curso toda vez que
@@ -7112,12 +7452,10 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
       '<button type="button" class="conta-menu-item" role="menuitem">Meu desempenho</button>' +
       '<button type="button" class="conta-menu-item" role="menuitem">Configurações</button>' +
       '<button type="button" class="conta-menu-item sair" role="menuitem">Sair</button>';
-    /* A conta mora no canto de cima: o menu desce dela, alinhado pela
-       direita, e nunca fica mais estreito que o próprio texto. */
     var r = btnConta.getBoundingClientRect();
-    menuConta.style.top = (r.bottom + 8) + "px";
-    menuConta.style.right = Math.max(8, window.innerWidth - r.right) + "px";
-    menuConta.style.width = Math.max(r.width, 240) + "px";
+    menuConta.style.left = r.left + "px";
+    menuConta.style.width = r.width + "px";
+    menuConta.style.bottom = (window.innerHeight - r.top + 8) + "px";
     document.body.appendChild(menuConta);
     btnConta.setAttribute("aria-expanded", "true");
     Array.prototype.forEach.call(menuConta.querySelectorAll(".conta-menu-item"), function (b) {
@@ -7196,7 +7534,10 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     /* Sem marcação de teclado: imagem não se digita. Os caminhos dela são este,
        colar e arrastar para dentro do texto. */
     { id: "imagem", nome: "Imagem", dica: "ou cole, ou arraste", marca: "", sinal: "▣" },
-    { id: "mapa", nome: "Mapa mental", dica: "ideias ligadas num quadro", marca: "", sinal: "✳" }
+    { id: "mapa", nome: "Mapa mental", dica: "ideias ligadas num quadro", marca: "", sinal: "✳" },
+    /* O post-it não entra no texto: ele cola por cima da folha, na altura da
+       linha onde se digitou a barra. */
+    { id: "postit", nome: "Post-it", dica: "um lembrete solto sobre a folha", marca: "", sinal: "▤" }
   ];
   var POR_MARCA = {};
   BLOCOS.forEach(function (b) { if (b.marca) POR_MARCA[b.marca] = b.id; });
@@ -7226,6 +7567,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     /* A imagem não converte o bloco: ela entra depois dele. Converter apagaria
        a linha em que se está escrevendo, e o que se quer é acrescentar. */
     if (tipo === "imagem") { escolherImagem(bloco); return; }
+    if (tipo === "postit") { criarPostit(bloco); return; }
     if (tipo === "mapa") { inserirMapa(bloco); return; }
     var html = conteudo || "";
     var novo;
@@ -7317,8 +7659,9 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
      bloco fica como está. A seleção acompanha, ela pode estar presa na
      própria célula, pela posição entre os filhos, e essa posição muda. */
   var BLOCO_NA_CELULA = /^(P|H[123]|UL|OL|DIV|BLOCKQUOTE|DETAILS|TABLE|HR|FIGURE)$/;
-  /* O que o "/" e a marcação de teclado podem pôr dentro de uma célula. */
-  var CABE_NA_CELULA = /^(p|h[123]|ul|ol|tarefas)$/;
+  /* O que o "/" e a marcação de teclado podem pôr dentro de uma célula. A
+     imagem entra também: ela vira uma linha da célula, como um parágrafo. */
+  var CABE_NA_CELULA = /^(p|h[123]|ul|ol|tarefas|imagem)$/;
 
   function paragrafarCelula(cel) {
     var filhos = Array.prototype.slice.call(cel.childNodes);
@@ -8515,7 +8858,8 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
              notas: alvo.comentarios || [],
              /* A margem é do arquivo, como no Docs: ela vale para quem abrir
                 em qualquer aparelho. */
-             margem: alvo.margem || MARGEM_PADRAO });
+             margem: alvo.margem || MARGEM_PADRAO,
+             postits: alvo.postits || [] });
     return comBanco && (alvo.corpo || "").length > TETO_KEEPALIVE - 4000;
   }
 
@@ -8763,7 +9107,8 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     posicionarBarra();
   }
 
-  /* Numa célula só entra o que cabe numa célula: texto, títulos e listas. */
+  /* Numa célula só entra o que cabe numa célula: texto, títulos, listas e
+     imagem. */
   function blocosDaBarra() {
     if (!celulaDoCursor()) return BLOCOS.slice();
     return BLOCOS.filter(function (b) { return CABE_NA_CELULA.test(b.id); });
@@ -9136,6 +9481,212 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     a.remove();
   }
 
+  /* ═══ Post-its ═══════════════════════════════════════════════════════
+     Lembretes soltos sobre a folha, cada um com cor, texto e lugar. Moram no
+     arquivo (`arquivoAberto.postits`) e vão para o banco na mesma escrita do
+     texto. O lugar é guardado como fração da largura da folha, na horizontal,
+     e em pixels a partir do topo, na vertical: a folha muda de largura com o
+     menu, o trilho e a janela, e o post-it acompanha a margem em vez de ficar
+     para fora dela. */
+  var CORES_POSTIT = [
+    { id: "amarelo", nome: "Amarelo", cor: "#FFE98A" },
+    { id: "rosa", nome: "Rosa", cor: "#FFC9DD" },
+    { id: "verde", nome: "Verde", cor: "#D3F2A2" },
+    { id: "azul", nome: "Azul", cor: "#CBE0FF" },
+    { id: "lilas", nome: "Lilás", cor: "#E2D5FF" },
+    { id: "pessego", nome: "Pêssego", cor: "#FFD6BA" }
+  ];
+  var camadaPostits = $("camadaPostits");
+  var folhaDoArquivo = camadaPostits.parentNode;
+  var LARGURA_POSTIT = 210;
+
+  function corDoPostit(id) {
+    for (var i = 0; i < CORES_POSTIT.length; i++) if (CORES_POSTIT[i].id === id) return CORES_POSTIT[i];
+    return CORES_POSTIT[0];
+  }
+  /* Cada um nasce levemente torto, e sempre do mesmo jeito: o giro sai do id. */
+  function giroDoPostit(id) {
+    var n = 0;
+    for (var i = 0; i < id.length; i++) n = (n * 31 + id.charCodeAt(i)) >>> 0;
+    return ((n % 5) - 2) * .8;
+  }
+  /* A folha pode estar com zoom (transform): o ponteiro anda em pixels da
+     tela, e o post-it em pixels da folha. */
+  function escalaDaFolha() {
+    var r = folhaDoArquivo.getBoundingClientRect();
+    return folhaDoArquivo.offsetWidth ? r.width / folhaDoArquivo.offsetWidth || 1 : 1;
+  }
+  function salvarPostits() { agendarGravarArquivo(); }
+
+  function posicionarPostit(el, n) {
+    var w = folhaDoArquivo.clientWidth;
+    var largura = el.offsetWidth || LARGURA_POSTIT;
+    var x = Math.max(0, Math.min((n.x || 0) * w, w - largura));
+    var altura = folhaDoArquivo.clientHeight;
+    var y = Math.max(0, altura ? Math.min(n.y || 0, Math.max(0, altura - 40)) : (n.y || 0));
+    el.style.left = Math.round(x) + "px";
+    el.style.top = Math.round(y) + "px";
+  }
+  function reposicionarPostits() {
+    if (!arquivoAberto) return;
+    Array.prototype.forEach.call(camadaPostits.children, function (el) {
+      if (el._postit) posicionarPostit(el, el._postit);
+    });
+  }
+
+  function pintarPostits() {
+    camadaPostits.innerHTML = "";
+    if (!arquivoAberto) return;
+    if (!Array.isArray(arquivoAberto.postits)) arquivoAberto.postits = [];
+    arquivoAberto.postits.forEach(function (n) { camadaPostits.appendChild(montarPostit(n)); });
+    reposicionarPostits();
+  }
+
+  function montarPostit(n) {
+    var el = document.createElement("div");
+    el.className = "postit";
+    el._postit = n;
+    el.style.setProperty("--pi-cor", corDoPostit(n.cor).cor);
+    el.style.setProperty("--pi-giro", giroDoPostit(n.id) + "deg");
+    el.innerHTML =
+      '<div class="postit-topo">' +
+        '<button type="button" class="postit-cor" aria-expanded="false" title="Trocar a cor" aria-label="Trocar a cor do post-it"><span class="postit-bolinha"></span></button>' +
+        '<button type="button" class="postit-tirar" title="Excluir post-it" aria-label="Excluir post-it">' + XIS + '</button>' +
+      '</div>' +
+      '<div class="postit-cores" role="group" aria-label="Cor do post-it" hidden></div>' +
+      '<textarea class="postit-texto" placeholder="Escreva aqui…" aria-label="Texto do post-it" spellcheck="true"></textarea>';
+    var topo = el.firstChild, botaoCor = topo.firstChild, botaoTirar = topo.lastChild;
+    var cores = el.children[1], texto = el.lastChild;
+
+    texto.value = n.texto || "";
+    function crescer() {
+      texto.style.height = "auto";
+      texto.style.height = texto.scrollHeight + "px";
+    }
+    texto.addEventListener("input", function () {
+      n.texto = texto.value;
+      crescer();
+      salvarPostits();
+    });
+    /* Esc devolve a mão ao texto do arquivo, sem fechar nada em volta. */
+    texto.addEventListener("keydown", function (e) {
+      if (e.key !== "Escape") return;
+      e.stopPropagation();
+      texto.blur();
+    });
+    requestAnimationFrame(crescer);
+
+    CORES_POSTIT.forEach(function (c) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.style.background = c.cor;
+      b.title = c.nome;
+      b.setAttribute("aria-label", c.nome);
+      b.setAttribute("aria-pressed", String(c.id === corDoPostit(n.cor).id));
+      b.addEventListener("click", function () {
+        n.cor = c.id;
+        el.style.setProperty("--pi-cor", c.cor);
+        Array.prototype.forEach.call(cores.children, function (x) { x.setAttribute("aria-pressed", String(x === b)); });
+        cores.hidden = true;
+        botaoCor.setAttribute("aria-expanded", "false");
+        salvarPostits();
+        texto.focus();
+      });
+      cores.appendChild(b);
+    });
+    botaoCor.addEventListener("click", function () {
+      cores.hidden = !cores.hidden;
+      botaoCor.setAttribute("aria-expanded", String(!cores.hidden));
+    });
+
+    botaoTirar.addEventListener("click", function () {
+      var resumo = (n.texto || "").trim().replace(/\s+/g, " ");
+      confirmarExclusao({
+        coisa: "post-it",
+        nome: resumo ? (resumo.length > 60 ? resumo.slice(0, 60) + "…" : resumo) : "",
+        onConfirmar: function () {
+          if (arquivoAberto && Array.isArray(arquivoAberto.postits)) {
+            arquivoAberto.postits = arquivoAberto.postits.filter(function (x) { return x !== n; });
+          }
+          el.remove();
+          salvarPostits();
+        }
+      });
+    });
+
+    /* Arrastar pela faixa de cima, sempre dentro da folha. Clique nos botões
+       da faixa não arrasta. */
+    topo.addEventListener("pointerdown", function (e) {
+      if (e.button !== 0 || (e.target.closest && e.target.closest("button"))) return;
+      e.preventDefault();
+      var escala = escalaDaFolha();
+      var x0 = e.clientX, y0 = e.clientY;
+      var l0 = el.offsetLeft, t0 = el.offsetTop;
+      var w = folhaDoArquivo.clientWidth, h = folhaDoArquivo.clientHeight;
+      el.classList.add("arrastando");
+      try { topo.setPointerCapture(e.pointerId); } catch (erro) { /* ponteiro já solto */ }
+      function mover(ev) {
+        var l = Math.max(0, Math.min(l0 + (ev.clientX - x0) / escala, w - el.offsetWidth));
+        var t = Math.max(0, Math.min(t0 + (ev.clientY - y0) / escala, Math.max(0, h - 40)));
+        el.style.left = Math.round(l) + "px";
+        el.style.top = Math.round(t) + "px";
+      }
+      function soltar() {
+        topo.removeEventListener("pointermove", mover);
+        topo.removeEventListener("pointerup", soltar);
+        topo.removeEventListener("pointercancel", soltar);
+        el.classList.remove("arrastando");
+        n.x = w ? el.offsetLeft / w : 0;
+        n.y = el.offsetTop;
+        salvarPostits();
+      }
+      topo.addEventListener("pointermove", mover);
+      topo.addEventListener("pointerup", soltar);
+      topo.addEventListener("pointercancel", soltar);
+    });
+    return el;
+  }
+
+  /* O post-it novo nasce na altura da linha onde se estava, encostado na
+     margem da direita, e escorrega um pouco se já houver outro no mesmo lugar. */
+  function criarPostit(perto) {
+    if (!arquivoAberto) return;
+    if (!Array.isArray(arquivoAberto.postits)) arquivoAberto.postits = [];
+    var escala = escalaDaFolha();
+    var rf = folhaDoArquivo.getBoundingClientRect();
+    var w = folhaDoArquivo.clientWidth || 600;
+    var y;
+    if (perto && perto.getBoundingClientRect && arquivoCorpo.contains(perto)) {
+      y = (perto.getBoundingClientRect().top - rf.top) / escala;
+    } else {
+      /* Sem linha: no alto do pedaço da folha que está à vista. */
+      y = Math.max(0, -rf.top / escala) + 80;
+    }
+    var x = Math.max(0, w - LARGURA_POSTIT - 24) / w;
+    var outros = arquivoAberto.postits;
+    for (var tentativa = 0; tentativa < 12; tentativa++) {
+      var encosta = outros.some(function (o) { return Math.abs((o.y || 0) - y) < 24 && Math.abs((o.x || 0) - x) * w < 24; });
+      if (!encosta) break;
+      y += 28;
+      x = Math.max(0, x - 24 / w);
+    }
+    var n = {
+      id: "pi" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6),
+      x: x, y: Math.max(0, Math.round(y)), cor: "amarelo", texto: ""
+    };
+    outros.push(n);
+    var el = montarPostit(n);
+    camadaPostits.appendChild(el);
+    posicionarPostit(el, n);
+    salvarPostits();
+    el.querySelector(".postit-texto").focus({ preventScroll: true });
+  }
+
+  /* A folha muda de largura com o menu, o trilho, o modo A4 e a janela: os
+     post-its acompanham a margem. */
+  if (window.ResizeObserver) new ResizeObserver(reposicionarPostits).observe(folhaDoArquivo);
+  else window.addEventListener("resize", reposicionarPostits);
+
   /* ═══ Imagens do texto ═══════════════════════════════════════════════
      A imagem não mora no corpo do arquivo: ela sobe para `/api/imagem` e o que
      fica no texto é o endereço dela. Embutida como data: URL ela viajaria junto
@@ -9169,9 +9720,20 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
   }
 
   /* O bloco onde a imagem entra. Sem cursor no texto ela vai para o fim, que é
-     onde quem arrasta um arquivo para o meio da página espera vê-la. */
+     onde quem arrasta um arquivo para o meio da página espera vê-la. Com o
+     cursor numa célula, ela entra na célula, depois da linha do cursor, e não
+     depois da tabela inteira. */
   function blocoParaMidia() {
+    var cel = celulaDoCursor();
+    if (cel) return linhaNaCelula(cel);
     return blocoDoCursor() || arquivoCorpo.lastElementChild;
+  }
+
+  /* A linha da célula onde a imagem vai: a do cursor, ou a última. A célula
+     vira parágrafos antes, para a imagem ter um bloco ao lado do qual entrar. */
+  function linhaNaCelula(cel) {
+    paragrafarCelula(cel);
+    return linhaDaCelula(cel) || cel.lastElementChild;
   }
 
   function inserirImagem(arquivo, bloco) {
@@ -9187,6 +9749,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     }
 
     var depoisDe = bloco || blocoParaMidia();
+    /* Na célula, a figura e a linha que nasce com ela ficam dentro da célula. */
     var figura = figuraDeEspera(arquivo.name || "imagem");
     /* Um parágrafo nasce junto: a figura não recebe cursor, e sem ele não
        haveria como continuar escrevendo quando a imagem fica no fim do texto. */
@@ -9286,7 +9849,8 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     e.preventDefault();
     /* O bloco é o de onde o arquivo caiu, e não o do cursor: o cursor ficou
        onde se estava escrevendo, e não é para lá que se arrastou. */
-    var alvo = e.target.closest && e.target.closest(".arquivo-corpo > *");
+    var cel = e.target.closest && e.target.closest(".arquivo-corpo td, .arquivo-corpo th");
+    var alvo = cel ? linhaNaCelula(cel) : e.target.closest && e.target.closest(".arquivo-corpo > *");
     arquivos.forEach(function (f, i) { inserirImagem(f, i === 0 ? alvo : null); });
   });
 
@@ -9478,7 +10042,10 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     var w = botaoExcluirFigura.offsetWidth;
     botaoExcluirFigura.style.top = (r.top + 8) + "px";
     botaoExcluirFigura.style.left = (r.right - w - 8) + "px";
-    barraFigura.hidden = false;
+    /* Numa célula a imagem não muda de posição: flutuar ou centralizar ali
+       dentro desmontaria a tabela. Sobram excluir e o tamanho. */
+    var naCelula = !!fig.closest("td, th");
+    barraFigura.hidden = naCelula;
     var atual = posicaoDaFigura(fig);
     Array.prototype.forEach.call(barraFigura.children, function (b) {
       b.setAttribute("aria-pressed", b.dataset.posicao === atual ? "true" : "false");
@@ -9486,10 +10053,12 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     /* Numa imagem estreita a barra não cabe ao lado do botão de excluir, e
        sobe para cima dela em vez de cobri-lo. Encostada na borda, sem vão:
        o ponteiro vai da imagem à barra sem passar pelo texto de cima. */
-    var bw = barraFigura.offsetWidth, bh = barraFigura.offsetHeight;
-    var cabe = r.width >= bw + w + 24;
-    barraFigura.style.top = (cabe ? r.top + 8 : r.top - bh + 2) + "px";
-    barraFigura.style.left = (cabe ? r.left + 8 : r.left) + "px";
+    if (!naCelula) {
+      var bw = barraFigura.offsetWidth, bh = barraFigura.offsetHeight;
+      var cabe = r.width >= bw + w + 24;
+      barraFigura.style.top = (cabe ? r.top + 8 : r.top - bh + 2) + "px";
+      barraFigura.style.left = (cabe ? r.left + 8 : r.left) + "px";
+    }
     alcaFigura.hidden = false;
     var a = alcaFigura.offsetWidth;
     alcaFigura.style.top = (r.bottom - a - 8) + "px";
@@ -9510,6 +10079,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
 
   function excluirFigura(fig) {
     if (!fig || !fig.isConnected) return;
+    var pai = fig.parentNode;
     var depois = fig.nextElementSibling, antes = fig.previousElementSibling;
     /* O parágrafo vazio que nasceu junto com a imagem vai embora com ela: ele
        só existia para haver onde escrever depois dela. */
@@ -9523,9 +10093,11 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     pintarFerramentasDaFigura();
     var alvo = depois || antes;
     if (!alvo) {
+      /* Sem vizinho, nasce uma linha no lugar: no fim do texto, ou dentro da
+         célula, se a imagem morava numa. */
       alvo = document.createElement("p");
       alvo.innerHTML = "<br>";
-      arquivoCorpo.appendChild(alvo);
+      pai.appendChild(alvo);
     }
     arquivoCorpo.focus({ preventScroll: true });
     porCursorEm(alvo, alvo === antes);
@@ -11636,6 +12208,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     comentar: acaoComentar,
     imagem: function () { if (voltarAoTexto()) escolherImagem(blocoParaMidia()); },
     mapa: function () { if (voltarAoTexto()) inserirMapa(blocoDoCursor() || arquivoCorpo.lastElementChild); },
+    postit: function () { voltarAoTexto(); criarPostit(blocoDoCursor()); },
     tarefas: function () { alternarLista("tarefas"); },
     marcadores: function () { alternarLista("marcadores"); },
     numeros: function () { alternarLista("numeros"); },
@@ -15442,6 +16015,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     });
     if (nome === "inbox") pintarInbox();
     if (nome === "decks") pintarGradeDecks();
+    if (nome === "questoes") pintarQuestoes();
     if (nome === "relatorios") { pintarDecks(); pintarGrafico(); pintarMapaDeUso(); }
     /* A fila se refaz a cada entrada, e não uma vez no carregamento: card
        criado, excluído ou revisado depois disso mudava o acervo e não mudava a
@@ -16013,6 +16587,714 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     responder(grau);
   });
 
+  /* ═══ Banco de questões ══════════════════════════════════════════════
+     A questão é de múltipla escolha: enunciado, de duas a cinco alternativas
+     e o índice da certa. Ela nasce do balão de seleção, com o trecho como a
+     alternativa certa, ou escrita à mão no banco. Mora em `QUESTOES`, vem do
+     banco junto com o resto, e cada uma lembra o arquivo de onde saiu pela
+     referência, como o rascunho. */
+  var LETRAS = ["A", "B", "C", "D", "E"];
+  var MAX_ALTERNATIVAS = 5, MIN_ALTERNATIVAS = 2;
+  var barraQuestoes = null, filtroPastaQ = [], filtroSitQ = [], assinaturaQuestoes = "";
+
+  /* A situação é o que a pessoa faz com a questão nas provas: nunca
+     respondida, errando mais do que acerta, ou acertando. */
+  function situacaoDaQuestao(q) {
+    if (!q.tentativas) return "nunca";
+    return q.acertos * 2 < q.tentativas ? "errando" : "acertando";
+  }
+  var SITUACAO_QUESTAO = [
+    { valor: "nunca", label: "Nunca respondidas" },
+    { valor: "errando", label: "Errando mais que acertando" },
+    { valor: "acertando", label: "Acertando" }
+  ];
+  var SELO_QUESTAO = {
+    nunca: { classe: "novo", texto: "Nunca respondida" },
+    errando: { classe: "atrasado", texto: "Errando" },
+    acertando: { classe: "emdia", texto: "Acertando" }
+  };
+
+  function pastaDaQuestao(q) { return q.arquivo ? pastaDoArquivo(q.arquivo) : null; }
+  /* "Pasta · Arquivo · Seção", com o que existir. Questão escrita à mão ou de
+     arquivo apagado diz isso, em vez de uma linha vazia. */
+  function origemDaQuestao(q) {
+    var partes = [];
+    var pasta = pastaDaQuestao(q);
+    if (pasta) partes.push(pasta.nome);
+    if (q.arquivo) partes.push(q.arquivo.nome);
+    if (q.origem && q.origem !== "Escrita à mão") partes.push(q.origem);
+    return partes.length ? partes.join(" · ") : (q.origem || "Escrita à mão");
+  }
+
+  function montarFiltrosDeQuestao() {
+    barraQuestoes = criarBarraFiltros({
+      filtros: [
+        { rotulo: "Pasta", marcados: filtroPastaQ, opcoes: function () {
+          var vistas = [];
+          QUESTOES.forEach(function (q) {
+            var p = pastaDaQuestao(q);
+            if (p && vistas.indexOf(p) < 0) vistas.push(p);
+          });
+          return vistas.map(function (p) { return { valor: p.id, label: p.nome }; });
+        } },
+        { rotulo: "Situação", opcoes: SITUACAO_QUESTAO, marcados: filtroSitQ }
+      ],
+      dicaBusca: "Enunciado, alternativa ou origem",
+      rotuloBusca: "Buscar questão",
+      aoMudar: pintarQuestoes
+    });
+    $("barraQuestoes").replaceWith(barraQuestoes.el);
+  }
+
+  function pintarQuestoes() {
+    var n = QUESTOES.length;
+    $("contaQuestoes").textContent = n;
+    $("contaQuestoes").hidden = !n;
+    $("btnFazerProva").disabled = !n;
+
+    var termo = semAcento(barraQuestoes ? barraQuestoes.termo().trim() : "");
+    var linhas = QUESTOES.filter(function (q) {
+      if (filtroPastaQ.length) {
+        var p = pastaDaQuestao(q);
+        if (!p || filtroPastaQ.indexOf(p.id) < 0) return false;
+      }
+      if (filtroSitQ.length && filtroSitQ.indexOf(situacaoDaQuestao(q)) < 0) return false;
+      if (!termo) return true;
+      return semAcento(q.enunciado + " " + q.alternativas.join(" ") + " " + origemDaQuestao(q)).indexOf(termo) >= 0;
+    });
+
+    var corpo = $("corpoQuestoes");
+    var nova = linhas.map(function (q) { return q.enunciado; }).join("|");
+    corpo.className = nova !== assinaturaQuestoes ? "lista-anima" : "";
+    assinaturaQuestoes = nova;
+    corpo.innerHTML = "";
+    linhas.forEach(function (q) {
+      var tr = document.createElement("tr");
+      tr.dataset.obra = chaveDe(q);
+      var sit = SELO_QUESTAO[situacaoDaQuestao(q)];
+      tr.innerHTML =
+        '<td><div class="td-frente"></div><div class="td-sub"></div></td>' +
+        '<td><span class="estado ' + sit.classe + '"></span></td>' +
+        '<td class="col-num"></td>' +
+        '<td class="col-acoes">' +
+          '<button type="button" class="linha-acao perigo" aria-label="Excluir questão">' + LIXEIRA + '</button>' +
+        '</td>';
+      var tds = tr.children;
+      tds[0].querySelector(".td-frente").textContent = q.enunciado;
+      tds[0].querySelector(".td-sub").textContent = origemDaQuestao(q) + " · " + q.alternativas.length + " alternativas";
+      tds[1].querySelector(".estado").textContent = sit.texto;
+      tds[2].textContent = q.tentativas ? q.acertos + " de " + q.tentativas : "-";
+      tr.addEventListener("click", function () { gavetaQuestao(q); });
+      tr.querySelector(".linha-acao").addEventListener("click", function (e) {
+        e.stopPropagation();
+        pedirExcluirQuestao(q);
+      });
+      corpo.appendChild(tr);
+    });
+    $("vazioQuestoes").hidden = linhas.length > 0;
+    $("vazioQuestoesTexto").innerHTML = n
+      ? "<b>Nenhuma questão encontrada.</b><br>Ajuste a busca ou limpe os filtros."
+      : "<b>O banco ainda está vazio.</b><br>Selecione um trecho num arquivo e use o botão de questão no balão, ou crie uma por aqui.";
+
+    var tentadas = QUESTOES.filter(function (q) { return q.tentativas; }).length;
+    var errando = QUESTOES.filter(function (q) { return situacaoDaQuestao(q) === "errando"; }).length;
+    var ultimas = PROVAS.slice(0, 10);
+    var media = ultimas.length
+      ? Math.round(ultimas.reduce(function (s, p) { return s + (p.total ? p.acertos / p.total : 0); }, 0) / ultimas.length * 100)
+      : null;
+    pintarFileiraKpi("kpisQuestoes", [
+      { rotulo: "Questões no banco", valor: String(n),
+        nota: tentadas ? tentadas + (tentadas === 1 ? " já respondida" : " já respondidas") : "nenhuma respondida ainda" },
+      { rotulo: "Provas feitas", valor: String(PROVAS.length),
+        nota: PROVAS.length ? "a última em " + quandoFoi(PROVAS[0].feitaEm) : "comece pela primeira" },
+      { rotulo: "Média nas provas", valor: media == null ? "-" : media + "%",
+        nota: ultimas.length ? (ultimas.length === 1 ? "na última prova" : "nas últimas " + ultimas.length) : "sem histórico" },
+      { rotulo: "Para reforçar", valor: String(errando),
+        nota: "errando mais do que acerta",
+        ativo: filtroSitQ.length === 1 && filtroSitQ[0] === "errando",
+        aoClicar: errando ? function () {
+          var so = filtroSitQ.length === 1 && filtroSitQ[0] === "errando";
+          filtroSitQ.length = 0;
+          if (!so) filtroSitQ.push("errando");
+          barraQuestoes.sincronizar();
+        } : null }
+    ]);
+    pintarProvas();
+  }
+
+  function quandoFoi(iso) {
+    if (!iso) return "";
+    var d = new Date(iso);
+    var hoje = new Date();
+    var ontem = new Date(); ontem.setDate(ontem.getDate() - 1);
+    var hora = d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
+    if (d.toDateString() === hoje.toDateString()) return "hoje, " + hora;
+    if (d.toDateString() === ontem.toDateString()) return "ontem, " + hora;
+    return d.toLocaleDateString("pt-BR", { day: "numeric", month: "short" }) + ", " + hora;
+  }
+  function emMinutos(seg) {
+    seg = Math.max(0, Math.round(seg || 0));
+    var m = Math.floor(seg / 60), s = seg % 60;
+    return m + ":" + (s < 10 ? "0" : "") + s;
+  }
+
+  function pintarProvas() {
+    var corpo = $("corpoProvas");
+    corpo.innerHTML = "";
+    PROVAS.forEach(function (p) {
+      var tr = document.createElement("tr");
+      tr.style.cursor = "default";
+      var pct = p.total ? Math.round(p.acertos / p.total * 100) : 0;
+      tr.innerHTML = '<td></td><td></td><td class="col-num"></td><td class="col-num"></td>';
+      tr.children[0].textContent = quandoFoi(p.feitaEm);
+      tr.children[1].textContent = p.escopo || "Todo o banco";
+      tr.children[2].textContent = p.acertos + " de " + p.total + " (" + pct + "%)";
+      tr.children[3].textContent = emMinutos(p.segundos);
+      corpo.appendChild(tr);
+    });
+    $("vazioProvas").hidden = PROVAS.length > 0;
+  }
+
+  /* ── A gaveta da questão ──
+     Serve às três entradas: o trecho do balão, o "Nova questão" do banco e a
+     edição de uma que já existe. `base` traz o ponto de partida de uma nova. */
+  function gavetaQuestao(q, base) {
+    var nova = !q;
+    var de = q || base || {};
+    var estado = {
+      enunciado: de.enunciado || "",
+      alts: (de.alternativas || []).slice(),
+      correta: de.correta == null ? 0 : de.correta,
+      explicacao: de.explicacao || ""
+    };
+    /* Quatro alternativas de partida, que é o formato mais comum de prova.
+       Dá para tirar até sobrarem duas, ou pôr até cinco. */
+    while (estado.alts.length < 4) estado.alts.push("");
+
+    function cheias() { return estado.alts.filter(function (a) { return a.trim(); }).length; }
+    function pode() {
+      return !!estado.enunciado.trim() && cheias() >= MIN_ALTERNATIVAS &&
+        !!(estado.alts[estado.correta] || "").trim();
+    }
+
+    abrirPainel({
+      nome: "questao",
+      rotulo: nova ? "Nova questão" : "Questão",
+      tituloEstatico: nova ? "Nova questão" : "Editar questão",
+      acao: nova ? "Guardar no banco" : "Guardar",
+      podeGravar: pode,
+      montar: function (corpo) {
+        corpo.appendChild(grupo("Enunciado",
+          campoArea(estado.enunciado, "A pergunta da questão", function (v) { estado.enunciado = v; travarGravar(); })));
+
+        var caixa = document.createElement("div");
+        caixa.className = "questao-alts";
+        var lista = document.createElement("div");
+        lista.className = "questao-alts-lista";
+        lista.setAttribute("role", "radiogroup");
+        lista.setAttribute("aria-label", "Alternativa certa");
+        var mais = document.createElement("button");
+        mais.type = "button";
+        mais.className = "questao-mais";
+        mais.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg> Adicionar alternativa';
+        var dica = document.createElement("p");
+        dica.className = "questao-dica";
+        dica.textContent = "Marque o círculo da alternativa certa. Na prova a ordem é embaralhada.";
+
+        function pintarAlts(foco) {
+          lista.innerHTML = "";
+          estado.alts.forEach(function (texto, i) {
+            var linha = document.createElement("div");
+            linha.className = "questao-alt" + (i === estado.correta ? " certa" : "");
+            var marca = document.createElement("button");
+            marca.type = "button";
+            marca.className = "questao-alt-marca";
+            marca.setAttribute("role", "radio");
+            marca.setAttribute("aria-checked", String(i === estado.correta));
+            marca.setAttribute("aria-label", "Alternativa " + LETRAS[i] + " é a certa");
+            marca.innerHTML = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
+            marca.addEventListener("click", function () { estado.correta = i; pintarAlts(); travarGravar(); });
+            var letra = document.createElement("span");
+            letra.className = "questao-alt-letra";
+            letra.textContent = LETRAS[i];
+            var campo = campoArea(texto, i === estado.correta ? "A alternativa certa" : "Uma alternativa errada, mas plausível",
+              function (v) { estado.alts[i] = v; travarGravar(); });
+            campo.rows = 1;
+            campo.classList.add("questao-alt-campo");
+            campo.setAttribute("aria-label", "Alternativa " + LETRAS[i]);
+            var tirar = document.createElement("button");
+            tirar.type = "button";
+            tirar.className = "questao-alt-tirar";
+            tirar.title = "Tirar esta alternativa";
+            tirar.setAttribute("aria-label", "Tirar a alternativa " + LETRAS[i]);
+            tirar.innerHTML = XIS;
+            tirar.disabled = estado.alts.length <= MIN_ALTERNATIVAS;
+            tirar.addEventListener("click", function () {
+              estado.alts.splice(i, 1);
+              /* A marca acompanha a alternativa certa, e não a posição: tirar
+                 uma de cima dela não pode mudar qual é a certa. */
+              if (estado.correta === i) estado.correta = 0;
+              else if (estado.correta > i) estado.correta--;
+              pintarAlts();
+              travarGravar();
+            });
+            linha.appendChild(marca);
+            linha.appendChild(letra);
+            linha.appendChild(campo);
+            linha.appendChild(tirar);
+            lista.appendChild(linha);
+          });
+          mais.hidden = estado.alts.length >= MAX_ALTERNATIVAS;
+          if (foco != null) {
+            var alvo = lista.querySelectorAll(".questao-alt-campo")[foco];
+            if (alvo) alvo.focus();
+          }
+        }
+        mais.addEventListener("click", function () {
+          if (estado.alts.length >= MAX_ALTERNATIVAS) return;
+          estado.alts.push("");
+          pintarAlts(estado.alts.length - 1);
+          travarGravar();
+        });
+        pintarAlts();
+        caixa.appendChild(lista);
+        caixa.appendChild(mais);
+        caixa.appendChild(dica);
+        corpo.appendChild(grupoSoLeitura("Alternativas", caixa));
+
+        corpo.appendChild(grupo("Explicação (opcional)",
+          campoArea(estado.explicacao, "Por que a certa é a certa. Aparece na correção da prova.",
+            function (v) { estado.explicacao = v; })));
+
+        var trecho = de.trecho;
+        if (trecho) corpo.appendChild(grupoSoLeitura("Trecho de origem", blocoTrecho(trecho)));
+        var origem = q ? origemDaQuestao(q) : base && base.arquivo ? origemDaQuestao(base) : "";
+        if (origem) corpo.appendChild(grupoSoLeitura("De onde saiu", blocoLeitura(origem)));
+      },
+      gravar: function () {
+        if (!pode()) return false;
+        /* As vazias saem, e a marca da certa acompanha a alternativa dela. */
+        var alts = [], correta = 0;
+        estado.alts.forEach(function (a, i) {
+          if (!a.trim()) return;
+          if (i === estado.correta) correta = alts.length;
+          alts.push(a.trim());
+        });
+        if (nova) {
+          criarQuestao({
+            enunciado: estado.enunciado.trim(), alternativas: alts, correta: correta,
+            explicacao: estado.explicacao.trim(),
+            trecho: (base && base.trecho) || "", origem: (base && base.origem) || "Escrita à mão",
+            arquivo: (base && base.arquivo) || null
+          });
+          avisar("success", "Questão guardada", "Ela já entra nas próximas provas.");
+        } else {
+          q.enunciado = estado.enunciado.trim();
+          q.alternativas = alts;
+          q.correta = correta;
+          q.explicacao = estado.explicacao.trim();
+          Promise.resolve(q.pronto).then(function () {
+            if (!q.id) return;
+            gravar({ acao: "questao.salvar", id: q.id, enunciado: q.enunciado,
+                     alternativas: q.alternativas, correta: q.correta, explicacao: q.explicacao });
+          });
+        }
+        pintarQuestoes();
+      },
+      excluir: nova ? null : function (fechar) { pedirExcluirQuestao(q, fechar); },
+      rotuloExcluir: "Excluir questão"
+    });
+  }
+
+  function criarQuestao(dados) {
+    var q = {
+      id: "", arquivo: dados.arquivo, enunciado: dados.enunciado, alternativas: dados.alternativas,
+      correta: dados.correta, explicacao: dados.explicacao, trecho: dados.trecho, origem: dados.origem,
+      acertos: 0, tentativas: 0
+    };
+    QUESTOES.unshift(q);
+    /* Arquivo recém-criado ainda pode estar esperando o próprio id. */
+    q.pronto = Promise.resolve(q.arquivo && q.arquivo.pronto).then(function () {
+      return gravar({
+        acao: "questao.criar", arquivoId: (q.arquivo && q.arquivo.id) || "",
+        enunciado: q.enunciado, alternativas: q.alternativas, correta: q.correta,
+        explicacao: q.explicacao, trecho: q.trecho, origem: q.origem
+      });
+    }).then(function (r) { if (r && r.id) q.id = r.id; return q; });
+    return q;
+  }
+
+  function pedirExcluirQuestao(q, depois) {
+    confirmarExclusao({
+      coisa: "questão", nome: q.enunciado,
+      aviso: "Ela sai do banco e das próximas provas. As provas já feitas continuam no histórico.",
+      onConfirmar: function () {
+        QUESTOES = QUESTOES.filter(function (x) { return x !== q; });
+        pintarQuestoes();
+        Promise.resolve(q.pronto).then(function () {
+          if (q.id) gravar({ acao: "questao.excluir", id: q.id });
+        });
+        if (depois) depois();
+      }
+    });
+  }
+
+  $("btnCriarQuestao").addEventListener("click", function () {
+    if (!textoPendente) return;
+    var trecho = limpar(textoPendente), secao = secaoPendente;
+    esconderPop();
+    var s = window.getSelection(); if (s) s.removeAllRanges();
+    gavetaQuestao(null, {
+      enunciado: "Sobre " + secao.charAt(0).toLowerCase() + secao.slice(1) + ": qual afirmação está correta?",
+      alternativas: [trecho], correta: 0,
+      trecho: trecho, origem: secao, arquivo: arquivoAberto
+    });
+  });
+  $("btnNovaQuestao").addEventListener("click", function () { gavetaQuestao(null, {}); });
+
+  /* ═══ A prova ════════════════════════════════════════════════════════
+     Montada por recorte e quantidade, com as questões e as alternativas
+     embaralhadas. A correção só aparece na entrega, e só ela grava: sair no
+     meio não conta como tentativa. */
+  var prova = null, relogioProva = null;
+
+  function embaralhar(arr) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  function gavetaMontarProva() {
+    if (!QUESTOES.length) return;
+    var TODO = "Todo o banco";
+    var estado = { recorte: TODO, soErradas: false, quantas: "" };
+
+    function pastasComQuestoes() {
+      var vistas = [];
+      QUESTOES.forEach(function (q) {
+        var p = pastaDaQuestao(q);
+        if (p && vistas.indexOf(p) < 0) vistas.push(p);
+      });
+      return vistas;
+    }
+    function disponiveis() {
+      return QUESTOES.filter(function (q) {
+        if (estado.recorte !== TODO) {
+          var p = pastaDaQuestao(q);
+          if (!p || p.nome !== estado.recorte) return false;
+        }
+        if (estado.soErradas && !(q.tentativas && q.acertos < q.tentativas)) return false;
+        return true;
+      });
+    }
+    function opcoesDeQuantidade() {
+      var n = disponiveis().length;
+      var op = [5, 10, 20].filter(function (k) { return k < n; })
+        .map(function (k) { return { nome: k + " questões", nota: "sorteadas do recorte", k: k }; });
+      if (n) op.push({ nome: n === 1 ? "A única questão" : "Todas as " + n, nota: "o recorte inteiro", k: n });
+      return op;
+    }
+    function acertarQuantidade() {
+      var op = opcoesDeQuantidade();
+      if (!op.some(function (o) { return o.nome === estado.quantas; })) {
+        var padrao = op.filter(function (o) { return o.k === 10; })[0] || op[op.length - 1];
+        estado.quantas = padrao ? padrao.nome : "";
+      }
+    }
+    acertarQuantidade();
+
+    var nota = null, seletorQuantas = null, grupoQuantas = null;
+    function atualizar() {
+      acertarQuantidade();
+      var n = disponiveis().length;
+      nota.textContent = n
+        ? (n === 1 ? "1 questão neste recorte." : n + " questões neste recorte.")
+        : estado.soErradas ? "Nenhuma questão errada neste recorte ainda." : "Nenhuma questão neste recorte.";
+      var novo = campoSelect(estado.quantas, opcoesDeQuantidade, function (v) { estado.quantas = v; });
+      seletorQuantas.replaceWith(novo);
+      seletorQuantas = novo;
+      grupoQuantas.hidden = !n;
+      travarGravar();
+    }
+
+    abrirPainel({
+      nome: "prova",
+      rotulo: "Prova",
+      tituloEstatico: "Montar a prova",
+      acao: "Começar a prova",
+      podeGravar: function () { return disponiveis().length > 0; },
+      montar: function (corpo) {
+        corpo.appendChild(grupo("De onde vêm as questões",
+          campoSelect(estado.recorte, function () {
+            return [{ nome: TODO, nota: QUESTOES.length + (QUESTOES.length === 1 ? " questão" : " questões") }]
+              .concat(pastasComQuestoes().map(function (p) {
+                var k = QUESTOES.filter(function (q) { return pastaDaQuestao(q) === p; }).length;
+                return { nome: p.nome, nota: k + (k === 1 ? " questão" : " questões") };
+              }));
+          }, function (v) { estado.recorte = v; atualizar(); })));
+        corpo.appendChild(campoInterruptor("Só as que eu já errei", false, function (v) { estado.soErradas = v; atualizar(); }));
+        seletorQuantas = campoSelect(estado.quantas, opcoesDeQuantidade, function (v) { estado.quantas = v; });
+        grupoQuantas = grupo("Quantas questões", seletorQuantas);
+        corpo.appendChild(grupoQuantas);
+        nota = blocoLeitura("");
+        corpo.appendChild(grupoSoLeitura("No recorte", nota));
+        atualizar();
+      },
+      gravar: function () {
+        var lista = disponiveis();
+        if (!lista.length) return false;
+        var escolha = opcoesDeQuantidade().filter(function (o) { return o.nome === estado.quantas; })[0];
+        var k = escolha ? escolha.k : lista.length;
+        var escopo = estado.recorte + (estado.soErradas ? " · só as erradas" : "");
+        comecarProva(embaralhar(lista).slice(0, k), escopo);
+      }
+    });
+  }
+  $("btnFazerProva").addEventListener("click", gavetaMontarProva);
+  $("btnOutraProva").addEventListener("click", gavetaMontarProva);
+
+  function comecarProva(questoes, escopo) {
+    if (!questoes.length) return;
+    prova = {
+      escopo: escopo,
+      i: 0,
+      comecou: Date.now(),
+      itens: questoes.map(function (q) {
+        /* A ordem das alternativas é sorteada por questão, e guardada: voltar
+           para uma questão não pode trocar as letras de lugar. */
+        var ordem = embaralhar(q.alternativas.map(function (a, i) { return i; }));
+        return { q: q, ordem: ordem, escolhida: -1 };
+      })
+    };
+    $("provaTitulo").textContent = "Prova";
+    $("provaEscopo").textContent = escopo + " · " + questoes.length + (questoes.length === 1 ? " questão" : " questões");
+    $("btnSairProva").textContent = "Sair da prova";
+    $("provaPalco").hidden = false;
+    $("provaFim").hidden = true;
+    clearInterval(relogioProva);
+    relogioProva = setInterval(pintarRelogio, 1000);
+    pintarRelogio();
+    pintarQuestaoDaProva();
+    irPaginaAtual("prova");
+  }
+
+  function pintarRelogio() {
+    if (!prova) return;
+    $("provaRelogio").querySelector("b").textContent = emMinutos((Date.now() - prova.comecou) / 1000);
+  }
+
+  function pintarQuestaoDaProva() {
+    var item = prova.itens[prova.i], total = prova.itens.length;
+    $("provaProgresso").textContent = (prova.i + 1) + " de " + total;
+    $("provaBarra").style.width = Math.round((prova.i + 1) / total * 100) + "%";
+    var feitas = prova.itens.filter(function (x) { return x.escolhida >= 0; }).length;
+    $("provaRespondidas").querySelector("b").textContent = feitas;
+    $("provaOrigem").textContent = origemDaQuestao(item.q);
+    $("provaEnunciado").textContent = item.q.enunciado;
+    var caixa = $("provaAlternativas");
+    caixa.innerHTML = "";
+    item.ordem.forEach(function (orig, k) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "alternativa";
+      b.setAttribute("role", "radio");
+      b.setAttribute("aria-checked", String(item.escolhida === k));
+      b.innerHTML = '<span class="alternativa-letra"></span><span class="alternativa-texto"></span>';
+      b.firstChild.textContent = LETRAS[k];
+      b.lastChild.textContent = item.q.alternativas[orig];
+      b.addEventListener("click", function () { escolherNaProva(k); });
+      caixa.appendChild(b);
+    });
+    $("btnProvaAnterior").disabled = prova.i === 0;
+    $("provaProximaRotulo").textContent = prova.i === total - 1 ? "Entregar a prova" : "Próxima";
+  }
+
+  function escolherNaProva(k) {
+    if (!prova || $("provaPalco").hidden) return;
+    var item = prova.itens[prova.i];
+    if (k < 0 || k >= item.ordem.length) return;
+    item.escolhida = k;
+    pintarQuestaoDaProva();
+  }
+
+  function andarNaProva(passo) {
+    if (!prova) return;
+    var destino = prova.i + passo;
+    if (destino < 0) return;
+    if (destino >= prova.itens.length) { entregarProva(); return; }
+    prova.i = destino;
+    pintarQuestaoDaProva();
+    var card = $("provaCard");
+    card.classList.remove("entra");
+    void card.offsetWidth;
+    card.classList.add("entra");
+  }
+  $("btnProvaAnterior").addEventListener("click", function () { andarNaProva(-1); });
+  $("btnProvaProxima").addEventListener("click", function () { andarNaProva(1); });
+
+  /* Entregar com questão em branco pergunta antes: a branca conta como erro,
+     e entregar sem querer no meio custaria a prova. */
+  function entregarProva() {
+    var brancas = prova.itens.filter(function (x) { return x.escolhida < 0; }).length;
+    if (!brancas) { corrigirProva(); return; }
+    perguntar({
+      titulo: "Entregar a prova?",
+      descricao: [brancas === 1 ? "Uma questão está " : brancas + " questões estão ", { forte: "em branco" },
+        ". Elas contam como erro."],
+      rotuloOk: "Entregar assim",
+      rotuloCancelar: "Voltar à prova",
+      perigo: false,
+      onConfirmar: corrigirProva
+    });
+  }
+
+  function corrigirProva() {
+    clearInterval(relogioProva);
+    var segundos = Math.round((Date.now() - prova.comecou) / 1000);
+    var respostas = prova.itens.map(function (x) {
+      var orig = x.escolhida >= 0 ? x.ordem[x.escolhida] : -1;
+      return { item: x, escolhida: orig, certa: orig === x.q.correta };
+    });
+    var acertos = respostas.filter(function (r) { return r.certa; }).length;
+    var total = respostas.length;
+    var pct = Math.round(acertos / total * 100);
+
+    /* A memória acompanha o que o banco vai gravar, para a tela do banco já
+       mostrar as tentativas sem esperar a próxima carga. */
+    respostas.forEach(function (r) {
+      r.item.q.tentativas++;
+      if (r.certa) r.item.q.acertos++;
+    });
+    PROVAS.unshift({ escopo: prova.escopo, total: total, acertos: acertos, segundos: segundos,
+                     feitaEm: new Date().toISOString() });
+    var questoesProntas = respostas.map(function (r) { return r.item.q.pronto; });
+    Promise.all(questoesProntas).then(function () {
+      var comId = respostas.filter(function (r) { return r.item.q.id; });
+      if (!comId.length) return;
+      gravar({ acao: "prova.registrar", escopo: prova ? prova.escopo : "", segundos: segundos,
+               respostas: comId.map(function (r) {
+                 return { questaoId: r.item.q.id, escolhida: r.escolhida, certa: r.certa };
+               }) });
+    });
+    prova.respostas = respostas;
+
+    $("provaPalco").hidden = true;
+    $("provaFim").hidden = false;
+    $("btnSairProva").textContent = "Voltar ao banco";
+    $("provaNota").textContent = "Você acertou " + acertos + " de " + total;
+    $("provaResumo").textContent = pct >= 70 ? "Bom resultado. A correção está logo abaixo."
+      : "A correção está logo abaixo, com o trecho de onde cada questão saiu.";
+    var brancas = respostas.filter(function (r) { return r.escolhida < 0; }).length;
+    pintarFileiraKpi("provaFimNumeros", [
+      { rotulo: "Nota", valor: pct + "%", nota: acertos + " de " + total },
+      { rotulo: "Erros", valor: String(total - acertos), nota: brancas ? brancas + " em branco" : "nenhuma em branco" },
+      { rotulo: "Tempo", valor: emMinutos(segundos), nota: "cerca de " + emMinutos(segundos / total) + " por questão" }
+    ]);
+    $("btnRefazerErradas").hidden = acertos === total;
+    pintarCorrecao(respostas);
+    pintarQuestoes();
+    $("provaFim").scrollIntoView({ block: "start" });
+  }
+
+  function pintarCorrecao(respostas) {
+    var caixa = $("provaCorrecao");
+    caixa.innerHTML = "";
+    respostas.forEach(function (r, n) {
+      var x = r.item, q = x.q;
+      var el = document.createElement("article");
+      el.className = "correcao-item";
+      var selo = r.escolhida < 0 ? { classe: "novo", texto: "Em branco" }
+        : r.certa ? { classe: "emdia", texto: "Acertou" } : { classe: "atrasado", texto: "Errou" };
+      el.innerHTML =
+        '<div class="correcao-topo"><span class="correcao-num"></span><span class="estado ' + selo.classe + '"></span></div>' +
+        '<p class="correcao-enunciado"></p><div class="alternativas"></div>';
+      el.querySelector(".correcao-num").textContent = "Questão " + (n + 1) + " · " + origemDaQuestao(q);
+      el.querySelector(".estado").textContent = selo.texto;
+      el.querySelector(".correcao-enunciado").textContent = q.enunciado;
+      var alts = el.querySelector(".alternativas");
+      x.ordem.forEach(function (orig, k) {
+        var a = document.createElement("div");
+        var classe = orig === q.correta ? " certa" : orig === r.escolhida ? " errada" : "";
+        a.className = "alternativa estatica" + classe;
+        a.innerHTML = '<span class="alternativa-letra"></span><span class="alternativa-texto"></span>';
+        a.firstChild.textContent = LETRAS[k];
+        a.lastChild.textContent = q.alternativas[orig];
+        if (orig === r.escolhida) {
+          var sua = document.createElement("span");
+          sua.className = "alternativa-sua";
+          sua.textContent = "sua resposta";
+          a.appendChild(sua);
+        }
+        alts.appendChild(a);
+      });
+      if (q.explicacao) {
+        var ex = document.createElement("p");
+        ex.className = "correcao-explicacao";
+        ex.textContent = q.explicacao;
+        el.appendChild(ex);
+      }
+      if (q.trecho) {
+        var tr = document.createElement("p");
+        tr.className = "revisao-trecho";
+        tr.textContent = q.trecho;
+        el.appendChild(tr);
+      }
+      caixa.appendChild(el);
+    });
+  }
+
+  function sairDaProva() {
+    clearInterval(relogioProva);
+    prova = null;
+    irPaginaAtual("questoes");
+  }
+  $("btnFimBanco").addEventListener("click", sairDaProva);
+  $("btnSairProva").addEventListener("click", function () {
+    /* Depois da entrega não há o que perder. Antes, sair descarta as
+       respostas, e por isso pergunta se alguma já foi dada. */
+    if (!prova || !$("provaFim").hidden) { sairDaProva(); return; }
+    if (!prova.itens.some(function (x) { return x.escolhida >= 0; })) { sairDaProva(); return; }
+    perguntar({
+      titulo: "Sair da prova?",
+      descricao: ["As respostas desta prova ", { forte: "não serão gravadas" }, "."],
+      rotuloOk: "Sair da prova",
+      rotuloCancelar: "Continuar",
+      onConfirmar: sairDaProva
+    });
+  });
+  $("btnRefazerErradas").addEventListener("click", function () {
+    if (!prova || !prova.respostas) return;
+    var erradas = prova.respostas.filter(function (r) { return !r.certa; }).map(function (r) { return r.item.q; });
+    comecarProva(embaralhar(erradas), prova.escopo.replace(/ · refazendo as erradas$/, "") + " · refazendo as erradas");
+  });
+
+  /* ── O teclado da prova ──
+     1 a 5 ou A a E escolhem, Enter e a seta para a direita avançam, a seta
+     para a esquerda volta. Os mesmos cuidados do teclado da revisão. */
+  document.addEventListener("keydown", function (e) {
+    if (paginaAtual !== "prova" || !prova || $("provaPalco").hidden) return;
+    if (!gavetaOverlay.hidden || !dialogoOverlay.hidden) return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    var alvo = e.target;
+    if (alvo && alvo.closest && alvo.closest("input, textarea, [contenteditable='true']")) return;
+    if (e.key === "Enter" || e.key === "ArrowRight") {
+      /* Enter sobre um botão já é o clique dele: aqui ele seria um segundo. */
+      if (e.key === "Enter" && alvo && alvo.closest && alvo.closest("button")) return;
+      e.preventDefault();
+      andarNaProva(1);
+      return;
+    }
+    if (e.key === "ArrowLeft") { e.preventDefault(); andarNaProva(-1); return; }
+    var k = ["1", "2", "3", "4", "5"].indexOf(e.key);
+    if (k < 0) k = ["a", "b", "c", "d", "e"].indexOf(e.key.toLowerCase());
+    if (k < 0) return;
+    e.preventDefault();
+    escolherNaProva(k);
+  });
+
   /* ═══ Tela: Inbox ════════════════════════════════════════════════════
      A agenda do dia. O Dashboard responde "como vem indo"; esta tela responde
      "o que falta agora", e por isso tudo aqui é uma linha clicável que leva ao
@@ -16208,11 +17490,8 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     /* O selo do menu conta o que espera hoje, somando fila e pendências: é o
        número que justifica abrir a tela. */
     var total = naFila.length + pend.length;
-    ["seloInbox", "seloInboxTopo"].forEach(function (id) {
-      $(id).textContent = total > 99 ? "99+" : total;
-      $(id).hidden = !total;
-    });
-    $("seloInboxTopo").parentNode.setAttribute("aria-label", total ? "Inbox, " + total + " para hoje" : "Inbox");
+    $("seloInbox").textContent = total > 99 ? "99+" : total;
+    $("seloInbox").hidden = !total;
   }
 
   $("btnInboxRevisar").addEventListener("click", function () {
@@ -17633,6 +18912,9 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
        entrar antes da vista do arquivo. */
     irPaginaAtual("pastas");
     irVista("arquivo");
+    /* Depois da vista: a posição de cada post-it é medida na largura da
+       folha, e a folha escondida não tem largura. */
+    pintarPostits();
   }
 
   /* ── O arquivo aberto ────────────────────────────────────────────────
@@ -17753,6 +19035,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
   montarFiltrosDeArquivo();
   montarFiltrosDeCard();
   montarFiltrosDeDeck();
+  montarFiltrosDeQuestao();
   pintar();
   irVista("lista");
 

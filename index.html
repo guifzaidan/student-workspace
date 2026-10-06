@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Sinapse · Estudo ativo e revisão espaçada</title>
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <meta name="description" content="Escreva e grife seus resumos numa folha de verdade, transforme qualquer trecho em flashcard com um clique e revise na hora certa. Feito para quem estuda para prova longa.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -39,6 +40,7 @@
   --lima-tinta: #4F7A12;
   --manteiga: #FFE27A;
   --ceu: #CFE3FF;
+  --pessego: #FFD2B3;
   --sombra-dura: 3px 3px 0 var(--tinta);
   --sombra-dura-g: 6px 6px 0 var(--tinta);
   --raio: 22px;
@@ -188,7 +190,8 @@ h1.titulo {
 /* Uma seção alta com uma janela grudada no topo. Quem rola não sai do lugar:
    a rolagem vira o tempo da cena, e o script traduz a posição em zoom,
    digitação, grifo e no deslizar do botão. */
-.palco { position: relative; height: 1150vh; }
+/* Seis partes no passeio: cada uma com o mesmo fôlego de rolagem de antes. */
+.palco { position: relative; height: 1330vh; }
 /* A janela corta os lados, mas não o alto: antes da rolagem, o computador
    aparece mais acima, já entrando na abertura. */
 .palco-janela { position: sticky; top: 0; height: 100vh; height: 100svh; overflow-x: clip; }
@@ -436,7 +439,7 @@ h1.titulo {
 .editor-salvar { text-align: center; font-size: .85em; color: var(--cinza); font-weight: 700; }
 .editor-salvar b { display: block; color: var(--tinta); font-size: 1.15em; }
 
-/* 3. Decks: o card vira, o "Bom" é apertado, e ele marca a volta. */
+/* 4. Decks: o card vira, o "Bom" é apertado, e ele marca a volta. */
 .decks-corpo { flex: 1; min-height: 0; display: flex; gap: 1.3em; }
 .decks-lista { width: 36%; flex-shrink: 0; display: flex; flex-direction: column; gap: .6em; }
 .deck { display: flex; align-items: center; gap: .7em; padding: .65em .75em; border-radius: 1em; background: var(--branco); border: 1.5px solid var(--fio); }
@@ -478,7 +481,7 @@ h1.titulo {
 .notas-graus small { display: block; font-weight: 600; font-size: .8em; color: rgba(18, 19, 22, .65); }
 .notas-graus .apertado { transform: translate(2px, 2px) scale(.95); box-shadow: 0 0 0 var(--tinta); outline: 3px solid var(--lima-tinta); outline-offset: 2px; }
 
-/* 4. Pomodoro: o anel enche e o relógio desce junto com a rolagem. */
+/* 5. Pomodoro: o anel enche e o relógio desce junto com a rolagem. */
 .pomo-corpo { flex: 1; min-height: 0; display: flex; gap: 1.8em; align-items: center; }
 .pomo-relogio { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 1.1em; }
 .pomo-anel {
@@ -511,7 +514,7 @@ h1.titulo {
 .pomo-botoes span { flex: 1; height: 2.6em; border-radius: 100px; border: 1.5px solid var(--tinta); display: grid; place-items: center; font-weight: 800; font-size: .92em; background: var(--branco); box-shadow: 2px 2px 0 var(--tinta); }
 .pomo-botoes span.escuro { background: var(--tinta); color: var(--branco); box-shadow: 2px 2px 0 var(--lima); }
 
-/* 5. Agente de IA: o pedido, os três pontinhos, e os cards saindo. */
+/* 6. Agente de IA: o pedido, os três pontinhos, e os cards saindo. */
 .chat { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end; gap: .8em; }
 /* As sugestões do agente, antes do pedido. */
 .sugestoes { display: flex; flex-wrap: wrap; gap: .5em; }
@@ -538,6 +541,70 @@ h1.titulo {
 .chat-campo { display: flex; align-items: center; gap: .6em; height: 3em; padding: 0 .4em 0 1.1em; border-radius: 100px; background: var(--branco); border: 1.5px solid var(--tinta); box-shadow: var(--sombra-dura); color: var(--cinza2); font-weight: 600; }
 .chat-campo span { flex: 1; }
 .chat-campo b { width: 2.2em; height: 2.2em; border-radius: 50%; background: var(--lima); border: 1.5px solid var(--tinta); display: grid; place-items: center; color: var(--tinta); }
+
+/* 3. Questões: a prova com as questões tiradas do texto. Uma alternativa é
+   escolhida, a prova é entregue, a certa acende e a nota conta. */
+.prova-corpo { flex: 1; min-height: 0; display: flex; gap: 1.3em; }
+.prova-questao {
+  position: relative; flex: 1; min-width: 0;
+  display: flex; flex-direction: column; gap: .7em;
+  padding: 1.2em 1.4em; border-radius: 1.2em;
+  background: var(--branco); border: 1px solid var(--borda-fina, var(--fio)); box-shadow: var(--sombra-salta, var(--sombra-dura));
+}
+.prova-questao small { font-size: .75em; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: rgba(18, 19, 22, .55); }
+.prova-enunciado { margin: 0; font-family: var(--display); font-weight: 700; font-size: 1.35em; line-height: 1.2; letter-spacing: -.02em; }
+.prova-alts { display: flex; flex-direction: column; gap: .5em; margin-top: .2em; }
+.prova-alt {
+  display: flex; align-items: center; gap: .7em;
+  padding: .55em .8em; border-radius: .9em;
+  border: 1px solid var(--borda-fina, var(--fio)); background: var(--branco);
+  font-weight: 700; font-size: .95em;
+  transition: background .3s var(--curva), border-color .3s var(--curva);
+}
+.prova-alt b {
+  width: 1.7em; height: 1.7em; flex-shrink: 0; border-radius: 50%;
+  display: grid; place-items: center; font-size: .85em;
+  border: 1px solid rgba(18, 19, 22, .15); color: var(--cinza);
+  transition: background .3s var(--curva), color .3s var(--curva), border-color .3s var(--curva);
+}
+.prova-alt.escolhida { border-color: var(--tinta); background: #F3F3F0; }
+.prova-alt.escolhida b { background: var(--tinta); border-color: var(--tinta); color: var(--branco); }
+.prova-alt.certa { border-color: #9FD27A; background: var(--lima-lavado); }
+.prova-alt.certa b { background: #3E8E2A; border-color: #3E8E2A; color: var(--branco); }
+.prova-certa {
+  position: absolute; right: 1.2em; top: 1em;
+  padding: .4em .85em; border-radius: 100px;
+  background: var(--lima); border: 1px solid #B9DE7E; box-shadow: var(--sombra-salta, var(--sombra-dura));
+  font-weight: 800; font-size: .9em; --g: 4deg;
+}
+.prova-lado { width: 34%; flex-shrink: 0; display: flex; flex-direction: column; gap: .8em; }
+.prova-banco {
+  display: flex; flex-direction: column; gap: .55em; padding: .9em 1em; border-radius: 1em;
+  background: var(--branco); border: 1px solid var(--borda-fina, var(--fio)); box-shadow: var(--sombra-baixa, none);
+}
+.prova-banco > small { font-size: .8em; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--cinza); }
+.prova-banco span { display: flex; align-items: center; gap: .55em; font-weight: 700; font-size: .9em; }
+.prova-banco span i {
+  width: 1.9em; height: 1.9em; flex-shrink: 0; border-radius: .6em; display: grid; place-items: center;
+  font-style: normal; border: 1px solid rgba(18, 19, 22, .1);
+}
+.prova-banco span em { margin-left: auto; font-style: normal; font-weight: 800; font-size: .85em; color: var(--cinza); }
+.prova-nota {
+  display: flex; flex-direction: column; gap: .15em; padding: .9em 1em; border-radius: 1em;
+  background: #FFF1E6; border: 1px solid #F6CBAA; box-shadow: var(--sombra-baixa, none);
+  transition: background .4s var(--curva), border-color .4s var(--curva);
+}
+.prova-nota small { font-weight: 700; font-size: .85em; color: rgba(18, 19, 22, .6); }
+.prova-nota b { font-family: var(--display); font-size: 2.3em; letter-spacing: -.04em; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.prova-nota span { font-size: .85em; font-weight: 700; color: var(--cinza); }
+.prova-nota.cheia { background: var(--lima-lavado); border-color: #CDEBA0; }
+.prova-entregar {
+  height: 2.6em; border-radius: 100px; display: grid; place-items: center;
+  background: var(--tinta); color: var(--branco); font-weight: 800; font-size: .92em;
+  border: 1px solid var(--tinta); box-shadow: var(--sombra-baixa, none);
+  transition: transform .25s var(--mola);
+}
+.prova-entregar.apertado { transform: scale(.94); }
 
 /* ─── O acabamento da tela ──────────────────────────────────────────────
    Dentro do computador o app tem cara de produto: cartões brancos ou em
@@ -1151,7 +1218,7 @@ h2 {
   .abertura { padding: 120px 0 162px; }
   h1.titulo { white-space: normal; font-size: clamp(48px, 13vw, 78px); }
   h1.titulo .linha { display: block; }
-  .palco { height: 1000vh; }
+  .palco { height: 1160vh; }
   .curva { justify-content: flex-start; padding-top: 96px; }
   .curva-topo { flex-direction: column; align-items: flex-start; }
   .curva-memoria { min-width: 0; display: flex; align-items: baseline; gap: 10px; padding: 8px 14px; }
@@ -1169,7 +1236,7 @@ h2 {
      lateral do app sai: a legenda em cima diz em que parte se está. */
   .computador { --pc-larg: 94vw; }
   .tela { aspect-ratio: 1; font-size: calc(var(--pc-larg) / 44); }
-  .tela-lado, .decks-lista, .pomo-lado, .editor-cards, .editor-resto { display: none; }
+  .tela-lado, .decks-lista, .pomo-lado, .prova-lado, .editor-cards, .editor-resto { display: none; }
   .cena { padding: 1em 1.1em 1.1em; gap: .8em; }
   .cena-topo h5 { font-size: 1.5em; }
   .numeros { gap: .5em; }
@@ -1290,7 +1357,7 @@ h2 {
         <!-- A legenda do passeio: em que parte do app a tela está. -->
         <div class="passeio" id="passeio" aria-hidden="true">
           <div class="passeio-cartao" id="passeioCartao"><span class="passeio-num" id="passeioNum" style="background:var(--rosa)">1</span><strong id="passeioTitulo">Dashboard</strong><span class="tx" id="passeioTexto">Seu estudo num relance, com o mapa de calor dos dias</span></div>
-          <div class="passeio-pontos" id="passeioPontos"><i class="aqui"></i><i></i><i></i><i></i><i></i></div>
+          <div class="passeio-pontos" id="passeioPontos"><i class="aqui"></i><i></i><i></i><i></i><i></i><i></i></div>
         </div>
         <div class="computador-tampa">
         <div class="tela">
@@ -1302,6 +1369,7 @@ h2 {
                 <i class="lado-marcador"></i>
                 <span class="ativo"><b style="background:var(--lima)">▦</b>Dashboard</span>
                 <span><b style="background:var(--rosa)">✎</b>Arquivos</span>
+                <span><b style="background:var(--pessego)">✓</b>Questões</span>
                 <span><b style="background:var(--manteiga)">❏</b>Decks</span>
                 <span><b style="background:var(--ceu)">◔</b>Pomodoro</span>
                 <span><b style="background:var(--lilas)">✦</b>Agente de IA</span>
@@ -1355,7 +1423,35 @@ h2 {
                 </div>
               </div>
 
-              <!-- 3. Decks: a revisão, com o card virando e a nota. -->
+              <!-- 3. Questões: a prova feita com as questões tiradas do resumo. -->
+              <div class="cena">
+                <div class="cena-topo"><h5>Prova · Cardiologia</h5><span class="selo-app" style="background:var(--pessego)">Questão 3 de 10</span></div>
+                <div class="prova-corpo">
+                  <div class="prova-questao">
+                    <small>Questão 3 · do seu resumo de SCA</small>
+                    <p class="prova-enunciado">No IAM com supra de ST, qual é o tempo porta-balão recomendado?</p>
+                    <div class="prova-alts">
+                      <span class="prova-alt"><b>A</b>Até 30 minutos</span>
+                      <span class="prova-alt" id="altEscolhida"><b>B</b>Até 90 minutos</span>
+                      <span class="prova-alt"><b>C</b>Até 3 horas</span>
+                      <span class="prova-alt"><b>D</b>Até 12 horas</span>
+                    </div>
+                    <span class="prova-certa pula" id="provaCerta">✓ acertou!</span>
+                  </div>
+                  <div class="prova-lado">
+                    <div class="prova-banco">
+                      <small>Banco de questões</small>
+                      <span><i style="background:var(--rosa)">♥</i>SCA<em>12</em></span>
+                      <span><i style="background:var(--ceu)">✳</i>Asma<em>8</em></span>
+                      <span><i style="background:var(--manteiga)">★</i>Hiponatremia<em>5</em></span>
+                    </div>
+                    <div class="prova-nota" id="provaNota"><small>Nota da prova</small><b id="provaNotaNum">0</b><span>de 10 questões</span></div>
+                    <span class="prova-entregar" id="provaEntregar">Entregar prova</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 4. Decks: a revisão, com o card virando e a nota. -->
               <div class="cena">
                 <div class="cena-topo"><h5>Revisão de hoje</h5><span class="selo-app" style="background:var(--rosa)">12 cards na fila</span></div>
                 <div class="decks-corpo">
@@ -1378,7 +1474,7 @@ h2 {
                 </div>
               </div>
 
-              <!-- 4. Pomodoro: o anel enchendo, com o assunto do arquivo. -->
+              <!-- 5. Pomodoro: o anel enchendo, com o assunto do arquivo. -->
               <div class="cena">
                 <div class="cena-topo"><h5>Pomodoro</h5><span class="selo-app" style="background:var(--ceu)">Ciclo 3 de 4</span></div>
                 <div class="pomo-corpo">
@@ -1398,14 +1494,14 @@ h2 {
                 </div>
               </div>
 
-              <!-- 5. Agente de IA: o pedido e os cards que saem do resumo. -->
+              <!-- 6. Agente de IA: o pedido e os cards que saem do resumo. -->
               <div class="cena">
                 <div class="cena-topo"><h5>Agente de IA</h5><span class="selo-app" style="background:var(--lilas)">✦ lê os seus arquivos</span></div>
                 <div class="sugestoes" aria-hidden="true"><span>Resuma o arquivo SCA</span><span class="usada">Crie cards do meu resumo</span><span>Me faça 5 perguntas</span><span>Explique como num plantão</span></div>
                 <div class="chat">
-                  <div class="msg eu" data-em=".765">Faz 3 cards sobre reperfusão na SCA, a partir do meu resumo? 🙏</div>
-                  <div class="msg ia" data-em=".78" data-ate=".8"><span class="ia-rosto">✦</span><span class="pontinhos"><i></i><i></i><i></i></span></div>
-                  <div class="msg ia" data-em=".8"><span class="ia-rosto">✦</span><div>Pronto! Tirei do seu arquivo <b>SCA</b>:<div class="ia-cards"><span class="ia-card pula" data-em=".815" style="--g:-3deg;background:var(--manteiga)"><small>Card 1</small>Qual o tempo porta-balão?</span><span class="ia-card pula" data-em=".83" style="--g:2deg;background:var(--rosa)"><small>Card 2</small>E o porta-agulha na trombólise?</span><span class="ia-card pula" data-em=".845" style="--g:-2deg;background:var(--lima)"><small>Card 3</small>Quais os critérios de reperfusão?</span></div></div></div>
+                  <div class="msg eu" data-em=".785">Faz 3 cards sobre reperfusão na SCA, a partir do meu resumo? 🙏</div>
+                  <div class="msg ia" data-em=".8" data-ate=".815"><span class="ia-rosto">✦</span><span class="pontinhos"><i></i><i></i><i></i></span></div>
+                  <div class="msg ia" data-em=".815"><span class="ia-rosto">✦</span><div>Pronto! Tirei do seu arquivo <b>SCA</b>:<div class="ia-cards"><span class="ia-card pula" data-em=".825" style="--g:-3deg;background:var(--manteiga)"><small>Card 1</small>Qual o tempo porta-balão?</span><span class="ia-card pula" data-em=".835" style="--g:2deg;background:var(--rosa)"><small>Card 2</small>E o porta-agulha na trombólise?</span><span class="ia-card pula" data-em=".845" style="--g:-2deg;background:var(--lima)"><small>Card 3</small>Quais os critérios de reperfusão?</span></div></div></div>
                 </div>
                 <div class="chat-campo"><span>Pergunte ao seu resumo…</span><b>↑</b></div>
               </div>
@@ -1825,10 +1921,11 @@ h2 {
   var passeio = $("passeio"), passeioCartao = $("passeioCartao"), passeioNum = $("passeioNum");
   var passeioTitulo = $("passeioTitulo"), passeioTexto = $("passeioTexto"), passeioPontos = $("passeioPontos").children;
   var PASSEIO = [
-    { ate: .27, titulo: "Dashboard", texto: "Seu estudo num relance, com o mapa de calor dos dias", cor: "var(--rosa)" },
-    { ate: .47, titulo: "Arquivos", texto: "Escreva, grife, e o trecho vira card", cor: "var(--lima)" },
-    { ate: .62, titulo: "Decks", texto: "Cada card volta na hora certa de revisar", cor: "var(--manteiga)" },
-    { ate: .75, titulo: "Pomodoro", texto: "Foco cronometrado, com o assunto no relógio", cor: "var(--ceu)" },
+    { ate: .23, titulo: "Dashboard", texto: "Seu estudo num relance, com o mapa de calor dos dias", cor: "var(--rosa)" },
+    { ate: .4, titulo: "Arquivos", texto: "Escreva, grife, e o trecho vira card", cor: "var(--lima)" },
+    { ate: .54, titulo: "Banco de questões", texto: "Faça provas com as questões tiradas do seu texto", cor: "var(--pessego)" },
+    { ate: .67, titulo: "Decks", texto: "Cada card volta na hora certa de revisar", cor: "var(--manteiga)" },
+    { ate: .77, titulo: "Pomodoro", texto: "Foco cronometrado, com o assunto no relógio", cor: "var(--ceu)" },
     { ate: 2, titulo: "Agente de IA", texto: "Peça cards e perguntas do seu próprio resumo", cor: "var(--lilas)" }
   ];
   var cenaAtual = 0;
@@ -1841,15 +1938,17 @@ h2 {
      baixo. `cor` troca a cor do círculo, que por padrão é vermelho. */
   var RABISCOS = [
     { de: -1, ate: .02, alvo: ".computador-tampa", mira: [0, .16], sobe: .14, saida: .05, barrigaBaixo: true, lado: "esq", texto: "role a página e veja o sistema por dentro", g: -4 },
-    { cena: 0, de: .13, alvo: ".selo-app", circulo: true, abaixo: true, lado: "dir", texto: "12 dias sem falhar!", g: 3 },
-    { cena: 0, de: .21, alvo: ".calor-caixa", mira: [0, .62], lado: "esq", texto: "cada quadradinho é um dia de estudo", g: -3 },
-    { cena: 1, de: .405, alvo: "#digGrifo", ultimaLinha: true, lado: "esq", texto: "grifou…", g: -5 },
-    { cena: 1, de: .44, alvo: "#previa", mira: [1, .3], lado: "dir", texto: "…e já virou card!", g: 4 },
-    { cena: 2, de: .5, alvo: ".deck.aqui", lado: "esq", texto: "um deck por assunto", g: -3 },
-    { cena: 2, de: .565, alvo: "#grauBom", circulo: true, lado: "dir",  texto: "acertou? volta em 3 dias", g: 3 },
-    { cena: 3, de: .64, alvo: "#pomoAnel", circulo: true, lado: "esq", texto: "25 minutos de foco, sem distração", g: -4 },
-    { cena: 4, de: .775, alvo: ".msg.eu", mira: [1, .5], lado: "dir", texto: "pede do seu jeito", g: 3 },
-    { cena: 4, de: .85, alvo: ".ia-cards", mira: [0, .5], lado: "esq", texto: "cards tirados do SEU resumo", g: -3 }
+    { cena: 0, de: .12, alvo: ".selo-app", circulo: true, abaixo: true, lado: "dir", texto: "12 dias sem falhar!", g: 3 },
+    { cena: 0, de: .185, alvo: ".calor-caixa", mira: [0, .62], lado: "esq", texto: "cada quadradinho é um dia de estudo", g: -3 },
+    { cena: 1, de: .34, alvo: "#digGrifo", ultimaLinha: true, lado: "esq", texto: "grifou…", g: -5 },
+    { cena: 1, de: .37, alvo: "#previa", mira: [1, .3], lado: "dir", texto: "…e já virou card!", g: 4 },
+    { cena: 2, de: .415, alvo: ".prova-enunciado", mira: [0, .5], lado: "esq", texto: "a questão sai do SEU resumo", g: -3 },
+    { cena: 2, de: .485, alvo: "#provaNota", circulo: true, lado: "dir", texto: "prova corrigida na hora!", g: 4 },
+    { cena: 3, de: .56, alvo: ".deck.aqui", lado: "esq", texto: "um deck por assunto", g: -3 },
+    { cena: 3, de: .62, alvo: "#grauBom", circulo: true, lado: "dir",  texto: "acertou? volta em 3 dias", g: 3 },
+    { cena: 4, de: .69, alvo: "#pomoAnel", circulo: true, lado: "esq", texto: "25 minutos de foco, sem distração", g: -4 },
+    { cena: 5, de: .79, alvo: ".msg.eu", mira: [1, .5], lado: "dir", texto: "pede do seu jeito", g: 3 },
+    { cena: 5, de: .855, alvo: ".ia-cards", mira: [0, .5], lado: "esq", texto: "cards tirados do SEU resumo", g: -3 }
   ];
   var rabiscos = $("rabiscos"), SVG_NS = "http://www.w3.org/2000/svg";
   RABISCOS.forEach(function (r) {
@@ -1991,6 +2090,8 @@ h2 {
 
   var flash = $("flash"), grauBom = $("grauBom"), volta = $("volta"), metaDia = $("metaDia"), metaConta = $("metaConta");
   var pomoAnel = $("pomoAnel"), pomoTempo = $("pomoTempo");
+  var altEscolhida = $("altEscolhida"), provaCerta = $("provaCerta"), provaNota = $("provaNota"),
+      provaNotaNum = $("provaNotaNum"), provaEntregar = $("provaEntregar");
   var noChat = Array.prototype.slice.call(computador.querySelectorAll(".chat [data-em]"));
 
   var resultado = $("resultado"), ultimaCurva = null;
@@ -2122,44 +2223,53 @@ h2 {
     pintarRabiscos(p, i);
 
     /* 1. Dashboard: os números contam e o mapa acende em onda. */
-    var conta = suave(trecho(p, .08, .2));
+    var conta = suave(trecho(p, .08, .18));
     contadores.forEach(function (el) { escreve(el, Math.round(Number(el.dataset.conta) * conta) + (el.dataset.fim || "")); });
-    var acesas = Math.round(trecho(p, .1, .22) * 20);
+    var acesas = Math.round(trecho(p, .09, .2) * 20);
     if (acesas !== colunasAcesas) {
       var de = Math.min(acesas, colunasAcesas), ate = Math.max(acesas, colunasAcesas);
       for (var k = de; k < ate; k++) colunasCalor[k].forEach(function (cel) { cel.classList.toggle("acesa", k < acesas); });
       colunasAcesas = acesas;
     }
-    liga(medalha, "ver", p > .22);
+    liga(medalha, "ver", p > .2);
 
     /* 2. Arquivos: a digitação letra a letra, o grifo, o balão e o card. */
-    var n = Math.round(TOTAL * trecho(p, .285, .38));
+    var n = Math.round(TOTAL * trecho(p, .24, .32));
     var a = TEXTO[0].length, b = a + TEXTO[1].length;
     escreve(digAntes, TEXTO[0].slice(0, Math.min(n, a)));
     escreve(digGrifo, n > a ? TEXTO[1].slice(0, Math.min(n, b) - a) : "");
     escreve(digDepois, n > b ? TEXTO[2].slice(0, n - b) : "");
-    poe(cursor, "visibility", p > .385 ? "hidden" : "visible");
-    poe(digGrifo, "--grifo", Math.round(trecho(p, .385, .41) * 100) + "%");
-    liga(balao, "visivel", p > .41);
-    liga(balaoCriar, "apertado", p > .425 && p < .435);
-    liga(previa, "cheia", p > .435);
-    liga(maisCard, "ver", p > .44);
+    poe(cursor, "visibility", p > .325 ? "hidden" : "visible");
+    poe(digGrifo, "--grifo", Math.round(trecho(p, .325, .345) * 100) + "%");
+    liga(balao, "visivel", p > .345);
+    liga(balaoCriar, "apertado", p > .357 && p < .366);
+    liga(previa, "cheia", p > .366);
+    liga(maisCard, "ver", p > .37);
 
-    /* 3. Decks: o card vira, o "Bom" é apertado e a volta é marcada. */
-    liga(flash, "virado", p > .52);
-    liga(grauBom, "apertado", p > .56);
-    liga(volta, "ver", p > .57);
-    var feitos = p > .57 ? 5 : 4;
+    /* 3. Questões: escolhe a B, entrega, a certa acende e a nota conta. */
+    var certa = p > .475;
+    liga(altEscolhida, "escolhida", p > .435 && !certa);
+    liga(altEscolhida, "certa", certa);
+    liga(provaEntregar, "apertado", p > .465 && p < .475);
+    liga(provaCerta, "ver", certa);
+    liga(provaNota, "cheia", certa);
+    escreve(provaNotaNum, String(Math.round(8 * suave(trecho(p, .475, .5)))));
+
+    /* 4. Decks: o card vira, o "Bom" é apertado e a volta é marcada. */
+    liga(flash, "virado", p > .58);
+    liga(grauBom, "apertado", p > .615);
+    liga(volta, "ver", p > .625);
+    var feitos = p > .625 ? 5 : 4;
     escreve(metaConta, String(feitos));
     poe(metaDia, "--meta", (feitos / 12 * 100) + "%");
 
-    /* 4. Pomodoro: o anel enche e o relógio desce. */
-    var feito = .28 + .25 * trecho(p, .62, .75);
+    /* 5. Pomodoro: o anel enche e o relógio desce. */
+    var feito = .28 + .25 * trecho(p, .67, .77);
     poe(pomoAnel, "--pomo", String(arred(1 - feito, 4)));
     var resta = Math.round(25 * 60 * (1 - feito));
     escreve(pomoTempo, String(Math.floor(resta / 60)).padStart(2, "0") + ":" + String(resta % 60).padStart(2, "0"));
 
-    /* 5. Agente de IA: cada fala e cada card aparecem na sua vez. */
+    /* 6. Agente de IA: cada fala e cada card aparecem na sua vez. */
     noChat.forEach(function (el) {
       liga(el, "ver", p > Number(el.dataset.em));
       if (el.dataset.ate) { var some = p > Number(el.dataset.ate); if (el.hidden !== some) el.hidden = some; }

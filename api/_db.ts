@@ -149,6 +149,42 @@ const SCHEMA = [
    )`,
   `CREATE INDEX IF NOT EXISTS idx_ciclos_dia ON sinapse_ciclos (comecou_em)`,
 
+  /* O banco de questões. Cada questão é de múltipla escolha: o enunciado, as
+     alternativas (2 a 5, em JSON, na ordem em que foram escritas) e o índice
+     da certa. A prova embaralha na hora, então a ordem aqui é só a de quem
+     escreveu. Como o rascunho, a questão sobrevive ao arquivo de onde saiu:
+     ela guarda o trecho, e só perde o endereço. Acertos e tentativas moram
+     nela para o banco mostrar, sem junção, quais ela anda errando. */
+  `CREATE TABLE IF NOT EXISTS sinapse_questoes (
+     id            TEXT PRIMARY KEY,
+     arquivo_id    TEXT REFERENCES sinapse_arquivos(id) ON DELETE SET NULL,
+     enunciado     TEXT NOT NULL,
+     alternativas  TEXT NOT NULL DEFAULT '[]',
+     correta       INTEGER NOT NULL DEFAULT 0,
+     explicacao    TEXT NOT NULL DEFAULT '',
+     trecho        TEXT NOT NULL DEFAULT '',
+     origem        TEXT NOT NULL DEFAULT '',
+     acertos       INTEGER NOT NULL DEFAULT 0,
+     tentativas    INTEGER NOT NULL DEFAULT 0,
+     criada_em     TEXT NOT NULL,
+     atualizada_em TEXT NOT NULL
+   )`,
+  `CREATE INDEX IF NOT EXISTS idx_questoes_arquivo ON sinapse_questoes (arquivo_id)`,
+
+  /* As provas feitas: o recorte de onde as questões saíram, a nota, o tempo e
+     as respostas (JSON, uma por questão). É histórico, e não é desfeito
+     quando uma questão some: a prova continua contando o que foi feito. */
+  `CREATE TABLE IF NOT EXISTS sinapse_provas (
+     id        TEXT PRIMARY KEY,
+     escopo    TEXT NOT NULL DEFAULT '',
+     total     INTEGER NOT NULL DEFAULT 0,
+     acertos   INTEGER NOT NULL DEFAULT 0,
+     segundos  INTEGER NOT NULL DEFAULT 0,
+     respostas TEXT NOT NULL DEFAULT '[]',
+     feita_em  TEXT NOT NULL
+   )`,
+  `CREATE INDEX IF NOT EXISTS idx_provas_dia ON sinapse_provas (feita_em)`,
+
   // O uso da plataforma, em minutos ativos por hora (UTC, `AAAA-MM-DDTHH`). Uma
   // linha por hora, e não por acesso: o mapa de calor do Dashboard só precisa
   // do total de cada hora, e a tabela cresce no máximo 24 linhas por dia.
@@ -169,6 +205,8 @@ const COLUNAS: [string, string, string][] = [
   ['sinapse_arquivos', 'notas', `TEXT NOT NULL DEFAULT ''`],
   // Margem da folha em centímetros; 2,54 é a do Docs e do Word.
   ['sinapse_arquivos', 'margem', `REAL NOT NULL DEFAULT 2.54`],
+  // Os post-its soltos sobre a folha, em JSON: cor, texto e posição.
+  ['sinapse_arquivos', 'postits', `TEXT NOT NULL DEFAULT ''`],
   // Uma imagem por lado do card, como endereço da `/api/imagem` (vazio é sem).
   ['sinapse_flashcards', 'imagem_frente', `TEXT NOT NULL DEFAULT ''`],
   ['sinapse_flashcards', 'imagem_verso', `TEXT NOT NULL DEFAULT ''`],
