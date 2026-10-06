@@ -27,20 +27,21 @@
   --gray3:  #E3E4DE;
   --gray4:  #F0F0EE;
   /* O acento da casa. O token mantém o nome do portal, que é histórico:
-     lá ele já foi amarelo, virou teal e continua se chamando assim. Aqui é
-     um rosa leve, com o mesmo papel de marcar tudo que é clicável. */
-  --yellow: #F2A0C0;
-  --yellow-forte: #E58AAE;
-  --on-yellow: #121316;
-  --yd:     rgba(242, 160, 192, 0.14);
-  --yb:     rgba(242, 160, 192, 0.45);
-  --spinner: #F2A0C0;
-  /* Os degraus do mapa de calor do Dashboard: um tom só, do claro ao escuro.
-     No escuro a escada inverte: mais uso é mais luz. */
-  --mapa-1: #F9DCE8;
-  --mapa-2: #F2B6CE;
-  --mapa-3: #E58AAE;
-  --mapa-4: #C25A86;
+     lá ele já foi amarelo, virou teal, foi rosa, e continua se chamando
+     assim. Aqui é a tinta: preto cheio no que é ação, e um cinza claro (o
+     --yd) no que só marca a escolha. No escuro ele inverte para o claro. */
+  --yellow: #121316;
+  --yellow-forte: #2A2C31;
+  --on-yellow: #FFFFFF;
+  --yd:     rgba(18, 19, 22, 0.06);
+  --yb:     rgba(18, 19, 22, 0.16);
+  --spinner: var(--gray);
+  /* Os degraus do mapa de calor do Dashboard: um tom só, do cinza claro à
+     tinta. No escuro a escada inverte: mais uso é mais luz. */
+  --mapa-1: #E4E4E0;
+  --mapa-2: #B9BAB6;
+  --mapa-3: #6E6F73;
+  --mapa-4: #121316;
   --red:    #D93025;
   --green:  #1E8A3E;
   --green-light: #23A455;
@@ -63,7 +64,7 @@
 
   --shadow-card: 0 2px 8px rgba(0,0,0,0.07);
   --shadow-card-hover: 0 8px 32px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06);
-  --shadow-yellow: 0 4px 20px rgba(242, 160, 192, 0.45);
+  --shadow-yellow: 0 6px 18px rgba(18, 19, 22, 0.18);
   --transition:  .1s ease;
   --transition-spring: .18s cubic-bezier(0.4, 0, 0.2, 1);
   --curva-anti: cubic-bezier(0.2, 0.6, 0.2, 1);
@@ -85,16 +86,16 @@
     --gray2:  #74756F;
     --gray3:  #2A2B30;
     --gray4:  #1C1D21;
-    --yd:     rgba(242, 160, 192, 0.18);
-    --yb:     rgba(242, 160, 192, 0.50);
-  --mapa-1: #3B2530;
-  --mapa-2: #6A3B51;
-  --mapa-3: #A95C7C;
-  --mapa-4: #F2A0C0;
-    --mapa-1: #3B2530;
-    --mapa-2: #6A3B51;
-    --mapa-3: #A95C7C;
-    --mapa-4: #F2A0C0;
+    --yellow: #F4F4F2;
+    --yellow-forte: #FFFFFF;
+    --on-yellow: #121316;
+    --yd:     rgba(255, 255, 255, 0.08);
+    --yb:     rgba(255, 255, 255, 0.20);
+    --shadow-yellow: 0 6px 18px rgba(0, 0, 0, 0.5);
+    --mapa-1: #26272B;
+    --mapa-2: #4A4B50;
+    --mapa-3: #8E8F93;
+    --mapa-4: #F4F4F2;
     --card-hover-bg: #1E1F24;
     --shadow-card: 0 2px 10px rgba(0,0,0,0.55);
     --shadow-card-hover: 0 8px 32px rgba(0,0,0,0.65), 0 2px 8px rgba(0,0,0,0.5);
@@ -110,12 +111,16 @@
   --gray2:  #74756F;
   --gray3:  #2A2B30;
   --gray4:  #1C1D21;
-  --yd:     rgba(242, 160, 192, 0.18);
-  --yb:     rgba(242, 160, 192, 0.50);
-  --mapa-1: #3B2530;
-  --mapa-2: #6A3B51;
-  --mapa-3: #A95C7C;
-  --mapa-4: #F2A0C0;
+  --yellow: #F4F4F2;
+  --yellow-forte: #FFFFFF;
+  --on-yellow: #121316;
+  --yd:     rgba(255, 255, 255, 0.08);
+  --yb:     rgba(255, 255, 255, 0.20);
+  --shadow-yellow: 0 6px 18px rgba(0, 0, 0, 0.5);
+  --mapa-1: #26272B;
+  --mapa-2: #4A4B50;
+  --mapa-3: #8E8F93;
+  --mapa-4: #F4F4F2;
   --card-hover-bg: #1E1F24;
   --shadow-card: 0 2px 10px rgba(0,0,0,0.55);
   --shadow-card-hover: 0 8px 32px rgba(0,0,0,0.65), 0 2px 8px rgba(0,0,0,0.5);
@@ -206,7 +211,8 @@ body {
 /* Dois tempos, e com sentido: descer um nível manda a peça para a esquerda e
    traz a seguinte da direita; voltar faz o contrário. A saída é mais curta que
    a entrada porque quem sai já foi decidido, quem chega é que precisa
-   assentar. Os 130ms da saída estão espelhados em `NIVEL_SAIDA`, no script.
+   assentar. Os tempos valem só até a seção "Passagem", no fim da folha,
+   que redefine estes movimentos e espelha a saída em `NIVEL_SAIDA`.
 
    `backwards` na entrada, e não `both`: transform que fica cria bloco de
    contenção para position: fixed, e o menu sobreposto do celular passaria a se
@@ -362,23 +368,20 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
 }
 .topo-icone:hover { background: var(--gray4); color: var(--black); }
 .topo-icone:focus-visible { outline: none; background: var(--gray4); color: var(--black); }
-.marca-chapa {
-  width: 28px; height: 28px;
-  border-radius: 6px;
-  flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  background: var(--yellow);
-  color: var(--on-yellow);
+/* A marca é a da landing e do login: o símbolo em tinta, o nome em
+   minúsculas na Bricolage, e o símbolo gira um sexto de volta sob o
+   ponteiro. Ela toma a largura que sobra ao lado do botão de recolher. */
+.app-marca {
+  flex: 1; min-width: 0;
+  display: flex; align-items: center; gap: 7px;
+  color: var(--black);
+  font-family: "Bricolage Grotesque", "Manrope", system-ui, sans-serif;
+  font-weight: 800; font-size: 25px; letter-spacing: -.055em; line-height: 1;
+  padding-bottom: 2px;
 }
-.marca-texto { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.topbar-marca-nome {
-  font-size: 15px; font-weight: 700; color: var(--black); line-height: 1;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.topbar-marca-sub {
-  font-size: 11px; color: var(--gray2); font-weight: 500; line-height: 1;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
+.app-marca-simbolo { width: 26px; height: 26px; flex-shrink: 0; transition: transform .6s cubic-bezier(.2, 1.3, .35, 1); }
+.app-marca:hover .app-marca-simbolo { transform: rotate(60deg); }
+@media (prefers-reduced-motion: reduce) { .app-marca-simbolo { transition: none; } }
 .seg-rotulo {
   font-size: 10px;
   font-weight: 800;
@@ -408,9 +411,6 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
   background: var(--white); border: 1px solid var(--gray3);
   border-radius: 5px; padding: 1px 5px;
 }
-/* O divisor fica acima da conta: o tema fica com o menu, e a conta, sozinha
-   embaixo da linha. */
-.app-menu-conta { flex-shrink: 0; margin-top: 14px; padding: 12px 12px 0; border-top: 1px solid var(--cristal-borda); }
 .topbar-conta {
   display: flex;
   align-items: center;
@@ -455,6 +455,64 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
   overflow: hidden;
   animation: panelUp .18s ease both;
 }
+/* ─── O canto de cima ───────────────────────────────────────────────────
+   Uma faixa fina no alto da área principal, só com o que é de quem usa: o
+   Inbox e a conta, encostados à direita e soltos no fundo, sem chapa: o
+   cinza só aparece sob o ponteiro. As telas começam abaixo dela, com um
+   respiro de 24px que separa o botão de cada tela da conta logo acima. */
+.app-topo {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 20px;
+  padding: 12px 24px 0;
+}
+.topo-inbox {
+  position: relative;
+  width: 38px; height: 38px;
+  display: grid; place-items: center;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--gray);
+  transition: background var(--transition), color var(--transition);
+}
+.topo-inbox:hover, .topo-inbox:focus-visible { outline: none; background: var(--gray4); color: var(--black); }
+.topo-inbox.ativo { color: var(--black); }
+/* O número do que espera hoje, na quina do ícone. */
+.topo-inbox-selo {
+  position: absolute;
+  top: -6px; right: -6px;
+  min-width: 18px; height: 18px;
+  padding: 0 5px;
+  border-radius: var(--radius-pill);
+  background: var(--yellow);
+  color: var(--on-yellow);
+  border: 2px solid var(--bg);
+  font-size: 10px; font-weight: 800; line-height: 14px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.app-topo .topbar-conta { width: auto; max-width: 260px; padding: 4px 10px 4px 4px; border-color: transparent; background: transparent; }
+.app-topo .topbar-conta:hover, .app-topo .topbar-conta:focus-visible { background: var(--gray4); border-color: transparent; }
+.app-topo .topbar-conta[aria-expanded="true"] { background: var(--gray4); }
+.app-topo .topbar-conta-avatar { width: 30px; height: 30px; font-size: 11px; }
+.app-principal .admin-content-wrap { padding-top: 24px; }
+.app-principal .trilha-tela { padding-top: 24px; }
+/* Com o menu recolhido, o botão de reabrir mora na quina de cima, à
+   esquerda da faixa: o conteúdo não precisa mais descer para ele. */
+.admin-casca[data-menu="fechado"] .app-principal { padding-top: 0; }
+/* No celular a faixa segue o respiro lateral das telas, e a conta fica só
+   com o avatar: o nome por extenso disputaria a largura com o Inbox. */
+@media (max-width: 768px) {
+  .app-topo { padding: 10px 14px 0; }
+}
+@media (max-width: 560px) {
+  .app-topo .topbar-conta-texto { display: none; }
+  .app-topo .topbar-conta { padding: 3px; border-radius: var(--radius-pill); }
+}
+
 .conta-menu-aviso { padding: 12px 14px; border-bottom: 1px solid var(--gray3); background: var(--bg); }
 .conta-menu-aviso p { font-size: 11px; font-weight: 500; color: var(--gray2); line-height: 1.5; }
 .conta-menu-item {
@@ -508,7 +566,6 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
   margin-bottom: 16px;
   border-bottom: 1px solid var(--cristal-borda);
 }
-.app-menu-marca .marca-texto { flex: 1; }
 .app-menu-busca { flex-shrink: 0; padding: 0 20px 26px; }
 .app-menu-busca .qs-trigger { width: 100%; }
 .app-menu-busca .qs-trigger-label { flex: 1; text-align: left; }
@@ -1674,7 +1731,7 @@ body.puxando-coluna * { cursor: col-resize !important; }
    Na tela larga eles são colunas, e o X não aparece. */
 .painel-fechar { display: none; flex-shrink: 0; width: 30px; height: 30px; border-radius: var(--radius-sm); place-items: center; color: var(--gray); margin-left: 6px; transition: background var(--transition), color var(--transition); }
 .painel-fechar:hover { background: var(--gray4); color: var(--black); }
-.barra-lado[aria-pressed="true"] { background: var(--yd); color: var(--black); border-color: transparent; }
+.barra-lado[aria-pressed="true"] { background: var(--gray3); color: var(--black); border-color: transparent; }
 .barra-edicao {
   display: flex;
   flex-wrap: wrap;
@@ -1724,7 +1781,9 @@ body.puxando-coluna * { cursor: col-resize !important; }
   transition: background var(--transition), color var(--transition);
 }
 .be-btn:hover, .be-btn:focus-visible { outline: none; background: var(--gray4); color: var(--black); }
-.be-btn[aria-pressed="true"], .be-btn[aria-expanded="true"] { background: var(--yd); color: var(--black); }
+/* Ligado é um degrau de cinza acima do hover (--gray4), para os dois não
+   se confundirem. */
+.be-btn[aria-pressed="true"], .be-btn[aria-expanded="true"] { background: var(--gray3); color: var(--black); }
 .be-caixa {
   height: 30px;
   display: inline-flex;
@@ -1931,10 +1990,20 @@ body.puxando-coluna * { cursor: col-resize !important; }
   cursor: pointer;
   transition: background-color var(--transition), border-color var(--transition);
 }
+/* O visto é um desenho, e desenho não herda cor: o traço é branco sobre a
+   tinta do claro, e tinta sobre o acento claro do escuro. */
 .arquivo-corpo ul.lista-tarefas > li[data-feito]::before {
   background-color: var(--yellow);
   border-color: var(--yellow-forte);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23FFFFFF' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+}
+:root[data-theme="dark"] .arquivo-corpo ul.lista-tarefas > li[data-feito]::before {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23121316' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .arquivo-corpo ul.lista-tarefas > li[data-feito]::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23121316' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 12.5 4.5 4.5L19 7.5'/%3E%3C/svg%3E");
+  }
 }
 .arquivo-corpo ul.lista-tarefas:not([data-riscar="nao"]) > li[data-feito] { text-decoration: line-through; color: var(--gray2); }
 .abertura { font-size: 17px; color: var(--gray); line-height: 1.65; }
@@ -2269,7 +2338,9 @@ mark.grifo[data-cor="vermelho"] { --gr-cor: var(--gr-vermelho); }
 }
 .foco-seg[data-ligado="true"]:hover { background: var(--yellow-forte); border-color: var(--yellow-forte); }
 .foco-seg[data-ligado="true"] .foco-seg-thumb { transform: translateX(calc(var(--seg-w) + var(--seg-gap))); }
-.foco-seg[data-ligado="true"] .foco-seg-ico { color: var(--on-yellow); }
+/* O ícone ligado fica em cima da bolinha, e não do acento: veste a tinta
+   do texto, que contrasta com ela nos dois temas. */
+.foco-seg[data-ligado="true"] .foco-seg-ico { color: var(--black); }
 /* No topo a mesma peça vem menor. Lá os controles têm 30px de altura, e a de
    42px do Pomodoro encostaria nas duas bordas de uma faixa de 60px. Só as
    medidas mudam: a chapa que acende continua sendo a mesma. */
@@ -2402,7 +2473,7 @@ input:checked + .switch::after { transform: translateX(14px); }
 .ia-compor { display: flex; align-items: flex-end; gap: 6px; border: 1.5px solid var(--gray3); border-radius: 16px; background: var(--white); padding: 6px 6px 6px 12px; transition: border-color var(--transition); }
 .ia-compor:focus-within { border-color: var(--gray2); }
 .ia-compor textarea { flex: 1; border: none; outline: none; resize: none; background: none; font-size: 13.5px; line-height: 1.45; padding: 5px 0; max-height: 120px; min-height: 0; }
-.ia-enviar { flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--yellow); color: var(--black); transition: opacity var(--transition); }
+.ia-enviar { flex-shrink: 0; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--yellow); color: var(--on-yellow); transition: opacity var(--transition); }
 .ia-enviar:disabled { opacity: .35; cursor: default; }
 
 /* ─── Campo e dropdown da casa ───────────────────────────────────────── */
@@ -3412,7 +3483,7 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
 }
 .dux-spinner.sm { width: 16px; height: 16px; border-width: 2px; }
 /* Dentro de botão colorido o giro veste o que estiver em volta: o cinza com
-   topo rosa sumiria no fundo. */
+   topo cinza sumiria no fundo. */
 .dux-spinner.na-cor {
   border-color: color-mix(in srgb, currentColor 35%, transparent);
   border-top-color: currentColor;
@@ -3943,7 +4014,7 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
    linhas e com o número sempre preto, a faixa não chegava ao valor, e o rótulo
    ficava abaixo dele em vez de acima.
 
-   A cor é uma só, o rosa da casa, em todos os cartões do sistema. O acento ficou
+   A cor é uma só, a tinta da casa, em todos os cartões do sistema. O acento ficou
    escrito direto na regra e não mais atrás de um `--accent-color`: com a
    variável, cada tela podia trocar a sua, e era o que estava acontecendo. */
 .admin-stat-card-v2 {
@@ -4621,8 +4692,8 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
 .coluna-barra {
   background: var(--yellow);
   border-radius: 4px 4px 0 0;
-  /* O rosa é mais claro que o teal que estava aqui: a 55% a barra em repouso
-     quase encostava no branco da folha. */
+  /* A tinta a 75% fica num cinza escuro em repouso, e acende inteira sob o
+     ponteiro e no dia de hoje: é o que separa hoje dos outros dias. */
   opacity: .75;
   transition: opacity var(--transition), background var(--transition);
   min-height: 3px;
@@ -4979,183 +5050,158 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
   .tempo { font-size: 36px; }
 }
 
-/* ─── Obra: tudo que chega se ergue, tudo que sai se desmonta ─────────────
-   Uma linguagem só para o sistema inteiro. O que aparece, uma tela, uma
-   gaveta, um menu, um cartão recém-criado, sobe do chão e se assenta com uma
-   mola: o recorte abre de baixo para cima, como parede subindo, e a peça passa
-   um pouco do ponto antes de parar. O que some faz o contrário: dá um tranco,
-   tomba de leve, desfoca e é recortado de cima para baixo até virar nada.
+/* ─── Passagem: o que chega esmaece para dentro, o que sai esmaece para fora ─
+   Uma linguagem só para o sistema inteiro, e discreta: a peça que aparece,
+   uma tela, uma gaveta, um menu, um cartão recém-criado, surge da
+   transparência com um deslize de poucos pixels; a que some só esmaece. Nada
+   de recorte, desfoque, giro nem mola: a transição acompanha o olho, e não
+   chama atenção para si.
+
+   As camadas de uma tela chegam juntas, sem subir em fila: o passo entre
+   elas é zero, e a tela inteira aparece como uma coisa só.
 
    Fica no fim da folha de propósito: as peças que já tinham entrada e saída
    próprias (o diálogo, a gaveta, a busca, os menus) passam a usar estas, e a
    regra que vem depois é a que vale.
 
-   A saída é mais curta que a entrada pela mesma razão de sempre: quem sai já
-   foi decidido, quem chega é que precisa assentar. Os 260ms da saída estão
-   espelhados em `OBRA_SAIDA`, no script. */
+   A saída é mais curta que a entrada: quem sai já foi decidido, quem chega é
+   que precisa assentar. Os 160ms da saída estão espelhados em `OBRA_SAIDA`,
+   no script. */
 :root {
-  --obra-entrada: .5s;
-  --obra-saida: .26s;
-  --obra-passo: 42ms;
-  --obra-mola: cubic-bezier(.2, 1.3, .35, 1);
-  --obra-queda: cubic-bezier(.55, 0, .8, .25);
+  --obra-entrada: .28s;
+  --obra-saida: .16s;
+  --obra-passo: 0ms;
+  --obra-suave: cubic-bezier(.2, .7, .2, 1);
+  --obra-sai: cubic-bezier(.4, 0, 1, 1);
 }
 
 @keyframes obra-ergue {
-  0%   { opacity: 0; transform: translateY(18px) scale(.92); clip-path: inset(100% 0 0 0); filter: blur(4px); }
-  45%  { opacity: 1; clip-path: inset(0 0 0 0); filter: blur(0); }
-  70%  { transform: translateY(-3px) scale(1.012); }
-  100% { opacity: 1; transform: none; clip-path: inset(0 0 0 0); filter: none; }
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: none; }
 }
 @keyframes obra-desmonta {
-  0%   { opacity: 1; transform: none; clip-path: inset(0 0 0 0); filter: none; }
-  28%  { opacity: 1; transform: translateY(-3px) scale(1.02) rotate(-.6deg); }
-  100% { opacity: 0; transform: translateY(16px) scale(.88) rotate(1.4deg); clip-path: inset(0 0 100% 0); filter: blur(5px); }
+  from { opacity: 1; }
+  to   { opacity: 0; }
 }
-/* A peça de uma tela que chega: sem recorte, porque a tela inteira sobe em
-   camadas, e recortar cada camada piscaria. Cada uma vem um passo depois da
-   anterior, e a inclinação muda de sinal para elas não subirem em fila. */
 @keyframes obra-peca {
-  0%   { opacity: 0; transform: translateY(22px) scale(.95) rotate(var(--obra-giro, -.8deg)); filter: blur(3px); }
-  55%  { opacity: 1; filter: blur(0); }
-  75%  { transform: translateY(-3px) scale(1.008) rotate(0deg); }
-  100% { opacity: 1; transform: none; filter: none; }
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
 }
-/* Menus e listas suspensas se desdobram a partir do gatilho, e se dobram de
-   volta para ele. */
+/* Menus e listas suspensas descem um fio a partir do gatilho. */
 @keyframes obra-desdobra {
-  0%   { opacity: 0; transform: translateY(-6px) scaleY(.7); clip-path: inset(0 0 100% 0 round 12px); }
-  60%  { opacity: 1; clip-path: inset(0 0 0 0 round 12px); }
-  80%  { transform: translateY(1px) scaleY(1.02); }
-  100% { opacity: 1; transform: none; clip-path: inset(0 0 0 0 round 12px); }
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: none; }
 }
 @keyframes obra-dobra {
-  0%   { opacity: 1; transform: none; clip-path: inset(0 0 0 0 round 12px); }
-  100% { opacity: 0; transform: translateY(-8px) scaleY(.6); clip-path: inset(0 0 100% 0 round 12px); filter: blur(3px); }
+  from { opacity: 1; }
+  to   { opacity: 0; }
 }
-/* A gaveta é construída a partir da borda de onde vem, e desmontada de volta
-   para ela. */
+/* A gaveta desliza um pouco a partir da borda de onde vem. */
 @keyframes obra-gaveta-entra {
-  0%   { opacity: 0; transform: translateX(60px) skewX(-2deg); clip-path: inset(0 0 0 100%); }
-  50%  { opacity: 1; clip-path: inset(0 0 0 0); }
-  75%  { transform: translateX(-6px) skewX(.4deg); }
-  100% { opacity: 1; transform: none; clip-path: inset(0 0 0 0); }
+  from { opacity: 0; transform: translateX(24px); }
+  to   { opacity: 1; transform: none; }
 }
 @keyframes obra-gaveta-sai {
-  0%   { opacity: 1; transform: none; clip-path: inset(0 0 0 0); filter: none; }
-  30%  { transform: translateX(-8px); }
-  100% { opacity: 0; transform: translateX(70px) skewX(2deg); clip-path: inset(0 0 0 100%); filter: blur(4px); }
+  from { opacity: 1; transform: none; }
+  to   { opacity: 0; transform: translateX(24px); }
 }
 @keyframes obra-fundo-sai { from { opacity: 1; } to { opacity: 0; } }
+/* O diálogo cresce de quase nada, sem passar do ponto. */
+@keyframes obra-caixa {
+  from { opacity: 0; transform: scale(.98); }
+  to   { opacity: 1; transform: none; }
+}
 
 .obra-ergue {
-  animation: obra-ergue var(--obra-entrada) var(--obra-mola) backwards;
+  animation: obra-ergue var(--obra-entrada) var(--obra-suave) backwards;
   animation-delay: var(--obra-atraso, 0ms);
 }
 .obra-desmonta {
-  animation: obra-desmonta var(--obra-saida) var(--obra-queda) forwards !important;
+  animation: obra-desmonta var(--obra-saida) var(--obra-sai) forwards !important;
   pointer-events: none;
 }
 .obra-peca {
-  animation: obra-peca var(--obra-entrada) var(--obra-mola) backwards;
-  animation-delay: calc(var(--obra-i, 0) * var(--obra-passo) + 30ms);
-  transform-origin: 50% 100%;
+  animation: obra-peca var(--obra-entrada) var(--obra-suave) backwards;
+  animation-delay: calc(var(--obra-i, 0) * var(--obra-passo));
 }
-.obra-peca:nth-of-type(even) { --obra-giro: .8deg; }
 /* O cartão que acabou de sair já não é de ninguém: ele ocupa o lugar só o
-   tempo de cair, e não recebe clique nem foco. */
+   tempo de esmaecer, e não recebe clique nem foco. */
 .obra-fantasma { pointer-events: none; }
 
-/* ── Telas: a que sai desmonta, a que chega se ergue em camadas ── */
-@keyframes nivel-sai-fundo {
-  to { opacity: 0; transform: translateX(-24px) scale(.97); filter: blur(4px); }
-}
-@keyframes nivel-sai-volta {
-  to { opacity: 0; transform: translateX(24px) scale(.97); filter: blur(4px); }
-}
-@keyframes nivel-sai-lado {
-  30%  { opacity: 1; transform: scale(1.006); }
-  100% { opacity: 0; transform: translateY(12px) scale(.965); filter: blur(4px); }
-}
-@keyframes nivel-entra-fundo { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
-@keyframes nivel-entra-volta { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+/* ── Telas: a que sai esmaece, a que chega desliza de leve no sentido do
+   gesto (descer vem da direita, voltar vem da esquerda) ── */
+@keyframes nivel-sai-fundo { to { opacity: 0; } }
+@keyframes nivel-sai-volta { to { opacity: 0; } }
+@keyframes nivel-sai-lado  { to { opacity: 0; } }
+@keyframes nivel-entra-fundo { from { opacity: 0; transform: translateX(10px); } to { opacity: 1; transform: none; } }
+@keyframes nivel-entra-volta { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
 @keyframes nivel-entra-lado  { from { opacity: 0; } to { opacity: 1; } }
-.nivel-sai-fundo, .nivel-sai-volta, .nivel-sai-lado { animation-duration: .22s; animation-timing-function: var(--obra-queda); }
-.nivel-entra-fundo, .nivel-entra-volta { animation-duration: .4s; animation-timing-function: var(--obra-mola); }
-.nivel-entra-lado { animation-duration: .2s; }
+.nivel-sai-fundo, .nivel-sai-volta, .nivel-sai-lado { animation-duration: .14s; animation-timing-function: var(--obra-sai); }
+.nivel-entra-fundo, .nivel-entra-volta { animation-duration: .26s; animation-timing-function: var(--obra-suave); }
+.nivel-entra-lado { animation-duration: .22s; animation-timing-function: var(--obra-suave); }
 
-/* ── O diálogo: a caixa se ergue, e as linhas sobem uma a uma ── */
-.delete-confirm-modal {
-  animation: obra-ergue var(--obra-entrada) var(--obra-mola) backwards;
-}
-.delete-confirm-modal > * { animation: obra-peca var(--obra-entrada) var(--obra-mola) backwards; }
-.delete-confirm-modal > :nth-child(1) { animation-delay: 90ms; }
-.delete-confirm-modal > :nth-child(2) { animation-delay: 130ms; --obra-giro: .8deg; }
-.delete-confirm-modal > :nth-child(3) { animation-delay: 170ms; }
-.delete-confirm-modal > :nth-child(4) { animation-delay: 210ms; --obra-giro: .8deg; }
+/* ── O diálogo ── */
+.delete-confirm-modal { animation: obra-caixa .22s var(--obra-suave) backwards; }
 .admin-modal-overlay.saindo { animation: obra-fundo-sai var(--obra-saida) ease-in both; }
 .admin-modal-overlay.saindo .delete-confirm-modal {
-  animation: obra-desmonta var(--obra-saida) var(--obra-queda) forwards;
+  animation: obra-desmonta var(--obra-saida) var(--obra-sai) forwards;
 }
-.admin-modal-overlay.saindo .delete-confirm-modal > * { animation: none; }
 
-/* ── A gaveta: o painel vem da borda, e o que está dentro sobe em camadas ── */
-.admin-modal { animation: obra-gaveta-entra .52s var(--obra-mola) backwards; }
+/* ── A gaveta ── */
+.admin-modal { animation: obra-gaveta-entra .3s var(--obra-suave) backwards; }
 .admin-modal-overlay.saindo .admin-modal {
-  animation: obra-gaveta-sai var(--obra-saida) var(--obra-queda) forwards;
+  animation: obra-gaveta-sai .2s var(--obra-sai) forwards;
 }
-.painel-gaveta > .admin-modal-header,
-.painel-gaveta > .painel-rodape { animation: obra-peca var(--obra-entrada) var(--obra-mola) backwards; }
-.painel-gaveta > .admin-modal-header { animation-delay: 80ms; }
-.painel-gaveta > .painel-rodape { animation-delay: 220ms; --obra-giro: .8deg; }
-.admin-modal-overlay.saindo .painel-gaveta > .admin-modal-header,
-.admin-modal-overlay.saindo .painel-gaveta > .painel-rodape,
 .admin-modal-overlay.saindo .obra-peca { animation: none; }
 
 /* ── A busca rápida ── */
-.qs-panel { animation: obra-ergue var(--obra-entrada) var(--obra-mola) backwards; }
+.qs-panel { animation: obra-ergue .22s var(--obra-suave) backwards; }
 .qs-overlay.saindo { animation: obra-fundo-sai var(--obra-saida) ease-in both; pointer-events: none; }
-.qs-overlay.saindo .qs-panel { animation: obra-desmonta var(--obra-saida) var(--obra-queda) forwards; }
+.qs-overlay.saindo .qs-panel { animation: obra-desmonta var(--obra-saida) var(--obra-sai) forwards; }
 
 /* ── A prévia em tela cheia ── */
 .previa-tela.saindo { animation: obra-fundo-sai var(--obra-saida) ease-in both; }
-.previa-tela > * { animation: obra-ergue var(--obra-entrada) var(--obra-mola) backwards; }
-.previa-tela.saindo > * { animation: obra-desmonta var(--obra-saida) var(--obra-queda) forwards; }
+.previa-tela > * { animation: obra-ergue var(--obra-entrada) var(--obra-suave) backwards; }
+.previa-tela.saindo > * { animation: obra-desmonta var(--obra-saida) var(--obra-sai) forwards; }
 
 /* ── Menus e listas suspensas ── */
 .conta-menu, .status-select-dropdown, .filter-dropdown-list {
-  animation: obra-desdobra .34s var(--obra-mola) backwards;
-  transform-origin: 50% 0;
+  animation: obra-desdobra .18s var(--obra-suave) backwards;
 }
 .conta-menu.obra-dobra, .status-select-dropdown.obra-dobra,
 .filter-dropdown-list.obra-dobra, .obra-dobra {
-  animation: obra-dobra .2s var(--obra-queda) forwards;
-  transform-origin: 50% 0;
+  animation: obra-dobra .12s var(--obra-sai) forwards;
   pointer-events: none;
 }
 
-/* ── O aviso do canto: chega se erguendo de lado, e sai desmontando ── */
-.toast-balao.saindo { animation: obra-desmonta .32s var(--obra-queda) forwards; }
+/* ── O aviso do canto ── */
+.toast-balao.saindo { animation: obra-desmonta .2s var(--obra-sai) forwards; }
 
 /* ── As abas do trilho e as mensagens da IA ── */
-.painel.entrando { animation: obra-ergue .42s var(--obra-mola) backwards; }
-.painel.saindo { animation: obra-desmonta .16s var(--obra-queda) forwards; }
-.ia-msg { animation: obra-ergue .42s var(--obra-mola) backwards; }
+.painel.entrando { animation: obra-ergue .24s var(--obra-suave) backwards; }
+.painel.saindo { animation: obra-desmonta .12s var(--obra-sai) forwards; }
+.ia-msg { animation: obra-ergue .26s var(--obra-suave) backwards; }
 
-/* O vazio de uma lista também chega se erguendo, quando o último item cai. */
-.admin-empty:not([hidden]) { animation: obra-ergue var(--obra-entrada) var(--obra-mola) backwards; animation-delay: .12s; }
+/* O vazio de uma lista também chega esmaecendo, quando o último item sai. */
+.admin-empty:not([hidden]) { animation: obra-ergue var(--obra-entrada) var(--obra-suave) backwards; animation-delay: .08s; }
+
+/* O aviso e o card da revisão chegam sem passar do ponto, como o resto. */
+@keyframes toastIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
+@keyframes revEntra { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.revisao-card.entra { animation: revEntra .26s var(--obra-suave) both; }
+.revisao-fim { animation: revEntra .28s var(--obra-suave) both; }
 
 @media (prefers-reduced-motion: reduce) {
   .obra-ergue, .obra-desmonta, .obra-peca, .obra-dobra,
-  .delete-confirm-modal, .delete-confirm-modal > *,
+  .delete-confirm-modal,
   .admin-modal-overlay.saindo, .admin-modal-overlay.saindo .delete-confirm-modal,
   .admin-modal, .admin-modal-overlay.saindo .admin-modal,
-  .painel-gaveta > .admin-modal-header, .painel-gaveta > .painel-rodape,
   .qs-panel, .qs-overlay.saindo, .qs-overlay.saindo .qs-panel,
   .previa-tela.saindo, .previa-tela > *, .previa-tela.saindo > *,
   .conta-menu, .status-select-dropdown, .filter-dropdown-list,
   .toast-balao.saindo, .painel.entrando, .painel.saindo, .ia-msg,
   .admin-empty:not([hidden]),
+  .revisao-card.entra, .revisao-fim,
   .nivel-sai-fundo, .nivel-sai-volta, .nivel-sai-lado,
   .nivel-entra-fundo, .nivel-entra-volta, .nivel-entra-lado { animation: none !important; }
 }
@@ -5182,24 +5228,20 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     <div class="app-menu-dentro">
 
       <div class="app-menu-marca">
-        <div class="marca-chapa" aria-hidden="true">
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <!-- Sinapse: dois ramos neurais na diagonal, cada um se abrindo em
-                 duas terminações, com a fenda aberta entre eles e o sinal
-                 atravessando no meio. O ponto é cheio, como os três pontos do
-                 "Mais" na barra de baixo; o resto é contorno. -->
-            <path d="M3 20l5.5-5.5"/>
-            <path d="M8.5 14.5l2.9.9"/>
-            <path d="M8.5 14.5l-.9-2.9"/>
-            <circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/>
-            <path d="M21 4l-5.5 5.5"/>
-            <path d="M15.5 9.5l-2.9-.9"/>
-            <path d="M15.5 9.5l.9 2.9"/>
+        <!-- A marca é a mesma da landing e do login: o núcleo com as seis
+             ligações, de pontas redondas, e o nome em minúsculas, sem cor. -->
+        <div class="app-marca">
+          <svg class="app-marca-simbolo" viewBox="0 0 32 32" aria-hidden="true">
+            <g stroke="currentColor" stroke-width="3.6" stroke-linecap="round">
+              <path d="M16 16 18.72 5.86M16 16l10.14-2.72M16 16l7.42 7.42M16 16l-2.72 10.14M16 16 5.86 18.72M16 16 8.58 8.58"/>
+            </g>
+            <g fill="currentColor">
+              <circle cx="16" cy="16" r="4.8"/>
+              <circle cx="19.11" cy="4.41" r="3.4"/><circle cx="27.59" cy="12.89" r="3.4"/><circle cx="24.49" cy="24.49" r="3.4"/>
+              <circle cx="12.89" cy="27.59" r="3.4"/><circle cx="4.41" cy="19.11" r="3.4"/><circle cx="7.51" cy="7.51" r="3.4"/>
+            </g>
           </svg>
-        </div>
-        <div class="marca-texto">
-          <div class="topbar-marca-nome">Sinapse</div>
-          <div class="topbar-marca-sub">Estudo ativo e revisão espaçada</div>
+          <span>sinapse</span>
         </div>
         <button type="button" class="topo-icone" id="btnMenu" title="Recolher menu" aria-label="Recolher menu">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M9 4v16"/><path d="m16 10-2 2 2 2"/></svg>
@@ -5274,22 +5316,27 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
         </div>
       </div>
 
-      <!-- A conta fecha o menu, abaixo do tema: é coisa de quem usa, não de
-           navegação, e no rodapé fica sempre à vista sem disputar o topo. -->
-      <div class="app-menu-conta">
-        <button type="button" class="topbar-conta" id="btnConta" aria-haspopup="menu" aria-expanded="false" aria-label="Conta de Milena Zaidan">
-          <span class="topbar-conta-avatar" aria-hidden="true">MZ</span>
-          <span class="topbar-conta-texto">
-            <span class="topbar-conta-nome">Milena Zaidan</span>
-            <span class="topbar-conta-email">R1 Clínica Médica</span>
-          </span>
-        </button>
-      </div>
     </div>
   </aside>
 
   <!-- ═══ Conteúdo ═══ -->
   <main class="app-principal">
+    <!-- O canto de quem usa: o atalho do Inbox, com o que espera por hoje, e
+         a conta. Fica fora das telas, então acompanha todas elas. O botão do
+         Inbox navega como o item do menu (`data-ir`), e acende junto com ele. -->
+    <div class="app-topo">
+      <button type="button" class="topo-inbox" data-ir="inbox" title="Inbox" aria-label="Inbox">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13h4l2 3h4l2-3h4"/><path d="M5.4 5.5 3 13v5a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-5l-2.4-7.5A2 2 0 0 0 16.7 4H7.3a2 2 0 0 0-1.9 1.5Z"/></svg>
+        <span class="topo-inbox-selo" id="seloInboxTopo" hidden></span>
+      </button>
+      <button type="button" class="topbar-conta" id="btnConta" aria-haspopup="menu" aria-expanded="false" aria-label="Conta de Milena Zaidan">
+        <span class="topbar-conta-avatar" aria-hidden="true">MZ</span>
+        <span class="topbar-conta-texto">
+          <span class="topbar-conta-nome">Milena Zaidan</span>
+          <span class="topbar-conta-email">R1 Clínica Médica</span>
+        </span>
+      </button>
+    </div>
     <div class="faixa-falha" id="faixaFalha" role="status" hidden>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
       <span>Sem conexão com o banco.</span>
@@ -6276,19 +6323,19 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
 
   /* ═══ Obra: erguer e desmontar ═══════════════════════════════════════
      Tudo que chega se ergue e tudo que sai se desmonta, com o desenho da
-     seção "Obra" do estilo. Aqui ficam as três mãos que o resto do app usa:
+     seção "Passagem" do estilo. Aqui ficam as três mãos que o resto do app usa:
 
-       erguer(el)            a peça sobe do chão e se assenta
-       erguerPecas(raiz)     as camadas de uma tela ou painel sobem uma a uma
-       desmontar(el, depois) a peça cai e se desfaz, e só então `depois` roda
+       erguer(el)            a peça surge esmaecendo, com um deslize curto
+       erguerPecas(raiz)     as camadas de uma tela ou painel surgem juntas
+       desmontar(el, depois) a peça esmaece, e só então `depois` roda
 
      E o vigia, que cuida sozinho das listas: o cartão que nasce se ergue, e o
-     que some é devolvido ao lugar só o tempo de cair, para os vizinhos então
+     que some é devolvido ao lugar só o tempo de esmaecer, para os vizinhos então
      deslizarem até o vão. As listas são repintadas do zero a cada mudança, por
      isso quem diz "é o mesmo item" é a chave em `data-obra`, e não o nó. */
-  var OBRA_SAIDA = 260; /* espelhado em `--obra-saida`, no estilo */
-  var OBRA_ENTRADA = 500;
-  var OBRA_PASSO = 42;
+  var OBRA_SAIDA = 160; /* espelhado em `--obra-saida`, no estilo */
+  var OBRA_ENTRADA = 280;
+  var OBRA_PASSO = 0; /* espelhado em `--obra-passo`: as camadas chegam juntas */
   var OBRA_MAX_PASSOS = 14;
   var semMovimento = window.matchMedia("(prefers-reduced-motion: reduce)");
 
@@ -6362,7 +6409,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
         el._obraSaida = null;
         el.classList.remove(classe);
         if (depois) depois();
-      }, classe === "obra-dobra" ? 200 : OBRA_SAIDA)
+      }, classe === "obra-dobra" ? 120 : OBRA_SAIDA)
     };
   }
   /* Para o que é criado na hora e jogado fora depois: menus e listas que moram
@@ -6396,7 +6443,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
       el.animate([
         { transform: "translate(" + dx + "px," + dy + "px)" },
         { transform: "none" }
-      ], { duration: 340, easing: "cubic-bezier(.2, 1.15, .35, 1)" });
+      ], { duration: 260, easing: "cubic-bezier(.2, .7, .2, 1)" });
     });
   }
   function fantasmaObra(no, pai, depoisDe) {
@@ -7065,10 +7112,12 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
       '<button type="button" class="conta-menu-item" role="menuitem">Meu desempenho</button>' +
       '<button type="button" class="conta-menu-item" role="menuitem">Configurações</button>' +
       '<button type="button" class="conta-menu-item sair" role="menuitem">Sair</button>';
+    /* A conta mora no canto de cima: o menu desce dela, alinhado pela
+       direita, e nunca fica mais estreito que o próprio texto. */
     var r = btnConta.getBoundingClientRect();
-    menuConta.style.left = r.left + "px";
-    menuConta.style.width = r.width + "px";
-    menuConta.style.bottom = (window.innerHeight - r.top + 8) + "px";
+    menuConta.style.top = (r.bottom + 8) + "px";
+    menuConta.style.right = Math.max(8, window.innerWidth - r.right) + "px";
+    menuConta.style.width = Math.max(r.width, 240) + "px";
     document.body.appendChild(menuConta);
     btnConta.setAttribute("aria-expanded", "true");
     Array.prototype.forEach.call(menuConta.querySelectorAll(".conta-menu-item"), function (b) {
@@ -15330,7 +15379,7 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
      Quem sai roda a saída e só então quem chega aparece com a entrada. A
      direção vem da profundidade: descer é `fundo`, voltar é `volta`, e mesmo
      andar é `lado`. Profundidade nula tira aquela troca da animação. */
-  var NIVEL_SAIDA = 220; /* espelhado em `.nivel-sai-*`, no estilo */
+  var NIVEL_SAIDA = 140; /* espelhado em `.nivel-sai-*`, no estilo */
   var NIVEL_CLASSES = ["nivel-sai-fundo", "nivel-sai-volta", "nivel-sai-lado",
                        "nivel-entra-fundo", "nivel-entra-volta", "nivel-entra-lado"];
   function limparNivel(el) {
@@ -16159,8 +16208,11 @@ button.campo-imagem-vazio:hover { border-color: var(--gray2); color: var(--black
     /* O selo do menu conta o que espera hoje, somando fila e pendências: é o
        número que justifica abrir a tela. */
     var total = naFila.length + pend.length;
-    $("seloInbox").textContent = total > 99 ? "99+" : total;
-    $("seloInbox").hidden = !total;
+    ["seloInbox", "seloInboxTopo"].forEach(function (id) {
+      $(id).textContent = total > 99 ? "99+" : total;
+      $(id).hidden = !total;
+    });
+    $("seloInboxTopo").parentNode.setAttribute("aria-label", total ? "Inbox, " + total + " para hoje" : "Inbox");
   }
 
   $("btnInboxRevisar").addEventListener("click", function () {
