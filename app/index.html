@@ -7263,12 +7263,12 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
 
         <p class="app-menu-secao"><span>Geral</span></p>
 
-        <button type="button" class="nav-leaf" data-ir="relatorios">
+        <button type="button" class="nav-leaf ativo" data-ir="relatorios" aria-current="page">
           <span class="nav-leaf-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.6"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.6"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.6"/></svg></span>
           <span class="nav-leaf-texto">Dashboard</span>
         </button>
 
-        <button type="button" class="nav-leaf ativo" data-ir="pastas" aria-current="page">
+        <button type="button" class="nav-leaf" data-ir="pastas">
           <span class="nav-leaf-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg></span>
           <span class="nav-leaf-texto">Pastas</span>
           <span class="nav-leaf-conta" id="contaPastas" hidden></span>
@@ -7545,7 +7545,7 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
     </section>
 
     <!-- ═══ Tela: Dashboard ═══ -->
-    <section class="pagina pagina-cristal" data-pagina="relatorios" hidden>
+    <section class="pagina pagina-cristal" data-pagina="relatorios">
       <div class="admin-content-wrap">
        <div class="admin-page-header">
          <div style="min-width:0">
@@ -7609,7 +7609,7 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
     </section>
 
     <!-- ═══ Tela: Pastas ═══ -->
-    <section class="pagina pagina-cristal" data-pagina="pastas">
+    <section class="pagina pagina-cristal" data-pagina="pastas" hidden>
 
       <!-- A lista de pastas: é o que a tela mostra quando se chega nela -->
       <div class="vista" data-vista="lista">
@@ -7898,7 +7898,11 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
           <div class="trilho-topo">
             <div class="abas" id="abas" role="tablist">
               <span class="abas-pilula" aria-hidden="true"></span>
-              <button type="button" class="aba" id="abaCards" role="tab" aria-selected="true" aria-controls="painelCards">
+              <button type="button" class="aba" id="abaIA" role="tab" aria-selected="true" aria-controls="painelIA">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z"/></svg>
+                <span class="aba-ia-rotulo">IA</span>
+              </button>
+              <button type="button" class="aba" id="abaCards" role="tab" aria-selected="false" aria-controls="painelCards">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="14" height="13" rx="2.5"/><path d="M8 3h10a3 3 0 0 1 3 3v10"/></svg>
                 Cards
                 <span class="aba-conta" id="abaConta" hidden></span>
@@ -7908,17 +7912,13 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
                 Notas
                 <span class="aba-conta" id="abaContaComentarios" hidden>0</span>
               </button>
-              <button type="button" class="aba" id="abaIA" role="tab" aria-selected="false" aria-controls="painelIA">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3Z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8L19 15Z"/></svg>
-                <span class="aba-ia-rotulo">IA</span>
-              </button>
             </div>
             <button type="button" class="painel-fechar" id="btnTrilhoFechar" title="Fechar" aria-label="Fechar as ferramentas de estudo"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
           </div>
 
 
           <div class="paineis">
-            <section class="painel" id="painelCards" role="tabpanel" aria-labelledby="abaCards">
+            <section class="painel" id="painelCards" role="tabpanel" aria-labelledby="abaCards" hidden>
               <p class="painel-rotulo"><span>Rascunhos sem deck</span><b id="contaRascunhos">0</b></p>
 
               <div class="cards-lista" id="listaCards"></div>
@@ -7963,7 +7963,7 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
 
             <!-- A IA ainda é de mentira: as respostas saem do próprio arquivo, por
                  regra, e servem para mostrar o jeito da conversa. -->
-            <section class="painel painel-ia" id="painelIA" role="tabpanel" aria-labelledby="abaIA" hidden>
+            <section class="painel painel-ia" id="painelIA" role="tabpanel" aria-labelledby="abaIA">
               <p class="painel-rotulo"><span>Assistente do arquivo</span></p>
 
               <div class="ia-conversa" id="iaConversa" aria-live="polite"></div>
@@ -8441,7 +8441,7 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
 
   <!-- ═══ Barra inferior do celular ═══ -->
   <nav class="nav-inferior" aria-label="Navegação principal">
-    <button type="button" class="nav-inferior-item ativo">
+    <button type="button" class="nav-inferior-item">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/></svg>
       <span>Pastas</span>
     </button>
@@ -17946,9 +17946,9 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
 
   /* ═══ Abas ═══════════════════════════════════════════════════════════ */
   var ABAS = {
+    ia: { aba: "abaIA", painel: "painelIA" },
     cards: { aba: "abaCards", painel: "painelCards" },
-    comentarios: { aba: "abaComentarios", painel: "painelComentarios" },
-    ia: { aba: "abaIA", painel: "painelIA" }
+    comentarios: { aba: "abaComentarios", painel: "painelComentarios" }
   };
   var ORDEM_ABAS = Object.keys(ABAS);
 
@@ -20533,7 +20533,8 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
      assunto, não descer, então a passagem é só a escala mínima. Os degraus de
      verdade estão dentro de Pastas, em `irVista`. O menu marca onde se está;
      o índice mora dentro da tela de arquivos e some junto com ela. */
-  var paginaAtual = "pastas";
+  /* O sistema abre no Dashboard, ao entrar e ao recarregar. */
+  var paginaAtual = "relatorios";
   function irPaginaAtual(nome) {
     if (nome === paginaAtual) return;
     var sai = document.querySelector('.pagina[data-pagina="' + paginaAtual + '"]');
