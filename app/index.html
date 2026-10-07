@@ -2550,10 +2550,10 @@ input:checked + .switch::after { transform: translateX(14px); }
 .ia-boas-vindas { margin: auto 0; text-align: center; color: var(--gray2); font-size: 13px; line-height: 1.55; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 12px 8px; }
 .ia-boas-vindas b { color: var(--gray); }
 .ia-boas-vindas .ia-avatar { width: 38px; height: 38px; }
-/* Enquanto a conversa está vazia, a marca gira devagar esperando a pergunta. */
-.ia-boas-vindas .ia-avatar svg { animation: ia-gira 6s linear infinite; }
+/* A marca da IA gira devagar, na conversa vazia e ao lado de cada resposta. */
+.ia-avatar > svg { animation: ia-gira 6s linear infinite; }
 @keyframes ia-gira { to { transform: rotate(360deg); } }
-@media (prefers-reduced-motion: reduce) { .ia-boas-vindas .ia-avatar svg { animation: none; } }
+@media (prefers-reduced-motion: reduce) { .ia-avatar > svg { animation: none; } }
 .ia-msg { display: flex; gap: 8px; align-items: flex-start; animation: abaEntra .22s var(--curva-anti) backwards; --lado: 0px; }
 .ia-msg.eu { justify-content: flex-end; }
 .ia-avatar { flex-shrink: 0; width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: var(--black); color: var(--white); }
@@ -3861,6 +3861,10 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
 .fab-ico-fechar { opacity: 0; transform: rotate(-90deg) scale(.6); }
 .fab[data-aberto="true"] .fab-ico-abrir { opacity: 0; transform: rotate(90deg) scale(.6); }
 .fab[data-aberto="true"] .fab-ico-fechar { opacity: 1; transform: none; }
+/* A marca gira devagar no botão, como ao lado das respostas da IA. O giro é
+   do desenho, e não da peça: a troca de abrir para fechar continua por cima. */
+.fab-ico-abrir svg { animation: ia-gira 6s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .fab-ico-abrir svg { animation: none; } }
 
 /* ─── O giro ─────────────────────────────────────────────────────────────
    A peça de espera da casa. O aro é `--gray3` e o topo é `--spinner`, que é
@@ -4962,9 +4966,43 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 .plano-fases-nomes span { min-width: 6px; overflow: hidden; font-size: 11px; font-weight: 600; color: var(--gray2); white-space: nowrap; text-overflow: ellipsis; }
 .plano-fases-nomes span b { display: block; font-size: 12px; font-weight: 800; color: var(--black); overflow: hidden; text-overflow: ellipsis; }
 
-.plano-grade { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 14px; align-items: start; }
-.plano-coluna { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
-@media (max-width: 1080px) { .plano-grade { grid-template-columns: minmax(0, 1fr); } }
+/* Uma coluna só, de cima para baixo: a semana, o que praticar e os tópicos. */
+.plano-pilha { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+
+/* ─── Praticar ───
+   Três cartões lado a lado, sem moldura de bloco em volta: o número grande, o
+   detalhe embaixo e um botão. Quando falta o material, o cartão diz isso e o
+   botão leva até onde ele se cria. */
+.plano-praticar { display: flex; flex-direction: column; gap: 10px; }
+.plano-praticar-topo { display: flex; align-items: baseline; gap: 8px; padding: 0 2px; }
+.plano-praticar-topo b { font-size: 15px; font-weight: 800; letter-spacing: -.01em; }
+.plano-praticar-topo span { font-size: 12px; font-weight: 600; color: var(--gray2); }
+.plano-praticar-grade { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 860px) { .plano-praticar-grade { grid-template-columns: minmax(0, 1fr); } }
+.plano-pratica {
+  display: flex; flex-direction: column; gap: 14px;
+  padding: 16px;
+  border: 1px solid var(--gray3);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  transition: border-color var(--transition), box-shadow var(--transition-spring);
+}
+.plano-pratica:hover { border-color: var(--gray2); box-shadow: var(--shadow-card); }
+.plano-pratica-cab { display: flex; align-items: center; gap: 10px; }
+.plano-pratica-cab i {
+  width: 32px; height: 32px; flex-shrink: 0;
+  display: grid; place-items: center;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--tipo) 13%, transparent);
+  color: var(--tipo);
+}
+.plano-pratica-cab i svg { width: 16px; height: 16px; }
+.plano-pratica-cab span { font-size: 13px; font-weight: 700; color: var(--gray); }
+.plano-pratica-num { display: flex; flex-direction: column; gap: 2px; }
+.plano-pratica-num b { font-size: 26px; font-weight: 800; letter-spacing: -.03em; line-height: 1.05; }
+.plano-pratica-num small { font-size: 12px; font-weight: 600; color: var(--gray2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.plano-pratica .btn { margin-top: auto; width: 100%; justify-content: center; }
+.plano-pratica.vazia .plano-pratica-num b { color: var(--gray2); }
 .plano-bloco-corpo { padding: 8px; display: flex; flex-direction: column; gap: 2px; }
 .plano-bloco-titulo { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .plano-bloco-titulo small { font-size: 11.5px; font-weight: 600; color: var(--gray2); }
@@ -5060,35 +5098,115 @@ tr:hover .linha-acao, .linha-acao:focus-visible { opacity: 1; }
 .plano-semana-corpo { padding: 0 8px 8px; display: flex; flex-direction: column; gap: 2px; animation: obra-ergue .26s var(--curva-anti) both; }
 
 /* Os tópicos, com o nível e quanto deles já foi estudado. */
-.plano-topico { display: flex; flex-direction: column; gap: 6px; padding: 9px 8px; border-radius: var(--radius-md); }
-.plano-topico-topo { display: flex; align-items: center; gap: 8px; }
-.plano-topico-nome { flex: 1; min-width: 0; font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.plano-topico-nome button { font: inherit; color: inherit; text-align: left; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
-.plano-topico-nome button:hover { text-decoration: underline; text-underline-offset: 3px; }
-.plano-topico .progresso-trilho { height: 4px; }
-.plano-topico-motivo { font-size: 11.5px; color: var(--gray2); line-height: 1.45; }
 .nivel-selo { flex-shrink: 0; font-size: 10.5px; font-weight: 700; padding: 1px 8px; border-radius: var(--radius-pill); background: var(--gray4); color: var(--gray); }
 .nivel-selo.fraco { background: var(--red-soft); color: var(--red); }
 .nivel-selo.forte { background: var(--green-soft); color: var(--green); }
-.plano-material {
-  display: flex; align-items: center; gap: 10px;
-  padding: 8px; border-radius: var(--radius-md);
-  text-align: left; width: 100%;
-  font-size: 13px; font-weight: 700;
-  transition: background var(--transition);
+
+/* ─── Tópicos ───
+   Em cima, o retrato: o radar e a leitura da IA. Embaixo, a lista em
+   cascata, um tópico por linha, que abre nos números, nos pontos fortes e
+   fracos e no checklist dos subtópicos. */
+.plano-temas { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 16px; }
+.plano-temas-topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.plano-analisar svg { width: 14px; height: 14px; }
+.plano-analisar .giro-mini { margin-right: 2px; }
+.nivel-fraco { --cor: var(--red); }
+.nivel-medio { --cor: var(--amber); }
+.nivel-forte { --cor: var(--green); }
+
+/* A situação de cada tópico: cor, ícone e nome juntos, nunca só a cor. */
+.sit-forte { --sit: var(--green); }
+.sit-estavel { --sit: var(--tipo-teoria); }
+.sit-atencao { --sit: var(--amber); }
+.sit-critico { --sit: var(--red); }
+.sit-sem_dados { --sit: var(--gray2); }
+.sit-selo {
+  display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;
+  height: 20px; padding: 0 8px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--sit) 13%, transparent);
+  color: var(--sit);
+  font-size: 11px; font-weight: 700; white-space: nowrap;
 }
-button.plano-material:hover { background: var(--gray4); }
-.plano-material .pasta-ico { width: 30px; height: 30px; border-radius: var(--radius-sm); }
-.plano-material .pasta-ico svg { width: 15px; height: 15px; }
-.plano-material span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.plano-material small { font-size: 11px; font-weight: 600; color: var(--gray2); flex-shrink: 0; }
-.plano-estrategia { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 10px; }
-.plano-estrategia > p { font-size: 13px; line-height: 1.55; color: var(--black); font-weight: 600; }
-.plano-notas { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
-.plano-notas li { display: flex; gap: 9px; font-size: 12.5px; line-height: 1.55; color: var(--gray); }
-.plano-notas li::before { content: ""; width: 5px; height: 5px; margin-top: 8px; flex-shrink: 0; border-radius: 50%; background: var(--gray2); }
-.plano-ia-selo { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill); background: var(--yd); color: var(--black); }
-.plano-ia-selo svg { width: 12px; height: 12px; }
+.sit-selo svg { width: 11px; height: 11px; stroke-width: 2.4; }
+
+.plano-analise { display: grid; grid-template-columns: minmax(0, 480px) minmax(0, 1fr); gap: 18px; align-items: center; }
+@media (max-width: 900px) { .plano-analise { grid-template-columns: minmax(0, 1fr); } }
+.plano-radar { position: relative; }
+.plano-radar svg { display: block; width: 100%; height: auto; overflow: visible; }
+.radar-grade { fill: none; stroke: var(--gray3); stroke-width: 1; }
+.radar-eixo { stroke: var(--gray3); stroke-width: 1; }
+.radar-valor { font-size: 11px; font-weight: 800; fill: var(--sit); }
+/* O que ainda não tem dados fica esmaecido: está no plano, mas não conta
+   como bom nem como ruim. Volta ao normal ao passar o mouse. */
+.radar-rotulo.sem-dados { opacity: .45; }
+.radar-valor.sit-sem_dados { fill: var(--gray2); font-weight: 600; font-style: italic; opacity: .5; }
+.radar-ponto.vazio { stroke: var(--gray3); }
+.radar-rotulo.sem-dados.aceso { opacity: 1; }
+.radar-rotulo { font-size: 12px; font-weight: 700; fill: var(--gray); cursor: pointer; }
+.radar-rotulo:hover, .radar-rotulo.aceso { fill: var(--black); }
+.radar-escala { font-size: 9px; font-weight: 600; fill: var(--gray2); }
+.radar-area { stroke-width: 2; stroke-linejoin: round; }
+.radar-area.desempenho { fill: color-mix(in srgb, var(--black) 10%, transparent); stroke: var(--black); }
+.radar-ponto { stroke: var(--white); stroke-width: 2; }
+.radar-ponto.desempenho { fill: var(--sit); }
+.radar-ponto.vazio { fill: var(--white); stroke: var(--gray2); stroke-width: 1.5; }
+.radar-alvo { fill: transparent; cursor: pointer; }
+.radar-dica {
+  position: absolute; z-index: 2; pointer-events: none;
+  min-width: 150px; max-width: 220px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--black); color: var(--white);
+  font-size: 11.5px; line-height: 1.45;
+  box-shadow: var(--shadow-card-hover);
+  transform: translate(-50%, calc(-100% - 10px));
+}
+.radar-dica b { display: block; font-size: 12px; margin-bottom: 2px; }
+.radar-dica[hidden] { display: none; }
+.radar-vazio { padding: 28px 12px; text-align: center; font-size: 12.5px; color: var(--gray2); line-height: 1.55; }
+
+.plano-analise-lado { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+.plano-indic-titulo { font-size: 10.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--gray2); }
+
+/* As indicações, em grupos: o cartão é do grupo (cor, ícone, nome e
+   contagem), e cada tópico é uma linha dentro dele, com a frase e as portas. */
+.plano-grupo {
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--sit) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--sit) 16%, transparent);
+  overflow: hidden;
+}
+.plano-grupo-cab { display: flex; align-items: center; gap: 8px; padding: 11px 14px 9px; }
+.plano-grupo-cab i {
+  width: 22px; height: 22px; flex-shrink: 0;
+  display: grid; place-items: center;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--sit) 16%, transparent);
+  color: var(--sit);
+}
+.plano-grupo-cab i svg { width: 12px; height: 12px; stroke-width: 2.6; }
+.plano-grupo-cab b { font-size: 12.5px; font-weight: 800; color: var(--sit); }
+.plano-grupo-cab span { margin-left: auto; font-size: 11.5px; font-weight: 600; color: var(--gray2); }
+.plano-grupo.sit-sem_dados { opacity: .6; transition: opacity var(--transition); }
+.plano-grupo.sit-sem_dados:hover, .plano-grupo.sit-sem_dados:focus-within { opacity: 1; }
+.plano-indicacoes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.plano-indicacao {
+  display: flex; flex-direction: column; gap: 6px; min-width: 0;
+  padding: 10px 14px 12px;
+  border-top: 1px solid color-mix(in srgb, var(--sit) 14%, transparent);
+}
+.plano-indicacao p { font-size: 13px; line-height: 1.5; color: var(--black); }
+.plano-indicacao p b { font-weight: 800; }
+.plano-indicacao small { font-size: 12px; line-height: 1.45; color: var(--gray); }
+.plano-indicacao-links { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 2px; }
+.plano-link {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12.5px; font-weight: 700; color: var(--link);
+  text-align: left;
+}
+.plano-link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.plano-link svg { width: 13px; height: 13px; flex-shrink: 0; }
 
 /* ── As cores dos tipos de sessão ──
    Uma cor por tipo, a mesma no ícone da sessão, no ponto do dia e na
@@ -5182,57 +5300,35 @@ button.plano-material:hover { background: var(--gray4); }
 .plano-seta:hover:not(:disabled) { background: var(--gray4); color: var(--black); }
 .plano-seta:disabled { opacity: .3; cursor: default; }
 
-/* Os sete dias: um cartão por dia, com o número grande e um ponto por
-   sessão. Dia cumprido vira um visto; dia escolhido fica em tinta. */
+/* Os sete dias, enxutos: o dia da semana, o número e a contagem (ou o
+   visto, quando o dia está cumprido). O escolhido ganha fundo; hoje tem o
+   rótulo em vermelho. */
 .plano-semana {
-  display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px;
-  padding: 0 14px;
+  display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px;
+  padding: 0 14px 14px;
 }
 .plano-dia-card {
-  position: relative;
-  display: flex; flex-direction: column; align-items: center; gap: 2px;
-  padding: 9px 4px 10px;
-  border: 1.5px solid var(--gray3);
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  padding: 10px 4px;
   border-radius: var(--radius-md);
-  background: var(--white);
-  transition: background var(--transition), border-color var(--transition), transform .2s cubic-bezier(.3, 1.4, .5, 1);
+  transition: background var(--transition), transform .2s cubic-bezier(.3, 1.4, .5, 1);
 }
-.plano-dia-card:hover { border-color: var(--gray2); }
+.plano-dia-card:hover { background: var(--gray4); }
 .plano-dia-card:active { transform: scale(.96); }
 .plano-dia-card:focus-visible { outline: 2px solid var(--black); outline-offset: 2px; }
 .plano-dia-sem { font-size: 10.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--gray2); }
-.plano-dia-num { font-size: 19px; font-weight: 800; letter-spacing: -.02em; line-height: 1.2; font-variant-numeric: tabular-nums; }
-/* Um ícone por sessão, na cor do tipo. */
-.plano-dia-pontos { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; min-height: 16px; align-items: center; }
-.plano-dia-pontos i { display: grid; place-items: center; color: var(--tipo); }
-.plano-dia-pontos i svg { width: 14px; height: 14px; stroke-width: 2; }
-.plano-dia-pontos i.feita { opacity: .35; }
+.plano-dia-num { font-size: 20px; font-weight: 800; letter-spacing: -.03em; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.plano-dia-conta { min-height: 16px; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: var(--gray2); font-variant-numeric: tabular-nums; }
 .plano-dia-ok { width: 16px; height: 16px; border-radius: 50%; display: grid; place-items: center; background: var(--green); color: #fff; }
 .plano-dia-ok svg { width: 10px; height: 10px; }
-.plano-dia-card.folga { background: var(--gray4); border-color: transparent; }
-.plano-dia-card.folga .plano-dia-num { color: var(--gray2); }
-.plano-dia-card.passado:not(.escolhido) .plano-dia-num { color: var(--gray); }
+.plano-dia-card.folga .plano-dia-num, .plano-dia-card.passado .plano-dia-num { color: var(--gray2); }
 .plano-dia-card.hoje .plano-dia-sem { color: var(--red); }
-.plano-dia-card.atrasado::after {
-  content: ""; position: absolute; top: 6px; right: 6px;
-  width: 6px; height: 6px; border-radius: 50%; background: var(--red);
-}
-.plano-dia-card.escolhido { background: var(--black); border-color: var(--black); }
-.plano-dia-card.escolhido .plano-dia-num,
-.plano-dia-card.escolhido .plano-dia-sem { color: var(--white); }
-/* No cartão escolhido, em tinta cheia, as cores sobem um tom para não sumir
-   no fundo, e o simulado (que é tinta) vira branco. */
-.plano-dia-card.escolhido .plano-dia-pontos i { color: color-mix(in srgb, var(--tipo) 70%, var(--white)); }
-.plano-dia-card.escolhido .plano-dia-pontos i.tipo-simulado { color: var(--white); }
+.plano-dia-card.atrasado .plano-dia-conta { color: var(--red); }
+.plano-dia-card.escolhido { background: var(--black); }
+.plano-dia-card.escolhido .plano-dia-num { color: var(--white); }
+.plano-dia-card.escolhido .plano-dia-sem, .plano-dia-card.escolhido .plano-dia-conta { color: color-mix(in srgb, var(--white) 70%, transparent); }
+.plano-dia-card.escolhido.hoje .plano-dia-sem { color: #ff8a80; }
 
-.plano-legenda {
-  display: flex; flex-wrap: wrap; gap: 4px 14px;
-  padding: 10px 18px 12px;
-  font-size: 11.5px; font-weight: 600; color: var(--gray2);
-}
-.plano-legenda span { display: inline-flex; align-items: center; gap: 6px; }
-.plano-legenda i { display: grid; place-items: center; color: var(--tipo); }
-.plano-legenda i svg { width: 14px; height: 14px; stroke-width: 2; }
 
 /* O dia escolhido: as sessões dele, para marcar e começar. */
 .plano-dia { border-top: 1px solid var(--gray3); }
@@ -5240,25 +5336,29 @@ button.plano-material:hover { background: var(--gray4); }
   display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
   padding: 14px 18px 4px;
 }
-.plano-dia-cab b { font-size: 14px; font-weight: 800; letter-spacing: -.01em; }
+.plano-dia-cab b { font-size: 15px; font-weight: 800; letter-spacing: -.01em; }
 .plano-dia-cab small { font-size: 12px; font-weight: 600; color: var(--gray2); white-space: nowrap; }
-.plano-dia .plano-bloco-corpo { padding: 6px 10px 12px; min-height: 92px; animation: obra-ergue .26s var(--curva-anti) both; }
+.plano-dia .plano-bloco-corpo { padding: 4px 18px 16px; min-height: 92px; display: flex; flex-direction: column; gap: 14px; animation: obra-ergue .26s var(--curva-anti) both; }
+
+
+
+.plano-dia-ok { width: 16px; height: 16px; border-radius: 50%; display: grid; place-items: center; background: var(--green); color: #fff; }
+
+/* A sessão no dia: uma linha simples, sem caixa. O círculo de feito, o
+   ícone do tipo na cor dele, o título e uma linha de detalhes; o "Começar"
+   fica à direita. Feita, a linha esmaece. */
+.plano-dia .sessao { align-items: center; padding: 10px 8px; border-radius: var(--radius-sm); }
+.plano-dia .sessao + .sessao { border-top: 1px solid var(--gray4); border-radius: 0; }
+.plano-dia .sessao:hover { background: var(--gray4); border-radius: var(--radius-sm); }
+.plano-dia .sessao-texto { gap: 2px; }
+.plano-dia .sessao-titulo { white-space: normal; line-height: 1.35; }
+.plano-dia .sessao.feita .sessao-tipo { opacity: .4; }
+.sessao-tipo { flex-shrink: 0; display: grid; place-items: center; color: var(--tipo); }
+.sessao-tipo svg { width: 16px; height: 16px; }
+.plano-dia-cab small.cumprido { color: var(--green); }
 .plano-dia .plano-vazio-dia { display: flex; flex-direction: column; align-items: center; gap: 10px; }
 
 /* ── Tópicos ── A barra leva a cor do nível, e o porquê fica recolhido. */
-.plano-topico.nivel-fraco .progresso-cheio { background: var(--red); }
-.plano-topico.nivel-medio .progresso-cheio { background: var(--amber); }
-.plano-topico.nivel-forte .progresso-cheio { background: var(--green); }
-.plano-topico-porque summary {
-  display: inline-flex; align-items: center; gap: 4px;
-  list-style: none; cursor: pointer;
-  font-size: 11.5px; font-weight: 700; color: var(--gray2);
-}
-.plano-topico-porque summary::-webkit-details-marker { display: none; }
-.plano-topico-porque summary:hover { color: var(--black); }
-.plano-topico-porque summary .seta { width: 12px; height: 12px; transition: transform var(--transition-spring); }
-.plano-topico-porque[open] summary .seta { transform: rotate(90deg); }
-.plano-topico-porque p { margin-top: 4px; font-size: 12px; line-height: 1.5; color: var(--gray); }
 
 @media (max-width: 720px) {
   .plano-geral { flex-direction: column; align-items: stretch; gap: 18px; }
@@ -7279,6 +7379,7 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
         <button type="button" class="nav-leaf" data-ir="planos">
           <span class="nav-leaf-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/><path d="m9 15 2 2 4-4"/></svg></span>
           <span class="nav-leaf-texto">Planos de estudo</span>
+          <span class="nav-leaf-conta" id="contaPlanos" hidden></span>
         </button>
 
         <!-- O banco de questões: o que se tirou dos textos para treinar em prova. -->
@@ -7493,53 +7594,56 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
          </div>
        </section>
 
-       <div class="plano-grade">
-         <div class="plano-coluna">
-           <!-- A agenda: uma semana por vez, cada dia com as suas sessões
-                em pontos coloridos pelo tipo. O dia escolhido abre embaixo,
-                com as sessões para marcar e começar. -->
-           <section class="bloco plano-agenda">
-             <div class="plano-agenda-topo">
-               <div class="plano-agenda-titulo">
-                 <b id="planoSemanaNome">Esta semana</b>
-                 <span id="planoSemanaDatas"></span>
-               </div>
-               <span class="plano-fase-selo" id="planoSemanaFase" hidden></span>
-               <div class="plano-agenda-nav">
-                 <button type="button" class="btn btn-ghost btn-sm" id="btnPlanoHoje">Hoje</button>
-                 <button type="button" class="plano-seta" id="btnPlanoSemAnt" aria-label="Semana anterior" title="Semana anterior">
-                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-                 </button>
-                 <button type="button" class="plano-seta" id="btnPlanoSemProx" aria-label="Próxima semana" title="Próxima semana">
-                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
-                 </button>
-               </div>
-             </div>
-             <div class="plano-semana" id="planoSemana" role="tablist" aria-label="Dias da semana"></div>
-             <div class="plano-legenda" id="planoLegenda" aria-hidden="true"></div>
-             <div class="plano-dia">
-               <div class="plano-dia-cab">
-                 <b id="planoDiaNome"></b>
-                 <small id="planoDiaResumo"></small>
-               </div>
-               <div class="plano-bloco-corpo" id="planoDiaSessoes"></div>
-             </div>
-           </section>
+       <div class="plano-pilha">
+       <!-- A agenda: uma semana por vez, cada dia com as suas sessões
+            em pontos coloridos pelo tipo. O dia escolhido abre embaixo,
+            com as sessões para marcar e começar. -->
+       <section class="bloco plano-agenda">
+         <div class="plano-agenda-topo">
+           <div class="plano-agenda-titulo">
+             <b id="planoSemanaNome">Esta semana</b>
+             <span id="planoSemanaDatas"></span>
+           </div>
+           <span class="plano-fase-selo" id="planoSemanaFase" hidden></span>
+           <div class="plano-agenda-nav">
+             <button type="button" class="btn btn-ghost btn-sm" id="btnPlanoHoje">Hoje</button>
+             <button type="button" class="plano-seta" id="btnPlanoSemAnt" aria-label="Semana anterior" title="Semana anterior">
+               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+             </button>
+             <button type="button" class="plano-seta" id="btnPlanoSemProx" aria-label="Próxima semana" title="Próxima semana">
+               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+             </button>
+           </div>
          </div>
-         <div class="plano-coluna">
-           <section class="bloco">
-             <p class="bloco-titulo plano-bloco-titulo"><span>Estratégia</span><span id="planoSeloIA"></span></p>
-             <div class="plano-estrategia" id="planoEstrategia"></div>
-           </section>
-           <section class="bloco">
-             <p class="bloco-titulo plano-bloco-titulo"><span>Tópicos</span><small id="planoTopicosConta"></small></p>
-             <div class="plano-bloco-corpo" id="planoTopicos"></div>
-           </section>
-           <section class="bloco">
-             <p class="bloco-titulo">Material</p>
-             <div class="plano-bloco-corpo" id="planoMateriais"></div>
-           </section>
+         <div class="plano-semana" id="planoSemana" role="tablist" aria-label="Dias da semana"></div>
+         <div class="plano-dia">
+           <div class="plano-dia-cab">
+             <b id="planoDiaNome"></b>
+             <small id="planoDiaResumo"></small>
+           </div>
+           <div class="plano-bloco-corpo" id="planoDiaSessoes"></div>
          </div>
+       </section>
+       <!-- Praticar: as três portas do plano, cada uma com o número que
+            importa e um botão só. -->
+       <section class="plano-praticar">
+         <div class="plano-praticar-topo"><b>Praticar</b><span>o que o plano usa para estudar e se testar</span></div>
+         <div class="plano-praticar-grade" id="planoPraticar"></div>
+       </section>
+       <!-- Os tópicos: o radar do conhecimento e as indicações do que fazer. -->
+       <section class="bloco plano-temas">
+         <div class="plano-temas-topo">
+           <div class="plano-agenda-titulo"><b>Tópicos</b><span id="planoTopicosConta"></span></div>
+           <button type="button" class="btn btn-secondary btn-sm plano-analisar" id="btnPlanoAnalisar"></button>
+         </div>
+         <!-- O retrato do estudo: o radar do conhecimento nos tópicos
+              principais e, ao lado, as indicações do que fazer, cada uma com
+              a porta para a prova ou para o arquivo. -->
+         <div class="plano-analise">
+           <div class="plano-radar" id="planoRadar"></div>
+           <div class="plano-analise-lado" id="planoAnaliseLado"></div>
+         </div>
+       </section>
        </div>
       </div>
     </section>
@@ -9199,6 +9303,7 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
                cronograma: pl.cronograma || {}, pastaId: pl.pastaId || "", deckId: pl.deckId || "",
                pasta: null, deck: null };
     });
+    contarPlanos();
     if (planoAberto) {
       var mesmo = PLANOS.filter(function (pl) { return pl.id && pl.id === planoAberto.id; })[0] || null;
       if (mesmo) { mesmo.verSemana = planoAberto.verSemana; mesmo.verDia = planoAberto.verDia; }
@@ -15589,12 +15694,19 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
   /* Em tela estreita a folha inteira não cabe: ela encolhe até caber, como
      no Docs. Abaixo de 85% o texto ficaria pequeno demais para ler, e aí a
      página some e o texto volta a correr solto na largura que houver. */
+  /* A folha aproveita a coluna: com espaço sobrando ela alarga até o teto,
+     para o texto não ficar espremido no meio de duas faixas vazias. Com pouco
+     espaço ela volta à largura do A4 e encolhe, como sempre. A altura e as
+     margens continuam as do A4, e é por elas que a página quebra. */
+  var LARGURA_TETO = 1040, FOLGA_LADOS = 48;
   function aplicarLayout() {
     var coluna = folhaDoTexto.parentElement;
     if (!coluna.clientWidth) return;
-    var cabe = coluna.clientWidth / A4.largura;
+    var largura = Math.max(A4.largura, Math.min(LARGURA_TETO, coluna.clientWidth - FOLGA_LADOS));
+    var cabe = coluna.clientWidth / largura;
     paginasNaTela = comPaginas && cabe >= 0.85;
     folhaDoTexto.classList.toggle("folha-a4", paginasNaTela);
+    folhaDoTexto.style.width = paginasNaTela ? largura + "px" : "";
     camadaFolhas.hidden = !paginasNaTela;
     retratoPaginas = null;
     if (paginasNaTela) {
@@ -23832,6 +23944,7 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
   function criarPlano(r, cronograma) {
     var p = { id: "", nome: r.nome, respostas: r, cronograma: cronograma, pastaId: "", deckId: "", pasta: null, deck: null };
     PLANOS.unshift(p);
+    contarPlanos();
     p.pronto = garantirEspaco(p).then(function () {
       var pasta = pastaDoPlano(p), deck = deckDoPlano(p);
       return gravar({ acao: "plano.criar", nome: p.nome, respostas: p.respostas, cronograma: p.cronograma,
@@ -23881,7 +23994,15 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
     return partes.join(" · ");
   }
 
+  /* A contagem do menu, como a de pastas e decks: muda ao carregar, ao criar
+     e ao excluir um plano. */
+  function contarPlanos() {
+    $("contaPlanos").textContent = PLANOS.length;
+    $("contaPlanos").hidden = false;
+  }
+
   function pintarPlanos() {
+    contarPlanos();
     var grade = $("gradePlanos");
     if (!grade) return;
     grade.innerHTML = "";
@@ -23966,9 +24087,8 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
     pintarVisaoGeral(p, ss, hoje);
     pintarRegua(fasesDoPlano(ss), hoje);
     pintarAgenda(p, ss, hoje);
-    pintarEstrategia(p);
     pintarTopicosDoPlano(p, ss);
-    pintarMateriais(p);
+    pintarPraticar(p);
   }
 
   /* As fases saem das próprias sessões, e não de datas guardadas à parte:
@@ -24019,21 +24139,25 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
     var el = document.createElement("div");
     el.className = "sessao" + (s.feita ? " feita" : "") + (!s.feita && s.data < hoje ? " atrasada" : "");
     var comFoco = p.respostas.jeitos.indexOf("pomodoro") >= 0;
+    var tipo = TIPOS_DE_SESSAO.filter(function (x) { return x.id === s.tipo; })[0] || TIPOS_DE_SESSAO[0];
     el.innerHTML =
       '<button type="button" class="sessao-feito">' + ICO_VISTO + '</button>' +
-      '<span class="sessao-ico ' + s.tipo + '">' + (ICO_SESSAO[s.tipo] || ICO_SESSAO.teoria) + '</span>' +
+      '<span class="sessao-tipo tipo-' + tipo.id + '" title="' + tipo.nome + '">' + (ICO_SESSAO[tipo.id] || "") + '</span>' +
       '<span class="sessao-texto"><span class="sessao-titulo"></span><span class="sessao-meta"></span></span>' +
       '<span class="sessao-acoes">' +
         (comFoco ? '<button type="button" class="sessao-foco" title="Começar um ciclo de foco" aria-label="Começar um ciclo de foco">' + ICO_FOCO + '</button>' : '') +
         '<button type="button" class="sessao-ir">Começar</button>' +
       '</span>';
     el.querySelector(".sessao-titulo").textContent = s.titulo;
+    /* Tudo o mais numa linha só: quando, o tipo, quanto tempo e o assunto. */
     var periodo = null;
     PERIODOS.forEach(function (x) { if (x.id === s.periodo) periodo = x; });
     el.querySelector(".sessao-meta").textContent = [
       comData ? quandoRelativo(s.data) : "",
       periodo ? periodo.nome : "",
+      tipo.nome,
       duracao(s.minutos),
+      !s.feita && s.data < hoje ? "atrasada" : "",
       s.sobre
     ].filter(Boolean).join(" · ");
     var feito = el.querySelector(".sessao-feito");
@@ -24190,40 +24314,18 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
         (doDia.length && feitas === doDia.length ? " cumprido" : "") +
         (dia < hoje && feitas < doDia.length ? " atrasado" : "");
       b.setAttribute("aria-selected", dia === p.verDia ? "true" : "false");
-      b.innerHTML = '<span class="plano-dia-sem"></span><b class="plano-dia-num"></b><span class="plano-dia-pontos"></span>';
-      b.children[0].textContent = dia === hoje ? "hoje" : ROTULO_DIA[dataDoDia(dia).getDay()];
-      b.children[1].textContent = dataDoDia(dia).getDate();
-      var pontos = b.children[2];
-      if (doDia.length && feitas === doDia.length) {
-        pontos.innerHTML = '<span class="plano-dia-ok">' + ICO_VISTO + '</span>';
-      } else {
-        doDia.forEach(function (s) {
-          /* O ícone do tipo, na cor dele; a sessão feita fica apagada. */
-          var i = document.createElement("i");
-          i.className = "tipo-" + s.tipo + (s.feita ? " feita" : "");
-          i.innerHTML = ICO_SESSAO[s.tipo] || ICO_SESSAO.teoria;
-          i.title = (TIPOS_DE_SESSAO.filter(function (x) { return x.id === s.tipo; })[0] || { nome: "" }).nome + (s.feita ? ", feita" : "");
-          pontos.appendChild(i);
-        });
-      }
+      b.innerHTML = '<span class="plano-dia-sem"></span><b class="plano-dia-num"></b><span class="plano-dia-conta"></span>';
+      b.querySelector(".plano-dia-sem").textContent = dia === hoje ? "hoje" : ROTULO_DIA[dataDoDia(dia).getDay()];
+      b.querySelector(".plano-dia-num").textContent = dataDoDia(dia).getDate();
+      var conta = b.querySelector(".plano-dia-conta");
+      if (!doDia.length) conta.textContent = "folga";
+      else if (feitas === doDia.length) conta.innerHTML = '<span class="plano-dia-ok">' + ICO_VISTO + "</span>";
+      else conta.textContent = feitas + "/" + doDia.length;
       b.setAttribute("aria-label", diaPorExtenso(dia) + ": " +
         (doDia.length ? feitas + " de " + doDia.length + (doDia.length === 1 ? " sessão feita" : " sessões feitas") : "folga"));
       (function (d) { b.addEventListener("click", function () { verDia(p, d); }); })(dia);
       faixa.appendChild(b);
     }
-
-    /* A legenda só com os tipos que o plano usa. */
-    var usados = {};
-    ss.forEach(function (s) { usados[s.tipo] = true; });
-    var leg = $("planoLegenda");
-    leg.innerHTML = "";
-    TIPOS_DE_SESSAO.forEach(function (t) {
-      if (!usados[t.id]) return;
-      var it = document.createElement("span");
-      it.innerHTML = '<i class="tipo-' + t.id + '">' + (ICO_SESSAO[t.id] || "") + '</i>';
-      it.appendChild(document.createTextNode(t.nome));
-      leg.appendChild(it);
-    });
 
     pintarDiaEscolhido(p, ss, hoje);
   }
@@ -24235,9 +24337,11 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
     $("planoDiaNome").textContent = (dia === hoje ? "Hoje · " : "") + nome.charAt(0).toUpperCase() + nome.slice(1);
     var feitas = doDia.filter(function (s) { return s.feita; }).length;
     var min = doDia.reduce(function (a, s) { return a + s.minutos; }, 0);
-    $("planoDiaResumo").textContent = doDia.length
-      ? doDia.length + (doDia.length === 1 ? " sessão · " : " sessões · ") + duracao(min) + (feitas ? " · " + feitas + (feitas === 1 ? " feita" : " feitas") : "")
+    var resumo = $("planoDiaResumo");
+    resumo.textContent = doDia.length
+      ? feitas + " de " + doDia.length + (doDia.length === 1 ? " feita" : " feitas") + " · " + duracao(min)
       : "";
+    resumo.classList.toggle("cumprido", !!doDia.length && feitas === doDia.length);
 
     var caixa = $("planoDiaSessoes");
     caixa.innerHTML = "";
@@ -24263,116 +24367,526 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
     caixa.appendChild(vazio);
   }
 
-  function pintarEstrategia(p) {
-    var caixa = $("planoEstrategia"), r = p.respostas;
-    caixa.innerHTML = "";
-    $("planoSeloIA").innerHTML = r.estrategia ? '<span class="plano-ia-selo">' + ICO_FAISCA + 'pela IA</span>' : "";
-    if (r.estrategia && r.estrategia.resumo) {
-      var resumo = document.createElement("p");
-      resumo.textContent = r.estrategia.resumo;
-      caixa.appendChild(resumo);
-    }
-    var ul = document.createElement("ul");
-    ul.className = "plano-notas";
-    (p.cronograma.notas || []).forEach(function (t) {
-      var li = document.createElement("li");
-      li.textContent = t;
-      ul.appendChild(li);
+  /* O relógio das etiquetas de duração e do grupo sem horário na agenda. */
+  var ICO_RELOGIO = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>';
+
+  /* ── O desempenho por tópico ──
+     Questões e flashcards não guardam o tópico: o tópico sai do texto deles
+     (enunciado, frente, verso, trecho, origem e o nome do arquivo), pelas
+     palavras do nome do tópico e dos subtópicos. A palavra curta e a de
+     ligação não contam, senão "de" casaria com tudo. */
+  var PALAVRAS_VAZIAS = ["para", "como", "pelo", "pela", "entre", "sobre", "com", "sem", "dos", "das", "nos", "nas", "uma", "outros", "outras", "geral", "basico", "basica"];
+  function palavrasDe(t) {
+    return semAcento(t || "").split(/[^a-z0-9]+/).filter(function (w) {
+      return w.length >= 4 && PALAVRAS_VAZIAS.indexOf(w) < 0;
     });
-    caixa.appendChild(ul);
+  }
+  function acertosDoCard(c) {
+    var m = /^(\d+) de (\d+)/.exec(c.acertos || "");
+    return m ? { a: +m[1], t: +m[2] } : { a: 0, t: 0 };
+  }
+
+  function desempenhoDoPlano(p) {
+    var r = p.respostas, ss = sessoesDe(p);
+    var topicos = r.topicos.length ? r.topicos : [{ nome: r.tema, nivel: "medio", subtopicos: [] }];
+    var arquivoPorId = {};
+    PASTAS.forEach(function (c) { c.lista.forEach(function (a) { arquivoPorId[a.id] = a; }); });
+
+    function vazio() { return { q: { a: 0, t: 0, n: 0 }, c: { a: 0, t: 0, n: 0 }, erradas: [], arquivos: [], questoes: [] }; }
+    var nos = topicos.map(function (t) {
+      var subs = (t.subtopicos || []).map(function (nome) { return { nome: nome, palavras: palavrasDe(nome), m: vazio() }; });
+      var deles = ss.filter(function (x) { return x.topico === t.nome; });
+      return {
+        t: t, nome: t.nome, nivel: nivelDe(t.nivel), palavras: palavrasDe(t.nome), subs: subs, m: vazio(),
+        sessoes: deles.length, feitas: deles.filter(function (x) { return x.feita; }).length,
+        minutos: deles.reduce(function (a, x) { return a + x.minutos; }, 0)
+      };
+    });
+
+    /* Cada item vai para o tópico com mais palavras em comum; o nome do
+       arquivo igual ao do tópico conta em dobro. Dentro do tópico, vai para o
+       subtópico com mais palavras em comum, se houver. */
+    function distribuir(texto, nomeArquivo, somar, arquivo) {
+      var palavras = palavrasDe(texto + " " + nomeArquivo), tem = {};
+      palavras.forEach(function (w) { tem[w] = true; });
+      var arq = semAcento(nomeArquivo || "");
+      var melhor = null, nota = 0;
+      nos.forEach(function (n) {
+        var k = n.palavras.filter(function (w) { return tem[w]; }).length;
+        n.subs.forEach(function (sb) { k = Math.max(k, sb.palavras.filter(function (w) { return tem[w]; }).length); });
+        if (arq && arq === semAcento(n.nome)) k += 2;
+        if (k > nota) { nota = k; melhor = n; }
+      });
+      if (!melhor) return;
+      somar(melhor.m);
+      if (arquivo) melhor.m.arquivos.push(arquivo);
+      var sub = null, ns = 0;
+      melhor.subs.forEach(function (sb) {
+        var k = sb.palavras.filter(function (w) { return tem[w]; }).length;
+        if (k > ns && k >= Math.ceil(sb.palavras.length / 2)) { ns = k; sub = sb; }
+      });
+      if (sub) somar(sub.m);
+    }
+    QUESTOES.forEach(function (q) {
+      var arq = q.arquivo;
+      distribuir([q.enunciado, q.trecho, q.origem].join(" "), arq ? arq.nome : "", function (m) {
+        m.q.n++; m.q.a += q.acertos; m.q.t += q.tentativas;
+        m.questoes.push(q);
+        if (q.tentativas > q.acertos && m.erradas.length < 3) m.erradas.push(String(q.enunciado || "").slice(0, 160));
+      }, arq);
+    });
+    ACERVO_CARDS.forEach(function (c) {
+      var arq = arquivoPorId[c.arquivoId];
+      var h = acertosDoCard(c);
+      distribuir([c.frente, c.verso, c.trecho, c.origem].join(" "), arq ? arq.nome : "", function (m) {
+        m.c.n++; m.c.a += h.a; m.c.t += h.t;
+      }, arq);
+    });
+
+    /* O desempenho pesa a questão em dobro: é o que cai na prova. */
+    function nota(m) {
+      var t = 2 * m.q.t + m.c.t;
+      return t ? Math.round((2 * m.q.a + m.c.a) / t * 100) : null;
+    }
+    nos.forEach(function (n) {
+      n.desempenho = nota(n.m);
+      n.subs.forEach(function (sb) { sb.desempenho = nota(sb.m); });
+    });
+    return nos;
+  }
+
+  /* A situação sem a IA: só pelos números. A IA, quando analisou, manda. */
+  function situacaoLocal(d) {
+    if (d == null) return "sem_dados";
+    return d >= 75 ? "forte" : d >= 55 ? "estavel" : d >= 35 ? "atencao" : "critico";
+  }
+  var NOME_DA_SITUACAO = { forte: "Forte", estavel: "Estável", atencao: "Atenção", critico: "Crítico", sem_dados: "Sem dados" };
+  var ICO_SIT = {
+    forte: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m5 13 4 4L19 7"/></svg>',
+    estavel: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/></svg>',
+    atencao: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v6M12 17h.01"/></svg>',
+    critico: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v9M12 19l-4-4M12 19l4-4"/></svg>',
+    sem_dados: '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="7"/></svg>'
+  };
+  function seloDeSituacao(sit) {
+    var e = document.createElement("span");
+    e.className = "sit-selo sit-" + sit;
+    e.innerHTML = ICO_SIT[sit] + "<span></span>";
+    e.lastChild.textContent = NOME_DA_SITUACAO[sit];
+    return e;
+  }
+  function analiseDoTopico(p, nome) {
+    var a = p.cronograma.analise;
+    if (!a) return null;
+    var k = semAcento(nome);
+    return (a.topicos || []).filter(function (t) { return semAcento(t.nome) === k; })[0] || null;
+  }
+  function nomeCurto(t) { return String(t).split(/[:(]/)[0].trim(); }
+
+  /* ── O radar ──
+     Os tópicos principais (os que levam mais tempo no plano, até oito), um
+     eixo cada, de 0 a 100: quão bem a pessoa sabe o assunto, pelas questões e
+     pelos flashcards. O ponto leva a cor da situação, e o rótulo, o número.
+     Tópico sem dados fica no centro, com o ponto vazado e "sem dados". */
+  var EIXOS_DO_RADAR = 8;
+  function topicosPrincipais(nos) {
+    if (nos.length <= EIXOS_DO_RADAR) return nos;
+    var escolhidos = nos.slice().sort(function (a, b) { return b.minutos - a.minutos; }).slice(0, EIXOS_DO_RADAR);
+    return nos.filter(function (nd) { return escolhidos.indexOf(nd) >= 0; });
+  }
+
+  function pintarRadar(p, nos) {
+    var caixa = $("planoRadar");
+    caixa.innerHTML = "";
+    if (nos.length < 3) {
+      caixa.innerHTML = '<p class="radar-vazio">O radar aparece com três tópicos ou mais.</p>';
+      return;
+    }
+    var L = 400, FOLGA = 70, cx = L / 2, cy = L / 2, R = 130, n = nos.length;
+    var NS = "http://www.w3.org/2000/svg";
+    function el(tag, attrs) {
+      var e = document.createElementNS(NS, tag);
+      for (var k in attrs) e.setAttribute(k, attrs[k]);
+      return e;
+    }
+    function ponto(i, v) {
+      var ang = -Math.PI / 2 + i * 2 * Math.PI / n;
+      return [cx + Math.cos(ang) * R * v / 100, cy + Math.sin(ang) * R * v / 100];
+    }
+    var svg = el("svg", { viewBox: -FOLGA + " 0 " + (L + 2 * FOLGA) + " " + L, role: "img", "aria-label": "Radar do conhecimento por tópico" });
+    [25, 50, 75, 100].forEach(function (v) {
+      var pts = [];
+      for (var i = 0; i < n; i++) pts.push(ponto(i, v).join(","));
+      svg.appendChild(el("polygon", { "class": "radar-grade", points: pts.join(" ") }));
+    });
+    for (var i = 0; i < n; i++) {
+      var f = ponto(i, 100);
+      svg.appendChild(el("line", { "class": "radar-eixo", x1: cx, y1: cy, x2: f[0], y2: f[1] }));
+    }
+    [50, 100].forEach(function (v) {
+      var t = el("text", { "class": "radar-escala", x: cx + 4, y: cy - R * v / 100 + 10 });
+      t.textContent = v + "%";
+      svg.appendChild(t);
+    });
+    svg.appendChild(el("polygon", { "class": "radar-area desempenho", points: nos.map(function (nd, i) { return ponto(i, nd.desempenho || 0).join(","); }).join(" ") }));
+
+    var dica = document.createElement("div");
+    dica.className = "radar-dica";
+    dica.hidden = true;
+    nos.forEach(function (nd, i) {
+      var d = ponto(i, nd.desempenho || 0);
+      svg.appendChild(el("circle", { "class": "radar-ponto desempenho sit-" + nd.sit + (nd.desempenho == null ? " vazio" : ""), cx: d[0], cy: d[1], r: 5 }));
+      var ang = -Math.PI / 2 + i * 2 * Math.PI / n, cos = Math.cos(ang);
+      var lx = cx + Math.cos(ang) * (R + 18), ly = cy + Math.sin(ang) * (R + 18);
+      var ancora = Math.abs(cos) < 0.25 ? "middle" : cos > 0 ? "start" : "end";
+      /* Em cima e embaixo, o número fica do lado de fora, longe do círculo. */
+      var acima = Math.sin(ang) < -0.6;
+      var t = el("text", { "class": "radar-rotulo" + (nd.desempenho == null ? " sem-dados" : ""), x: lx, y: ly + (acima ? -10 : 2), "text-anchor": ancora });
+      var nome = nomeCurto(nd.nome);
+      t.textContent = nome.length > 20 ? nome.slice(0, 19) + "…" : nome;
+      svg.appendChild(t);
+      var v = el("text", { "class": "radar-valor sit-" + nd.sit, x: lx, y: ly + (acima ? 4 : 16), "text-anchor": ancora });
+      v.textContent = nd.desempenho == null ? "sem dados" : nd.desempenho + "%";
+      svg.appendChild(v);
+      var fim = ponto(i, 100);
+      var alvo = el("circle", { "class": "radar-alvo", cx: cx + (fim[0] - cx) * 0.75, cy: cy + (fim[1] - cy) * 0.75, r: 36 });
+      svg.appendChild(alvo);
+      [alvo, t, v].forEach(function (a) {
+        a.addEventListener("mouseenter", function () {
+          t.classList.add("aceso");
+          dica.innerHTML = "<b></b><span></span>";
+          dica.firstChild.textContent = nd.nome;
+          var partes = [NOME_DA_SITUACAO[nd.sit]];
+          if (nd.m.q.t) partes.push(nd.m.q.a + " de " + nd.m.q.t + " em questões");
+          if (nd.m.c.t) partes.push(nd.m.c.a + " de " + nd.m.c.t + " em flashcards");
+          dica.lastChild.textContent = partes.join(" · ");
+          var k = svg.getBoundingClientRect().width / (L + 2 * FOLGA);
+          var pt = ponto(i, Math.max(nd.desempenho || 0, 30));
+          dica.style.left = (pt[0] + FOLGA) * k + "px";
+          dica.style.top = pt[1] * k + "px";
+          dica.hidden = false;
+        });
+        a.addEventListener("mouseleave", function () { t.classList.remove("aceso"); dica.hidden = true; });
+      });
+    });
+    caixa.appendChild(svg);
+    caixa.appendChild(dica);
+  }
+
+  /* ── As indicações ──
+     O que fazer agora, tópico a tópico, do mais urgente ao mais tranquilo:
+     o que está crítico ou pede atenção, o que ainda não tem dados, e um forte
+     para manter. Cada uma traz as portas certas: a prova do assunto, o
+     arquivo onde revisar e o deck. Com a análise da IA, a frase é a dela. */
+  var ICO_LINK_PROVA = ICO_SESSAO.questoes;
+  var ICO_LINK_ARQUIVO = ICO_SESSAO.teoria;
+  var ICO_LINK_CARDS = ICO_SESSAO.flashcards;
+  var INDICACOES_NO_MAXIMO = 40;
+
+  /* O arquivo de um tópico: o de nome igual na pasta do plano, ou, entre os
+     arquivos das pastas do plano, o que mais divide palavras com o nome do
+     tópico ("CARDIOLOGIA" para "Cardiologia, endocrinologia e nefrologia").
+     Sem palavra em comum, não há link: o arquivo de onde vieram as questões
+     levava Epidemiologia para INFECTOLOGIA. */
+  function arquivoParaRevisar(p, nd) {
+    var pasta = pastaDoPlano(p);
+    var porNome = arquivoDoTopico(pasta, nd.nome);
+    if (porNome) return porNome;
+    var doTopico = {};
+    nd.palavras.forEach(function (w) { doTopico[w] = true; });
+    var melhor = null, nota = 0;
+    [pasta].concat(pastasLigadas(p)).filter(Boolean).forEach(function (c) {
+      c.lista.forEach(function (a) {
+        var k = palavrasDe(a.nome).filter(function (w) { return doTopico[w]; }).length;
+        if (k > nota) { nota = k; melhor = a; }
+      });
+    });
+    return melhor;
+  }
+  function subsComDificuldade(nd) {
+    return nd.subs.filter(function (sb) { return sb.desempenho != null && sb.desempenho < 55; })
+      .sort(function (a, b) { return a.desempenho - b.desempenho; })
+      .slice(0, 3).map(function (sb) { return sb.nome; });
+  }
+  function listaFalada(itens) {
+    if (itens.length <= 1) return itens.join("");
+    return itens.slice(0, -1).join(", ") + " e " + itens[itens.length - 1];
+  }
+  /* Uma frase com partes em negrito: ["Revise ", { b: "Cardiologia" }, "."] */
+  function frase(partes) {
+    var p = document.createElement("p");
+    partes.forEach(function (x) {
+      if (typeof x === "string") p.appendChild(document.createTextNode(x));
+      else { var b = document.createElement("b"); b.textContent = x.b; p.appendChild(b); }
+    });
+    return p;
+  }
+
+  function indicacoesDoPlano(p, nos) {
+    var ordem = { critico: 0, atencao: 1, sem_dados: 2, estavel: 3, forte: 4 };
+    var fila = nos.slice().sort(function (a, b) {
+      return ordem[a.sit] - ordem[b.sit] || (a.desempenho || 0) - (b.desempenho || 0) || b.minutos - a.minutos;
+    });
+    /* O forte que entra é o de maior acerto. */
+    var fortes = fila.filter(function (nd) { return nd.sit === "forte" || nd.sit === "estavel"; })
+      .sort(function (a, b) { return (b.desempenho || 0) - (a.desempenho || 0); });
+    fila = fila.filter(function (nd) { return fortes.indexOf(nd) < 0; }).concat(fortes);
+    var dks = [deckDoPlano(p)].concat(decksLigados(p)).filter(Boolean);
+    var saida = [];
+    fila.forEach(function (nd) {
+      if (saida.length >= INDICACOES_NO_MAXIMO) return;
+      var arq = arquivoParaRevisar(p, nd), qs = nd.m.questoes;
+      var ia = analiseDoTopico(p, nd.nome);
+      var difs = subsComDificuldade(nd);
+      var item = { nd: nd, sit: nd.sit, links: [] };
+      function linkProva(rotulo) {
+        if (!qs.length) return;
+        item.links.push({ ico: ICO_LINK_PROVA, texto: rotulo + " (" + Math.min(qs.length, QUESTOES_POR_PROVA) + (qs.length === 1 ? " questão)" : " questões)"),
+          acao: function () { comecarProva(embaralhar(qs).slice(0, QUESTOES_POR_PROVA), nd.nome); } });
+      }
+      function linkArquivo() {
+        if (!arq) return;
+        item.links.push({ ico: ICO_LINK_ARQUIVO, texto: "Revisar em " + arq.nome,
+          acao: function () { irPaginaAtual("pastas"); abrirArquivo(pastaDoArquivo(arq), arq); } });
+      }
+      var nome = nomeCurto(nd.nome);
+      if (nd.sit === "critico" || nd.sit === "atencao") {
+        item.frase = difs.length
+          ? ["Faça mais provas de ", { b: nome }, difs.length === 1 ? ": no tópico " : ": nos tópicos ", { b: listaFalada(difs) }, " você demonstrou mais dificuldade."]
+          : ["Revise ", { b: nome }, ": o acerto está em " + nd.desempenho + "%" + (nd.sit === "critico" ? ", abaixo do esperado." : ", ainda instável.")];
+        linkProva("Fazer prova");
+        linkArquivo();
+      } else if (nd.sit === "sem_dados") {
+        item.frase = qs.length
+          ? ["Ainda não há respostas em ", { b: nome }, ". Faça uma prova curta para medir o seu nível."]
+          : ["", { b: nome }, " ainda não tem questões nem cards. Crie alguns a partir do conteúdo para acompanhar o nível."];
+        linkProva("Fazer prova");
+        if (!qs.length && arq) item.links.push({ ico: ICO_LINK_ARQUIVO, texto: "Abrir " + arq.nome + " para criar",
+          acao: function () { irPaginaAtual("pastas"); abrirArquivo(pastaDoArquivo(arq), arq); } });
+        else linkArquivo();
+        if (!item.links.length) item.links.push({ ico: ICO_LINK_PROVA, texto: "Abrir o banco de questões", acao: function () { irPaginaAtual("questoes"); } });
+      } else {
+        item.frase = ["", { b: nome }, " está " + (nd.sit === "forte" ? "forte" : "estável") + " (" + nd.desempenho + "%). Mantenha com revisões rápidas de flashcards."];
+        var comFila = dks.filter(function (d) { return d.hoje > 0; })[0] || dks[0];
+        if (comFila) item.links.push({ ico: ICO_LINK_CARDS, texto: "Revisar flashcards de " + comFila.nome,
+          acao: function () { if (comFila.hoje > 0) { irPaginaAtual("revisao"); montarFila(comFila.nome); } else abrirDeck(comFila); } });
+      }
+      /* A IA, quando analisou, escreve a frase; as portas continuam as daqui. */
+      if (ia && ia.proximoPasso) {
+        item.frase = [{ b: nome + ": " }, ia.proximoPasso];
+        item.daIA = true;
+        if (ia.fracos && ia.fracos.length) item.nota = ia.fracos.join(" · ");
+      }
+      saida.push(item);
+    });
+    return saida;
+  }
+
+  /* As indicações em grupos, do mais urgente ao mais tranquilo: um cartão
+     por situação, com o nome e quantos tópicos ele tem, e os tópicos dentro
+     como linhas. */
+  var GRUPOS_DE_INDICACAO = [
+    { id: "critico", nome: "Prioridade", sits: ["critico"] },
+    { id: "atencao", nome: "Atenção", sits: ["atencao"] },
+    { id: "forte", nome: "Manter", sits: ["forte", "estavel"] },
+    { id: "sem_dados", nome: "Sem dados", sits: ["sem_dados"] }
+  ];
+  function linhaDeIndicacao(it) {
+    var li = document.createElement("li");
+    li.className = "plano-indicacao";
+    li.appendChild(frase(it.frase));
+    if (it.nota) {
+      var nota = document.createElement("small");
+      nota.textContent = it.nota;
+      li.appendChild(nota);
+    }
+    if (it.links.length) {
+      var links = document.createElement("div");
+      links.className = "plano-indicacao-links";
+      it.links.forEach(function (l) {
+        var b = document.createElement("button");
+        b.type = "button";
+        b.className = "plano-link";
+        b.innerHTML = l.ico + "<span></span>";
+        b.lastChild.textContent = l.texto;
+        b.addEventListener("click", l.acao);
+        links.appendChild(b);
+      });
+      li.appendChild(links);
+    }
+    return li;
+  }
+  function pintarIndicacoes(p, nos) {
+    var lado = $("planoAnaliseLado");
+    lado.innerHTML = "";
+    var t = document.createElement("p");
+    t.className = "plano-indic-titulo";
+    t.textContent = "Indicações";
+    lado.appendChild(t);
+    var itens = indicacoesDoPlano(p, nos);
+    GRUPOS_DE_INDICACAO.forEach(function (g) {
+      var deles = itens.filter(function (it) { return g.sits.indexOf(it.sit) >= 0; });
+      if (!deles.length) return;
+      var sec = document.createElement("section");
+      sec.className = "plano-grupo sit-" + g.id;
+      sec.innerHTML = '<header class="plano-grupo-cab"><i>' + ICO_SIT[g.id] + "</i><b></b><span></span></header>" +
+        '<ol class="plano-indicacoes"></ol>';
+      sec.querySelector("b").textContent = g.nome;
+      sec.querySelector(".plano-grupo-cab span").textContent = deles.length === 1 ? "1 tópico" : deles.length + " tópicos";
+      var ol = sec.querySelector("ol");
+      /* No "Manter", os tópicos sem frase da IA viram uma frase só, com uma
+         porta só: é a mesma recomendação para todos. */
+      if (g.id === "forte") {
+        var juntos = deles.filter(function (it) { return !it.daIA; });
+        if (juntos.length > 1) {
+          var partes = [];
+          juntos.forEach(function (it, i) {
+            if (i) partes.push(i === juntos.length - 1 ? " e " : ", ");
+            partes.push({ b: nomeCurto(it.nd.nome) });
+            partes.push(" (" + it.nd.desempenho + "%)");
+          });
+          partes.push(" estão em dia. Mantenha com revisões rápidas de flashcards.");
+          ol.appendChild(linhaDeIndicacao({ frase: partes, links: juntos[0].links }));
+          deles = deles.filter(function (it) { return it.daIA; });
+        }
+      }
+      deles.forEach(function (it) { ol.appendChild(linhaDeIndicacao(it)); });
+      lado.appendChild(sec);
+    });
   }
 
   function pintarTopicosDoPlano(p, ss) {
-    var caixa = $("planoTopicos");
-    caixa.innerHTML = "";
+    var nos = desempenhoDoPlano(p);
+    nos.forEach(function (nd) {
+      var ia = analiseDoTopico(p, nd.nome);
+      /* Sem respostas, a situação é "sem dados", mesmo que a IA tenha
+         julgado o tópico pelo peso: o radar e as indicações ficam em cinza,
+         e não em vermelho, para não parecer um resultado ruim. */
+      nd.sit = nd.desempenho == null ? "sem_dados" : ia ? ia.situacao : situacaoLocal(nd.desempenho);
+    });
+    $("planoTopicosConta").textContent = nos.length === 1 ? "1 tópico" : nos.length + " tópicos";
+    pintarRadar(p, topicosPrincipais(nos));
+    pintarIndicacoes(p, nos);
+    pintarBotaoDeAnalise(p, nos);
+  }
+
+  /* ── Pedir a análise ──
+     Vai só o necessário: o tema, o prazo e os números por tópico e
+     subtópico, com até três questões erradas de exemplo. Nada de arquivo. */
+  var analisando = null;
+  function pintarBotaoDeAnalise(p, nos) {
+    var b = $("btnPlanoAnalisar");
+    var ocupado = analisando === p;
+    b.disabled = ocupado;
+    b.innerHTML = ocupado ? '<span class="giro-mini"></span>Analisando…'
+      : ICO_FAISCA + (p.cronograma.analise ? "Analisar de novo" : "Analisar com a IA");
+    b.onclick = function () { pedirAnalise(p, nos); };
+  }
+  function pedirAnalise(p, nos) {
+    if (analisando) return;
+    analisando = p;
+    pintarBotaoDeAnalise(p, nos);
     var r = p.respostas;
-    var topicos = r.topicos.length ? r.topicos : [{ nome: r.tema, nivel: "medio" }];
-    var motivos = {};
-    if (r.estrategia) (r.estrategia.topicos || []).forEach(function (t) { motivos[semAcento(t.nome)] = t.motivo; });
-    var pasta = pastaDoPlano(p);
-    $("planoTopicosConta").textContent = topicos.length;
-    topicos.forEach(function (t) {
-      var dele = ss.filter(function (s) { return s.topico === t.nome; });
-      var feitas = dele.filter(function (s) { return s.feita; }).length;
-      var pct = dele.length ? Math.round(feitas / dele.length * 100) : 0;
-      var el = document.createElement("div");
-      el.className = "plano-topico";
-      el.innerHTML =
-        '<div class="plano-topico-topo"><span class="plano-topico-nome"></span><span class="nivel-selo"></span></div>' +
-        '<div class="progresso-trilho"><div class="progresso-cheio"></div></div>' +
-        '<div class="progresso-topo"><span></span><b></b></div>';
-      var arq = arquivoDoTopico(pasta, t.nome);
-      var nome = el.querySelector(".plano-topico-nome");
-      if (arq) {
-        var b = document.createElement("button");
-        b.type = "button";
-        b.textContent = t.nome;
-        b.title = "Abrir o arquivo de " + t.nome;
-        b.addEventListener("click", function () { irPaginaAtual("pastas"); abrirArquivo(pasta, arq); });
-        nome.appendChild(b);
-      } else {
-        nome.textContent = t.nome;
+    var desempenho = nos.map(function (nd) {
+      function medidas(x) {
+        return { questoes: x.m.q.n, acertosQuestoes: x.m.q.a, tentativasQuestoes: x.m.q.t,
+                 cards: x.m.c.n, acertosCards: x.m.c.a, tentativasCards: x.m.c.t };
       }
-      var nivel = nivelDe(t.nivel);
-      var selo = el.querySelector(".nivel-selo");
-      selo.textContent = nivel.nome;
-      selo.classList.add(nivel.id);
-      el.querySelector(".progresso-cheio").style.width = pct + "%";
-      el.querySelector(".progresso-topo span").textContent = feitas + " de " + dele.length + " sessões";
-      el.querySelector(".progresso-topo b").textContent = pct + "%";
-      var motivo = motivos[semAcento(t.nome)];
-      el.classList.add("nivel-" + nivel.id);
-      /* O porquê do peso fica guardado: aberto em todos, a coluna virava um
-         texto corrido e os números se perdiam no meio. */
-      if (motivo) {
-        var m = document.createElement("details");
-        m.className = "plano-topico-porque";
-        m.innerHTML = "<summary>" + ICO_SETA_LADO + "Por que esse peso</summary><p></p>";
-        m.querySelector("p").textContent = motivo;
-        el.appendChild(m);
-      }
-      caixa.appendChild(el);
+      return Object.assign({ nome: nd.nome, nivelDeclarado: nd.nivel.id, sessoes: nd.sessoes, sessoesFeitas: nd.feitas,
+        desempenho: nd.desempenho, questoesErradas: nd.m.erradas,
+        subtopicos: nd.subs.map(function (sb) {
+          return Object.assign({ nome: sb.nome, desempenho: sb.desempenho }, medidas(sb));
+        }) }, medidas(nd));
+    });
+    fetch("/api/plano", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        etapa: "analise",
+        respostas: { tema: r.tema, objetivo: r.objetivo, prazo: r.prazo, dias: r.dias, minutos: r.minutos },
+        desempenho: desempenho
+      })
+    }).then(function (res) {
+      return res.json().catch(function () { return {}; }).then(function (j) {
+        if (!res.ok) throw new Error(j.erro || "A IA não respondeu (" + res.status + ").");
+        return j;
+      });
+    }).then(function (j) {
+      p.cronograma.analise = { em: new Date().toISOString(), resumo: j.resumo || "", topicos: j.topicos || [] };
+      salvarPlano(p);
+      avisar("success", "Análise pronta", "A IA leu o desempenho de " + nos.length + (nos.length === 1 ? " tópico." : " tópicos."));
+    }).catch(function (e) {
+      avisar("error", "Não deu para analisar agora", e.message);
+    }).then(function () {
+      analisando = null;
+      if (planoAberto === p) pintarTopicosDoPlano(p, sessoesDe(p));
     });
   }
 
-  function linhaDeMaterial(ico, nome, nota, aoClicar) {
-    var b = document.createElement(aoClicar ? "button" : "div");
-    if (aoClicar) b.type = "button";
-    b.className = "plano-material";
-    b.innerHTML = '<span class="pasta-ico">' + ico + '</span><span></span><small></small>';
-    b.children[1].textContent = nome;
-    b.children[2].textContent = nota;
-    if (aoClicar) b.addEventListener("click", aoClicar);
-    return b;
+  /* Um cartão de Praticar: o tipo dá a cor, o número é o que importa, e o
+     botão é a única ação. */
+  function cartaoDePratica(tipo, ico, rotulo, numero, nota, botao, aoClicar) {
+    var c = document.createElement("div");
+    c.className = "plano-pratica tipo-" + tipo + (aoClicar ? "" : " vazia");
+    c.innerHTML =
+      '<div class="plano-pratica-cab"><i>' + ico + '</i><span></span></div>' +
+      '<div class="plano-pratica-num"><b></b><small></small></div>' +
+      '<button type="button" class="btn btn-secondary btn-sm"></button>';
+    c.querySelector(".plano-pratica-cab span").textContent = rotulo;
+    c.querySelector(".plano-pratica-num b").textContent = numero;
+    c.querySelector(".plano-pratica-num small").textContent = nota;
+    var b = c.querySelector("button");
+    b.textContent = botao.texto;
+    b.addEventListener("click", botao.acao);
+    return c;
   }
-  function pintarMateriais(p) {
-    var caixa = $("planoMateriais");
+
+  var QUESTOES_POR_PROVA = 20;
+  function pintarPraticar(p) {
+    var caixa = $("planoPraticar");
     caixa.innerHTML = "";
-    var pasta = pastaDoPlano(p), deck = deckDoPlano(p);
-    var pastas = pastasLigadas(p).filter(function (c) { return c !== pasta; });
-    var dks = decksLigados(p).filter(function (d) { return d !== deck; });
-    if (pasta) pastas.unshift(pasta);
-    if (deck) dks.unshift(deck);
-    pastas.forEach(function (c) {
-      var n = c.lista.length;
-      caixa.appendChild(linhaDeMaterial(ICO_PASTA, c.nome, (c === pasta ? "do plano · " : "") + n + (n === 1 ? " arquivo" : " arquivos"),
-        function () { irPaginaAtual("pastas"); abrirPasta(c); }));
-    });
-    dks.forEach(function (d) {
-      caixa.appendChild(linhaDeMaterial(ICO_FLASHCARD, d.nome, (d === deck ? "do plano · " : "") + d.conta + (d.conta === 1 ? " card" : " cards"),
-        function () { abrirDeck(d); }));
-    });
-    /* Os anexos foram lidos pela IA e não ficam guardados: aparecem como
-       registro do que entrou no plano, sem porta para abrir. */
-    (p.respostas.arquivos || []).forEach(function (a) {
-      caixa.appendChild(linhaDeMaterial(ICO_ARQUIVO, a.nome, (a.contexto || "anexo").toLowerCase() + " · lido pela IA", null));
-    });
-    if (!caixa.children.length) {
-      var vazio = document.createElement("p");
-      vazio.className = "plano-vazio-dia";
-      vazio.textContent = "Nenhum material ligado ao plano. Ajuste o plano para anexar arquivos ou escolher pastas e decks.";
-      caixa.appendChild(vazio);
-    }
+    var pasta = pastaDoPlano(p);
+    var pastas = [pasta].concat(pastasLigadas(p)).filter(Boolean);
+    var dks = [deckDoPlano(p)].concat(decksLigados(p)).filter(Boolean)
+      .filter(function (d, i, a) { return a.indexOf(d) === i; });
+
+    /* Questões: as das pastas do plano; sem nenhuma, a porta é o banco. */
+    var qs = QUESTOES.filter(function (q) { return pastas.indexOf(pastaDaQuestao(q)) >= 0; });
+    var tent = qs.reduce(function (a, q) { return a + q.tentativas; }, 0);
+    var acer = qs.reduce(function (a, q) { return a + q.acertos; }, 0);
+    caixa.appendChild(cartaoDePratica("questoes", ICO_SESSAO.questoes, "Banco de questões",
+      qs.length ? String(qs.length) : "Nenhuma",
+      !qs.length ? "Crie questões a partir dos arquivos do plano" :
+        (qs.length === 1 ? "questão" : "questões") + " do plano" + (tent ? " · " + Math.round(acer / tent * 100) + "% de acerto" : " · ainda não respondidas"),
+      qs.length
+        ? { texto: "Fazer prova", acao: function () { comecarProva(embaralhar(qs).slice(0, QUESTOES_POR_PROVA), "Plano " + p.nome); } }
+        : { texto: "Abrir o banco", acao: function () { irPaginaAtual("questoes"); } },
+      qs.length > 0));
+
+    /* Flashcards: o total dos decks do plano e quantos esperam hoje. */
+    var cards = dks.reduce(function (a, d) { return a + d.conta; }, 0);
+    var paraHoje = dks.reduce(function (a, d) { return a + (d.hoje || 0); }, 0);
+    var comFila = dks.filter(function (d) { return d.hoje > 0; })[0];
+    caixa.appendChild(cartaoDePratica("flashcards", ICO_SESSAO.flashcards, "Flashcards",
+      cards ? String(cards) : "Nenhum",
+      !dks.length ? "O plano ainda não tem deck" :
+        !cards ? "Crie cards selecionando trechos dos arquivos" :
+        (cards === 1 ? "card" : "cards") + " · " + (paraHoje ? paraHoje + " para revisar hoje" : "nada para hoje"),
+      comFila ? { texto: "Revisar agora", acao: function () { irPaginaAtual("revisao"); montarFila(comFila.nome); } }
+        : dks[0] ? { texto: "Abrir o deck", acao: function () { abrirDeck(dks[0]); } }
+        : { texto: "Ver os decks", acao: function () { irPaginaAtual("decks"); } },
+      cards > 0));
+
+    /* Teoria: os arquivos da pasta do plano. */
+    var arquivos = pastas.reduce(function (a, c) { return a + c.lista.length; }, 0);
+    caixa.appendChild(cartaoDePratica("teoria", ICO_SESSAO.teoria, "Teoria",
+      arquivos ? String(arquivos) : "Nenhum",
+      !pastas.length ? "O plano ainda não tem pasta" :
+        (arquivos === 1 ? "arquivo" : "arquivos") + " em " + (pastas.length === 1 ? pastas[0].nome : pastas.length + " pastas"),
+      pastas.length
+        ? { texto: "Abrir a pasta", acao: function () { irPaginaAtual("pastas"); abrirPasta(pastas[0]); } }
+        : { texto: "Ver as pastas", acao: function () { irPaginaAtual("pastas"); } },
+      arquivos > 0));
   }
 
   var repintarSessao = null;

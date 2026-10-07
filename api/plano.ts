@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 //  O assistente de plano de estudos, com o Claude.
 //
-//  POST /api/plano   { etapa: 'perguntar' | 'conteudo' | 'montar', respostas, arquivos, acervo, conversa }
+//  POST /api/plano   { etapa: 'perguntar' | 'conteudo' | 'montar' | 'analise', respostas, arquivos, acervo, conversa, desempenho }
 //
 //  Duas etapas, e não uma: antes de montar qualquer coisa, o Claude lê o que a
 //  pessoa anexou e pergunta só o que muda o plano. Montar direto das primeiras
@@ -77,6 +77,25 @@ const Estrategia = z.object({
   notas: z.array(z.string()).describe('De 2 a 5 frases curtas explicando as escolhas do plano, ligadas ao que a pessoa disse.'),
 });
 
+/* A análise do andamento: com o plano em curso, a IA lê o desempenho por
+   tópico e subtópico (questões, flashcards, sessões e o que a pessoa marcou
+   como visto) e diz onde ela está forte e onde está fraca. */
+const Situacao = z.enum(['forte', 'estavel', 'atencao', 'critico', 'sem_dados']);
+const Analise = z.object({
+  resumo: z.string().describe('De duas a três frases, em segunda pessoa, sobre o momento do estudo: o que vai bem, o que preocupa e por onde seguir.'),
+  topicos: z.array(z.object({
+    nome: z.string().describe('O nome do tópico exatamente como veio no desempenho.'),
+    situacao: Situacao.describe('"sem_dados" quando não há questões nem cards respondidos no tópico.'),
+    fortes: z.array(z.string()).describe('De 0 a 3 pontos fortes concretos, curtos, citando subtópicos ou números.'),
+    fracos: z.array(z.string()).describe('De 0 a 3 pontos fracos concretos, curtos, citando subtópicos, números ou o tipo de questão errada.'),
+    proximoPasso: z.string().describe('Uma frase com a próxima ação, prática e específica.'),
+    subtopicos: z.array(z.object({
+      nome: z.string().describe('O nome do subtópico exatamente como veio.'),
+      situacao: Situacao,
+    })),
+  })),
+});
+
 const SISTEMA = `Você é o planejador de estudos do Sinapse, um app de estudo para estudantes brasileiros.
 Você conversa em português do Brasil, com frases curtas e diretas, sem jargão e sem elogio vazio.
 Nunca use travessão longo; use vírgula, dois-pontos ou ponto.
@@ -100,7 +119,13 @@ Na etapa "montar", você devolve a estratégia de um plano enxuto:
 - tópico em que a pessoa é fraca, ou que pesa mais na prova, ganha peso maior;
 - tópico que a pessoa domina ganha peso 1 e vira revisão;
 - as fases somam 100; a reta final só existe se houver prazo;
-- uma sessão por dia é o padrão: é mais fácil de cumprir.`;
+- uma sessão por dia é o padrão: é mais fácil de cumprir.
+
+Na etapa "analise", o plano já está em curso e você recebe o desempenho por tópico e por subtópico: acertos nas questões e nas provas, retenção nos flashcards e sessões feitas, e algumas questões erradas como exemplo. Você:
+- julga cada tópico e subtópico só pelos números e exemplos recebidos; sem dados, a situação é "sem_dados", e você diz o que fazer para gerar dados;
+- "forte" é acerto alto com volume razoável; "estavel" é bom, mas com pouco volume ou oscilando; "atencao" é acerto médio, ou pouco volume perto da prova; "critico" é acerto baixo;
+- nos pontos fortes e fracos, cite o subtópico e o número ("acertou 2 de 9 em pré-eclâmpsia"), nunca frases genéricas;
+- o próximo passo usa o que o app tem: ler o arquivo, revisar flashcards, fazer uma prova curta do tópico, refazer as erradas.`;
 
 /* O plano fala com a IA sempre com o mesmo sistema e o esforço médio; o
    acervo chega com o prefixo que diz à IA de onde aquele texto veio. */
@@ -192,6 +217,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         },
         sessoesPorDia: s.sessoesPorDia >= 2 ? 2 : 1,
         notas: s.notas.slice(0, 5),
+      }));
+      return;
+    }
+
+    if (etapa === 'analise') {
+      const a = await perguntar(Analise, [], [],
+        `Etapa: analise.
+${contexto}
+
+Desempenho por tópico, em JSON:
+${JSON.stringify(corpo.desempenho ?? [])}
+
+Analise os pontos fortes e fracos de cada tópico e subtópico.`);
+      if (!a) throw new Error('A IA não conseguiu analisar o desempenho. Tente de novo.');
+      res.status(200).json(semTravessao({
+        resumo: a.resumo,
+        topicos: a.topicos.slice(0, 20).map((t) => ({
+          nome: t.nome.trim(), situacao: t.situacao,
+          fortes: t.fortes.slice(0, 3), fracos: t.fracos.slice(0, 3), proximoPasso: t.proximoPasso,
+          subtopicos: t.subtopicos.slice(0, 12).map((s) => ({ nome: s.nome.trim(), situacao: s.situacao })),
+        })),
       }));
       return;
     }
