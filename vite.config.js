@@ -21,7 +21,9 @@ function apiLocal(env) {
     configureServer(server) {
       // As credenciais do .env não são expostas ao navegador: elas só entram
       // no processo do servidor, que é onde o handler roda.
-      for (const chave of ['TURSO_DATABASE_URL', 'TURSO_AUTH_TOKEN']) {
+      // CHROME_PATH é opcional: o Chrome que gera o PDF dos arquivos.
+      // ANTHROPIC_API_KEY e GEMINI_API_KEY são as do assistente de plano de estudos.
+      for (const chave of ['TURSO_DATABASE_URL', 'TURSO_AUTH_TOKEN', 'CHROME_PATH', 'ANTHROPIC_API_KEY', 'GEMINI_API_KEY', 'GEMINI_MODEL']) {
         if (env[chave]) process.env[chave] = env[chave];
       }
 

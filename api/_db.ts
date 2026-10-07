@@ -185,6 +185,23 @@ const SCHEMA = [
    )`,
   `CREATE INDEX IF NOT EXISTS idx_provas_dia ON sinapse_provas (feita_em)`,
 
+  /* Os planos de estudo. O que o assistente perguntou (`respostas`) e o que
+     ele montou a partir disso (`cronograma`) vão em JSON, cada um numa coluna:
+     o plano é lido sempre inteiro, e ajustar é refazer o cronograma a partir
+     das respostas, então separá-los em tabelas só obrigaria a remontar tudo
+     a cada leitura. A pasta e o deck são o espaço que o plano criou; apagar
+     um deles deixa o plano de pé, só sem o atalho. */
+  `CREATE TABLE IF NOT EXISTS sinapse_planos (
+     id            TEXT PRIMARY KEY,
+     nome          TEXT NOT NULL,
+     respostas     TEXT NOT NULL DEFAULT '{}',
+     cronograma    TEXT NOT NULL DEFAULT '{}',
+     pasta_id      TEXT REFERENCES sinapse_pastas(id) ON DELETE SET NULL,
+     deck_id       TEXT REFERENCES sinapse_decks(id) ON DELETE SET NULL,
+     criado_em     TEXT NOT NULL,
+     atualizado_em TEXT NOT NULL
+   )`,
+
   // O uso da plataforma, em minutos ativos por hora (UTC, `AAAA-MM-DDTHH`). Uma
   // linha por hora, e não por acesso: o mapa de calor do Dashboard só precisa
   // do total de cada hora, e a tabela cresce no máximo 24 linhas por dia.

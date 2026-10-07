@@ -3,6 +3,15 @@
   "outputDirectory": "dist",
   "framework": "vite",
   "devCommand": "npm run dev",
+  "functions": {
+    "api/pdf.ts": {
+      "includeFiles": "node_modules/@sparticuz/chromium/bin/**",
+      "maxDuration": 60
+    },
+    "api/plano.ts": {
+      "maxDuration": 120
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",

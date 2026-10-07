@@ -18,6 +18,10 @@
     "vite": "^8.3.0"
   },
   "dependencies": {
-    "@libsql/client": "^0.18.0"
+    "@anthropic-ai/sdk": "^0.131.0",
+    "@libsql/client": "^0.18.0",
+    "@sparticuz/chromium": "153.0.0",
+    "puppeteer-core": "25.11.0",
+    "zod": "^4.6.5"
   }
 }

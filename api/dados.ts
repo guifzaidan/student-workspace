@@ -3,7 +3,8 @@
 //
 //  GET  /api/dados          devolve o estado inteiro: pastas com arquivos,
 //                           decks com flashcards, o banco de questões com as
-//                           provas feitas, e os números dos relatórios.
+//                           provas feitas, os planos de estudo e os números
+//                           dos relatórios.
 //  POST /api/dados          recebe { acao, ... } e grava.
 //
 //  Uma porta só, e não uma por recurso, porque a tela carrega tudo de uma vez
@@ -66,6 +67,16 @@ function alternativas(v: unknown): string[] {
     : [];
 }
 
+/* O JSON de um plano: objeto, ou objeto vazio. Como nas notas, um plano com a
+   coluna ilegível não pode derrubar a leitura do resto. */
+function objeto(v: unknown): Record<string, unknown> {
+  let lido: unknown = v;
+  if (typeof v === 'string') {
+    try { lido = JSON.parse(v); } catch { return {}; }
+  }
+  return lido && typeof lido === 'object' && !Array.isArray(lido) ? (lido as Record<string, unknown>) : {};
+}
+
 /** A questão pronta para gravar, ou um recado do que falta nela. */
 function questaoDe(corpo: Record<string, unknown>) {
   const enunciado = texto(corpo.enunciado).trim();
@@ -94,7 +105,7 @@ function hoje(): string {
 // ── Leitura ──────────────────────────────────────────────────────────────────
 async function lerTudo() {
   const cx = db();
-  const [pastas, arquivos, decks, cards, rascunhos, revisoes, ciclos, acessos, questoes, provas] = await Promise.all([
+  const [pastas, arquivos, decks, cards, rascunhos, revisoes, ciclos, acessos, questoes, provas, planos] = await Promise.all([
     cx.execute('SELECT * FROM sinapse_pastas ORDER BY posicao, criada_em'),
     cx.execute('SELECT * FROM sinapse_arquivos ORDER BY posicao, criado_em'),
     cx.execute('SELECT * FROM sinapse_decks ORDER BY posicao, criado_em'),
@@ -122,6 +133,8 @@ async function lerTudo() {
     cx.execute('SELECT * FROM sinapse_questoes ORDER BY criada_em DESC'),
     // As últimas cinquenta provas bastam para o histórico e para a média.
     cx.execute('SELECT * FROM sinapse_provas ORDER BY feita_em DESC LIMIT 50'),
+    // O mais novo primeiro, que é a ordem da tela de planos.
+    cx.execute('SELECT * FROM sinapse_planos ORDER BY criado_em DESC'),
   ]);
 
   const porPasta = new Map<string, Linha[]>();
@@ -226,6 +239,15 @@ async function lerTudo() {
       acertos: numero(l.acertos),
       segundos: numero(l.segundos),
       feitaEm: texto(l.feita_em),
+    })),
+    planos: (planos.rows as unknown as Linha[]).map((l) => ({
+      id: texto(l.id),
+      nome: texto(l.nome),
+      respostas: objeto(l.respostas),
+      cronograma: objeto(l.cronograma),
+      pastaId: texto(l.pasta_id),
+      deckId: texto(l.deck_id),
+      criadoEm: texto(l.criado_em),
     })),
   };
 }
@@ -533,6 +555,43 @@ async function gravar(corpo: Record<string, unknown>) {
       await cx.batch(escritas, 'write');
       return { id };
     }
+
+    /* O plano chega pronto da tela: quem monta o cronograma é ela, que já tem
+       o acervo inteiro na mão. Aqui ele só é guardado. A pasta e o deck entram
+       pelo subselect, como o arquivo da questão: um id que o banco não tem
+       mais deixa o plano sem o atalho, em vez de derrubar a gravação. */
+    case 'plano.criar': {
+      const nome = texto(corpo.nome).trim();
+      if (!nome) throw new Error('O plano precisa de um nome.');
+      const id = novoId('pln');
+      await cx.execute(
+        `INSERT INTO sinapse_planos (id, nome, respostas, cronograma, pasta_id, deck_id, criado_em, atualizado_em)
+         VALUES (?, ?, ?, ?, (SELECT id FROM sinapse_pastas WHERE id = ?), (SELECT id FROM sinapse_decks WHERE id = ?), ?, ?)`,
+        [id, nome, JSON.stringify(objeto(corpo.respostas)), JSON.stringify(objeto(corpo.cronograma)),
+         texto(corpo.pastaId) || null, texto(corpo.deckId) || null, t, t],
+      );
+      return { id };
+    }
+    case 'plano.salvar': {
+      const nome = texto(corpo.nome).trim();
+      if (!nome) throw new Error('O plano precisa de um nome.');
+      /* Ajustar pode criar o espaço que o plano ainda não tinha: a pasta e o
+         deck só são trocados quando chega um id que o banco conhece. */
+      await cx.execute(
+        `UPDATE sinapse_planos
+            SET nome = ?, respostas = ?, cronograma = ?,
+                pasta_id = COALESCE((SELECT id FROM sinapse_pastas WHERE id = ?), pasta_id),
+                deck_id = COALESCE((SELECT id FROM sinapse_decks WHERE id = ?), deck_id),
+                atualizado_em = ?
+          WHERE id = ?`,
+        [nome, JSON.stringify(objeto(corpo.respostas)), JSON.stringify(objeto(corpo.cronograma)),
+         texto(corpo.pastaId), texto(corpo.deckId), t, texto(corpo.id)],
+      );
+      return { ok: true };
+    }
+    case 'plano.excluir':
+      await cx.execute('DELETE FROM sinapse_planos WHERE id = ?', [texto(corpo.id)]);
+      return { ok: true };
 
     case 'ciclo.comecar': {
       const r = await cx.execute(
