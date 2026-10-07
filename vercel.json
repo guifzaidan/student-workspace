@@ -9,7 +9,10 @@
       "maxDuration": 60
     },
     "api/plano.ts": {
-      "maxDuration": 120
+      "maxDuration": 300
+    },
+    "api/assistente.ts": {
+      "maxDuration": 300
     }
   },
   "rewrites": [

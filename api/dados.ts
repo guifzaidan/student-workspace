@@ -149,6 +149,7 @@ async function lerTudo() {
       notas: notas(linha.notas),
       margem: numero(linha.margem, 2.54) || 2.54,
       postits: notas(linha.postits),
+      propostasIA: texto(linha.propostas_ia),
     });
     porPasta.set(texto(linha.pasta_id), arr);
   }
@@ -322,7 +323,8 @@ async function gravar(corpo: Record<string, unknown>) {
     case 'arquivo.salvar':
       await cx.execute(
         `UPDATE sinapse_arquivos
-            SET nome = ?, descricao = ?, corpo = ?, notas = ?, margem = ?, postits = COALESCE(?, postits), atualizado_em = ?
+            SET nome = ?, descricao = ?, corpo = ?, notas = ?, margem = ?, postits = COALESCE(?, postits),
+                propostas_ia = COALESCE(?, propostas_ia), atualizado_em = ?
           WHERE id = ?`,
         [
           texto(corpo.nome), texto(corpo.desc), texto(corpo.corpo),
@@ -334,6 +336,9 @@ async function gravar(corpo: Record<string, unknown>) {
           /* Os post-its só são trocados quando a tela os manda: uma aba aberta
              antes deles existirem salva o texto sem apagá-los. */
           Array.isArray(corpo.postits) ? JSON.stringify(corpo.postits) : null,
+          /* As propostas da IA ainda não decididas: uma aba antiga, que não
+             as conhece, não as apaga. */
+          typeof corpo.propostasIA === 'string' ? corpo.propostasIA : null,
           t, texto(corpo.id),
         ],
       );

@@ -224,6 +224,9 @@ const COLUNAS: [string, string, string][] = [
   ['sinapse_arquivos', 'margem', `REAL NOT NULL DEFAULT 2.54`],
   // Os post-its soltos sobre a folha, em JSON: cor, texto e posição.
   ['sinapse_arquivos', 'postits', `TEXT NOT NULL DEFAULT ''`],
+  // O arquivo com as propostas da IA ainda não decididas, no lugar delas.
+  // Vazio quando não há nenhuma; o corpo continua sendo só o aprovado.
+  ['sinapse_arquivos', 'propostas_ia', `TEXT NOT NULL DEFAULT ''`],
   // Uma imagem por lado do card, como endereço da `/api/imagem` (vazio é sem).
   ['sinapse_flashcards', 'imagem_frente', `TEXT NOT NULL DEFAULT ''`],
   ['sinapse_flashcards', 'imagem_verso', `TEXT NOT NULL DEFAULT ''`],

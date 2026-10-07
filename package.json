@@ -21,6 +21,8 @@
     "@anthropic-ai/sdk": "^0.131.0",
     "@libsql/client": "^0.18.0",
     "@sparticuz/chromium": "153.0.0",
+    "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^6.4.299",
     "puppeteer-core": "25.11.0",
     "zod": "^4.6.5"
   }
