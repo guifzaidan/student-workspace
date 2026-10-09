@@ -4324,11 +4324,13 @@ body:has(.pagina:not([hidden]) .vista[data-vista="arquivo"]:not([hidden]) .estud
   .arquivo-acao, .pasta-acao { opacity: 1; }
 }
 .arquivo-linha-ico { color: var(--gray2); flex-shrink: 0; }
-.arquivo-linha-texto { flex: 1; min-width: 0; }
+.arquivo-linha-texto { flex: 1; min-width: 0; overflow: hidden; }
 /* `display: block` é o que faz as reticências valerem: o nome é um <span>, e
    em linha o corte não acontece, o texto corria por baixo da contagem. */
 .arquivo-linha-nome { display: block; font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.arquivo-linha-sub { font-size: 11.5px; font-weight: 500; color: var(--gray2); margin-top: 1px; }
+/* Uma linha só, cortada com reticências: texto comprido aqui nunca pode
+   passar por baixo da contagem de flashcards, em tela nenhuma. */
+.arquivo-linha-sub { font-size: 11.5px; font-weight: 500; color: var(--gray2); margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .arquivo-linha-meta { flex-shrink: 0; font-size: 11.5px; font-weight: 600; color: var(--gray2); white-space: nowrap; }
 .arquivo-linha-sub-cards { display: none; }
 @media (max-width: 560px) {
@@ -15699,12 +15701,41 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
      espaço ela volta à largura do A4 e encolhe, como sempre. A altura e as
      margens continuam as do A4, e é por elas que a página quebra. */
   var LARGURA_TETO = 1040, FOLGA_LADOS = 48;
+
+  /* A folha não pode ficar trocando de jeito sozinha. Numa tela dividida, a
+     coluna fica perto do limite em que as páginas ligam, e qualquer pixel
+     mexia na decisão: ligadas, aparecia a barra de rolagem, a coluna perdia
+     a largura dela e as páginas desligavam; desligadas, a barra sumia e elas
+     ligavam de novo, sem parar. Agora a decisão tem folga (liga com 86% de
+     espaço e só desliga abaixo de 82%), a largura só muda quando a coluna
+     muda de verdade, o lugar da barra de rolagem fica reservado e, se ainda
+     assim a folha trocar de estado várias vezes num segundo, ela congela no
+     estado em que está por um instante. */
+  var LIGA_COM = 0.86, DESLIGA_COM = 0.82, PASSO_DE_LARGURA = 24;
+  var larguraDaFolha = 0, trocasRecentes = [], congeladoAte = 0;
   function aplicarLayout() {
     var coluna = folhaDoTexto.parentElement;
     if (!coluna.clientWidth) return;
-    var largura = Math.max(A4.largura, Math.min(LARGURA_TETO, coluna.clientWidth - FOLGA_LADOS));
+    var rolador = roladorDoTexto();
+    if (rolador && rolador.style.scrollbarGutter !== "stable") rolador.style.scrollbarGutter = "stable";
+    var alvo = Math.max(A4.largura, Math.min(LARGURA_TETO, coluna.clientWidth - FOLGA_LADOS));
+    if (!larguraDaFolha || Math.abs(alvo - larguraDaFolha) >= PASSO_DE_LARGURA || alvo === A4.largura || alvo === LARGURA_TETO) {
+      larguraDaFolha = alvo;
+    }
+    var largura = larguraDaFolha;
     var cabe = coluna.clientWidth / largura;
-    paginasNaTela = comPaginas && cabe >= 0.85;
+    var agora = Date.now();
+    var querLigar = comPaginas && (paginasNaTela ? cabe >= DESLIGA_COM : cabe >= LIGA_COM);
+    if (querLigar !== paginasNaTela && comPaginas) {
+      if (agora < congeladoAte) {
+        querLigar = paginasNaTela;
+      } else {
+        trocasRecentes = trocasRecentes.filter(function (t) { return agora - t < 1000; });
+        trocasRecentes.push(agora);
+        if (trocasRecentes.length >= 3) { congeladoAte = agora + 1500; trocasRecentes = []; setTimeout(aplicarLayout, 1600); }
+      }
+    }
+    paginasNaTela = querLigar;
     folhaDoTexto.classList.toggle("folha-a4", paginasNaTela);
     folhaDoTexto.style.width = paginasNaTela ? largura + "px" : "";
     camadaFolhas.hidden = !paginasNaTela;
@@ -15835,7 +15866,7 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
      deixa a moldura para trás: quem desce é a caixa dela inteira, pela margem.
      Empurrar só a linha deixava a borda e o fundo da tabela atravessando o vão
      entre as folhas. */
-  function caixaDaTabela(tr) { return tr.closest(".tabela-envolto") || tr.closest("table"); }
+  function tabelaDaLinha(tr) { return tr.closest(".tabela-envolto") || tr.closest("table"); }
   function seletorDe(el) {
     var partes = [];
     while (el && el !== arquivoCorpo) {
@@ -15858,7 +15889,7 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
     empurroes.forEach(function (e, i) {
       var u = unidades[i];
       if (!e || e.alvo || u.el.tagName !== "TR") return;
-      var caixa = caixaDaTabela(u.el);
+      var caixa = tabelaDaLinha(u.el);
       if (!caixa) return;
       if (!cortes.has(caixa)) cortes.set(caixa, []);
       cortes.get(caixa).push({ u: u, e: e });
@@ -15954,8 +15985,8 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
       var u = unidades[k], topo = topos[k] + desvio, alto = altos[k];
       /* A primeira linha desce com a tabela inteira, e o cabeçalho não fica
          sozinho no pé da folha: ele conta junto com a linha de baixo. */
-      if (u.el.tagName === "TR" && u.el.rowIndex === 0 && caixaDaTabela(u.el)) {
-        var caixaT = caixaDaTabela(u.el), segunda = u.el.closest("table").rows[1];
+      if (u.el.tagName === "TR" && u.el.rowIndex === 0 && tabelaDaLinha(u.el)) {
+        var caixaT = tabelaDaLinha(u.el), segunda = u.el.closest("table").rows[1];
         u = { el: caixaT, sel: seletorDe(caixaT), inteira: true, linha: unidades[k] };
         topo = alturaNaFolha(caixaT) + desvio;
         alto = u.linha.el.offsetHeight + (segunda && linhaDeCabecalho(u.linha.el) ? segunda.offsetHeight : 0) +
@@ -16074,7 +16105,15 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
     childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["open", "style", "class"]
   });
   arquivoCorpo.addEventListener("load", agendarPaginar, true);
-  if (window.ResizeObserver) new ResizeObserver(aplicarLayout).observe(folhaDoTexto.parentElement);
+  /* Só a largura da coluna muda o layout. A altura muda o tempo todo com a
+     própria paginação, e responder a ela fazia a folha se refazer em ciclo. */
+  var larguraDaColuna = 0;
+  if (window.ResizeObserver) new ResizeObserver(function () {
+    var w = folhaDoTexto.parentElement.clientWidth;
+    if (w === larguraDaColuna) return;
+    larguraDaColuna = w;
+    aplicarLayout();
+  }).observe(folhaDoTexto.parentElement);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(agendarPaginar);
 
   (function () {
@@ -24376,7 +24415,7 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
      palavras do nome do tópico e dos subtópicos. A palavra curta e a de
      ligação não contam, senão "de" casaria com tudo. */
   var PALAVRAS_VAZIAS = ["para", "como", "pelo", "pela", "entre", "sobre", "com", "sem", "dos", "das", "nos", "nas", "uma", "outros", "outras", "geral", "basico", "basica"];
-  function palavrasDe(t) {
+  function termosDe(t) {
     return semAcento(t || "").split(/[^a-z0-9]+/).filter(function (w) {
       return w.length >= 4 && PALAVRAS_VAZIAS.indexOf(w) < 0;
     });
@@ -24394,10 +24433,10 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
 
     function vazio() { return { q: { a: 0, t: 0, n: 0 }, c: { a: 0, t: 0, n: 0 }, erradas: [], arquivos: [], questoes: [] }; }
     var nos = topicos.map(function (t) {
-      var subs = (t.subtopicos || []).map(function (nome) { return { nome: nome, palavras: palavrasDe(nome), m: vazio() }; });
+      var subs = (t.subtopicos || []).map(function (nome) { return { nome: nome, palavras: termosDe(nome), m: vazio() }; });
       var deles = ss.filter(function (x) { return x.topico === t.nome; });
       return {
-        t: t, nome: t.nome, nivel: nivelDe(t.nivel), palavras: palavrasDe(t.nome), subs: subs, m: vazio(),
+        t: t, nome: t.nome, nivel: nivelDe(t.nivel), palavras: termosDe(t.nome), subs: subs, m: vazio(),
         sessoes: deles.length, feitas: deles.filter(function (x) { return x.feita; }).length,
         minutos: deles.reduce(function (a, x) { return a + x.minutos; }, 0)
       };
@@ -24407,7 +24446,7 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
        arquivo igual ao do tópico conta em dobro. Dentro do tópico, vai para o
        subtópico com mais palavras em comum, se houver. */
     function distribuir(texto, nomeArquivo, somar, arquivo) {
-      var palavras = palavrasDe(texto + " " + nomeArquivo), tem = {};
+      var palavras = termosDe(texto + " " + nomeArquivo), tem = {};
       palavras.forEach(function (w) { tem[w] = true; });
       var arq = semAcento(nomeArquivo || "");
       var melhor = null, nota = 0;
@@ -24597,7 +24636,7 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
     var melhor = null, nota = 0;
     [pasta].concat(pastasLigadas(p)).filter(Boolean).forEach(function (c) {
       c.lista.forEach(function (a) {
-        var k = palavrasDe(a.nome).filter(function (w) { return doTopico[w]; }).length;
+        var k = termosDe(a.nome).filter(function (w) { return doTopico[w]; }).length;
         if (k > nota) { nota = k; melhor = a; }
       });
     });
