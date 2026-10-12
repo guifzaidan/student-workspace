@@ -465,8 +465,6 @@ html.tema-revelando::view-transition-new(root) { z-index: 1; animation: tema-rev
   overflow: hidden;
   animation: panelUp .18s ease both;
 }
-.conta-menu-aviso { padding: 12px 14px; border-bottom: 1px solid var(--gray3); background: var(--bg); }
-.conta-menu-aviso p { font-size: 11px; font-weight: 500; color: var(--gray2); line-height: 1.5; }
 .conta-menu-item {
   width: 100%;
   padding: 9px 14px;
@@ -3888,6 +3886,59 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
   border-top-color: currentColor;
 }
 .dux-spinner-row { display: flex; align-items: center; justify-content: center; padding: 28px 16px; }
+
+/* ─── A primeira carga ───
+   Enquanto o banco não responde, cada bloco mostra a própria forma em cinza,
+   com um brilho correndo (o mesmo do assistente). Os dados chegam no lugar
+   dela e entram num fade curto, em vez de surgirem de uma vez sobre a tela
+   em branco. Quem liga e desliga é o `data-carregando` do body. */
+.esq {
+  display: block;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(90deg, var(--gray4) 0%, color-mix(in srgb, var(--gray3) 70%, var(--gray4)) 50%, var(--gray4) 100%);
+  background-size: 200% 100%;
+  animation: assist-brilho 1.4s ease-in-out infinite;
+}
+.esq-cartao {
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 14px;
+  background: var(--white);
+  border: 1px solid var(--gray3);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+.esq-kpi { gap: 8px; padding: 12px 14px; border-left: 4px solid var(--gray3); }
+.esq-coluna { flex: 1; min-width: 0; border-radius: 4px 4px 0 0; }
+.esq-linha td { padding-top: 15px; padding-bottom: 15px; }
+.esq-lista { display: flex; flex-direction: column; }
+.esq-lista .esq { height: 12px; margin: 16px; }
+.esq-lista .esq + .esq { margin-top: 4px; }
+
+/* A conta, enquanto não se sabe quem é. */
+body[data-carregando] .topbar-conta-avatar,
+body[data-carregando] .topbar-conta-nome,
+body[data-carregando] .topbar-conta-email {
+  color: transparent;
+  background: linear-gradient(90deg, var(--gray4) 0%, color-mix(in srgb, var(--gray3) 70%, var(--gray4)) 50%, var(--gray4) 100%);
+  background-size: 200% 100%;
+  animation: assist-brilho 1.4s ease-in-out infinite;
+}
+body[data-carregando] .topbar-conta-nome { width: 96px; height: 11px; margin-bottom: 6px; border-radius: 4px; }
+body[data-carregando] .topbar-conta-email { width: 128px; height: 9px; border-radius: 4px; }
+
+/* A chegada: só os blocos de dado aparecem, o título da tela já estava lá. */
+body[data-chegou] :is(.kpi-fila, .colunas, .coluna-dias, .mapa-grade, .decks-grade, .pastas-grade, #listaArquivos, tbody) {
+  animation: chegaDado .45s cubic-bezier(.2, .8, .2, 1) both;
+}
+body[data-chegou] :is(.mapa-grade, .decks-grade, .pastas-grade) { animation-delay: .06s; }
+body[data-chegou] tbody { animation-delay: .12s; }
+@keyframes chegaDado { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.topbar-conta-avatar, .topbar-conta-nome, .topbar-conta-email { transition: color .3s ease, background-color .3s ease; }
+
+@media (prefers-reduced-motion: reduce) {
+  .esq, body[data-carregando] :is(.topbar-conta-avatar, .topbar-conta-nome, .topbar-conta-email) { animation: none; }
+  body[data-chegou] :is(.kpi-fila, .colunas, .coluna-dias, .mapa-grade, .decks-grade, .pastas-grade, #listaArquivos, tbody) { animation: none; }
+}
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .dux-spinner { animation-duration: 2.4s; } }
 
@@ -7307,7 +7358,7 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
 }
 </style>
 </head>
-<body>
+<body data-carregando>
 
 <div class="admin-casca" id="casca" data-menu="aberto">
 
@@ -7435,11 +7486,11 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
       <!-- A conta fecha o menu, abaixo do tema: é coisa de quem usa, não de
            navegação, e no rodapé fica sempre à vista sem disputar o topo. -->
       <div class="app-menu-conta">
-        <button type="button" class="topbar-conta" id="btnConta" aria-haspopup="menu" aria-expanded="false" aria-label="Conta de Milena Zaidan">
-          <span class="topbar-conta-avatar" aria-hidden="true">MZ</span>
+        <button type="button" class="topbar-conta" id="btnConta" aria-haspopup="menu" aria-expanded="false" aria-label="Sua conta">
+          <span class="topbar-conta-avatar" aria-hidden="true"></span>
           <span class="topbar-conta-texto">
-            <span class="topbar-conta-nome">Milena Zaidan</span>
-            <span class="topbar-conta-email">R1 Clínica Médica</span>
+            <span class="topbar-conta-nome"></span>
+            <span class="topbar-conta-email"></span>
           </span>
         </button>
       </div>
@@ -7665,7 +7716,7 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
        <div class="bloco grafico">
          <div class="grafico-topo">
            <span class="grafico-titulo">Cards revisados nos últimos sete dias</span>
-           <span class="grafico-legenda">198 no total</span>
+           <span class="grafico-legenda" id="total7d"></span>
          </div>
          <div class="colunas" id="colunas7d"></div>
          <div class="coluna-dias" id="dias7d"></div>
@@ -9046,6 +9097,10 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
   var API = "/api/dados";
   var comBanco = false;
 
+  function irParaEntrada() {
+    location.replace("/login");
+  }
+
   function chamar(corpo) {
     /* O corpo vai dentro de uma promessa para que um erro síncrono, como um
        `fetch` ausente ou uma URL inválida, vire rejeição em vez de escapar da
@@ -9084,6 +9139,10 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
         function (e) { escritasFrageis--; throw e; });
     }
     return ida.then(function (r) {
+      /* Sem sessão (venceu, ou saiu em outra aba): de volta à entrada. A
+         promessa fica parada, porque um erro aqui pintaria "sem conexão com o
+         banco" no instante antes de a página trocar. */
+      if (r.status === 401) { irParaEntrada(); return new Promise(function () {}); }
       return r.json().catch(function () { throw new Error("Resposta inesperada do servidor (" + r.status + ")"); });
     }).then(function (d) {
       if (d && d.erro) throw new Error(d.erro);
@@ -9124,12 +9183,6 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
     });
   }
 
-  /* O giro no lugar do conteúdo. Uma peça, usada por toda lista que espera. */
-  function giroNoLugarDe(el, altura) {
-    if (!el) return;
-    el.innerHTML = '<div class="dux-spinner-row"' + (altura ? ' style="padding:' + altura + 'px 16px"' : '') +
-      '><span class="dux-spinner sm"></span></div>';
-  }
   /* O giro dentro do botão só aparece depois de um quarto de segundo. Numa
      resposta rápida ele piscaria, e um piscar é mais ruído do que informação. */
   function botaoOcupado(botao, rotulo) {
@@ -9160,12 +9213,57 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
     repintarTudo();
   }
 
+  /* Enquanto o banco não responde, cada bloco mostra a forma do que vai
+     chegar, e não um giro solto ou o branco: a tela já tem o desenho certo, e
+     os dados só ocupam o lugar. */
+  function repete(n, f) {
+    var s = "";
+    for (var i = 0; i < n; i++) s += typeof f === "function" ? f(i) : f;
+    return s;
+  }
+  function esqueleto(id, html) {
+    var el = $(id);
+    if (el) el.innerHTML = html;
+  }
+  var ESQ_KPI = '<div class="esq-cartao esq-kpi"><i class="esq" style="width:46%;height:9px"></i>' +
+    '<i class="esq" style="width:32%;height:22px"></i><i class="esq" style="width:62%;height:9px"></i></div>';
+  var ESQ_CARTAO = '<div class="esq-cartao" style="min-height:128px"><i class="esq" style="width:58%;height:14px"></i>' +
+    '<i class="esq" style="width:84%;height:10px"></i><i class="esq" style="width:38%;height:10px;margin-top:auto"></i></div>';
+  function esqLinhas(n, colunas) {
+    return repete(n, function (i) {
+      return '<tr class="esq-linha">' + repete(colunas, function (j) {
+        return '<td><i class="esq" style="height:10px;width:' + (j ? 36 : 58 + (i % 3) * 10) + '%"></i></td>';
+      }) + "</tr>";
+    });
+  }
+
   function mostrarEspera() {
-    giroNoLugarDe($("gradePastas"), 40);
-    giroNoLugarDe($("gradeDecksPagina"), 40);
-    giroNoLugarDe($("listaArquivos"));
-    var corpo = $("corpoTabela");
-    if (corpo) corpo.innerHTML = '<tr><td colspan="5"><div class="dux-spinner-row"><span class="dux-spinner sm"></span></div></td></tr>';
+    document.body.setAttribute("data-carregando", "");
+    document.body.removeAttribute("data-chegou");
+    esqueleto("kpisPainel", repete(4, ESQ_KPI));
+    esqueleto("kpisDecks", repete(4, ESQ_KPI));
+    var alturas = [38, 62, 45, 80, 54, 70, 30];
+    esqueleto("colunas7d", repete(7, function (i) { return '<i class="esq esq-coluna" style="height:' + alturas[i] + '%"></i>'; }));
+    esqueleto("dias7d", repete(7, '<span class="coluna-dia"><i class="esq" style="width:22px;height:8px;margin:2px auto 0"></i></span>'));
+    esqueleto("mapaUso", '<i class="esq" style="grid-column:1/-1;height:150px"></i>');
+    esqueleto("gradeDecks", repete(3, ESQ_CARTAO));
+    esqueleto("gradeDecksPagina", repete(3, ESQ_CARTAO));
+    esqueleto("gradePastas", repete(3, ESQ_CARTAO));
+    esqueleto("listaArquivos", '<div class="esq-lista">' + repete(4, function (i) {
+      return '<i class="esq" style="width:' + (72 - i * 9) + '%"></i>';
+    }) + "</div>");
+    esqueleto("corpoTabela", esqLinhas(4, 5));
+    esqueleto("corpoPorPasta", esqLinhas(3, 5));
+  }
+
+  /* O fim da espera, deu certo ou não: tira as formas e deixa os blocos
+     entrarem. A marca da chegada sai depois da animação, para uma repintura
+     qualquer mais tarde não repetir o fade. */
+  function terminarEspera() {
+    if (!document.body.hasAttribute("data-carregando")) return;
+    document.body.removeAttribute("data-carregando");
+    document.body.setAttribute("data-chegou", "");
+    setTimeout(function () { document.body.removeAttribute("data-chegou"); }, 900);
   }
 
   function quandoDe(card) {
@@ -9412,8 +9510,10 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
          impressão de dados reais na primeira abertura. */
       return d;
     }).then(function (d) {
+      aplicarConta(d.eu);
       aplicarDoBanco(d);
       repintarTudo();
+      terminarEspera();
     }).catch(function (e) {
       /* Sem banco o app continua de pé, com o conteúdo de partida. É só aqui
          que ele vai para a tela: pintado antes, ele apareceria como se fosse o
@@ -9424,6 +9524,7 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
          pessoa está olhando fica o motivo e o "tentar de novo". */
       comBanco = false;
       repintarTudo();
+      terminarEspera();
       mostrarFalha(e.message);
       avisar("error", "Sem conexão com o banco", e.message + " O que você escrever agora não será gravado.");
     });
@@ -9623,22 +9724,24 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
   /* ═══ Perfil ═════════════════════════════════════════════════════════
      Quem estuda, num lugar só: o botão da conta se desenha daqui, e a IA
      recebe isto a cada pedido para chamar a pessoa pelo nome e tirar dela os
-     exemplos. Ainda não há conta nem tela de perfil, então os dados moram
-     aqui. O wizard do primeiro acesso vai preencher o `sobre`: cada chave é
+     exemplos. O nome, o e-mail e a foto vêm da conta do Google, na carga do
+     banco; o resto ainda não tem tela de perfil. O wizard do primeiro acesso
+     vai preencher o `sobre`: cada chave é
      uma pergunta dele ("rotina", "hobbies", "objetivo"...), e a IA lê todas,
      sem precisar saber de antemão quais existem. Campo vazio é campo que a
      pessoa não informou, e a IA não supõe nada no lugar. */
   var PERFIL = {
-    nome: "Milena Zaidan",
+    nome: "",
+    email: "",
     genero: "",       /* "feminino", "masculino", "outro" ou vazio */
     nascimento: "",   /* AAAA-MM-DD */
-    curso: "R1 Clínica Médica",
+    curso: "",
     foto: "",         /* endereço da imagem; vazio mostra as iniciais */
     sobre: {}
   };
   /* O rosto da pessoa onde ela aparece: a foto, se houver, ou as iniciais. */
   function perfilIniciais() {
-    var partes = PERFIL.nome.trim().split(/\s+/);
+    var partes = (PERFIL.nome || PERFIL.email).trim().split(/\s+/);
     return (partes[0].charAt(0) + (partes.length > 1 ? partes[partes.length - 1].charAt(0) : "")).toUpperCase();
   }
   function pintarAvatar(el) {
@@ -9655,12 +9758,31 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
     }
     return el;
   }
-  (function () {
-    $("btnConta").setAttribute("aria-label", "Conta de " + PERFIL.nome);
+  function pintarConta() {
+    var nome = PERFIL.nome || PERFIL.email;
+    $("btnConta").setAttribute("aria-label", nome ? "Conta de " + nome : "Sua conta");
     pintarAvatar($("btnConta").querySelector(".topbar-conta-avatar"));
-    $("btnConta").querySelector(".topbar-conta-nome").textContent = PERFIL.nome;
-    $("btnConta").querySelector(".topbar-conta-email").textContent = PERFIL.curso;
-  })();
+    $("btnConta").querySelector(".topbar-conta-nome").textContent = nome;
+    $("btnConta").querySelector(".topbar-conta-email").textContent = PERFIL.curso || (PERFIL.nome ? PERFIL.email : "");
+  }
+  /* A conta chega com o resto do banco. */
+  function aplicarConta(eu) {
+    if (!eu) return;
+    PERFIL.nome = eu.nome || "";
+    PERFIL.email = eu.email || "";
+    PERFIL.foto = eu.foto || "";
+    pintarConta();
+  }
+  pintarConta();
+
+  /* Sair encerra a sessão no servidor, onde o cookie mora, e volta à entrada. */
+  function sair() {
+    fetch("/api/conta", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ acao: "sair" })
+    }).catch(function () { /* a entrada confere a sessão de novo */ }).then(irParaEntrada);
+  }
 
   /* ═══ Menu da conta ══════════════════════════════════════════════════ */
   var btnConta = $("btnConta"), menuConta = null;
@@ -9681,7 +9803,6 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
     menuConta.className = "conta-menu";
     menuConta.setAttribute("role", "menu");
     menuConta.innerHTML =
-      '<div class="conta-menu-aviso"><p>Sequência de 12 dias de estudo. O próximo marco é em 14.</p></div>' +
       '<button type="button" class="conta-menu-item" role="menuitem">Meu perfil</button>' +
       '<button type="button" class="conta-menu-item" role="menuitem">Meu desempenho</button>' +
       '<button type="button" class="conta-menu-item" role="menuitem">Configurações</button>' +
@@ -9695,6 +9816,7 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
     Array.prototype.forEach.call(menuConta.querySelectorAll(".conta-menu-item"), function (b) {
       b.addEventListener("click", fecharConta);
     });
+    menuConta.querySelector(".conta-menu-item.sair").addEventListener("click", sair);
     setTimeout(function () { document.addEventListener("mousedown", foraDaConta); }, 0);
   });
 
@@ -18205,7 +18327,7 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
       boas.className = "ia-boas-vindas";
       boas.innerHTML = '<span class="ia-avatar">' + ICONE_SINAPSE + '</span><span></span>';
       boas.lastChild.innerHTML = arquivoAberto
-        ? "<b>Oi, " + iaEsc(PERFIL.nome.trim().split(/\s+/)[0]) + "! Pergunte sobre este arquivo.</b><br>Eu leio o texto aberto, explico o que ficar difícil, resumo as seções e sugiro flashcards para revisar."
+        ? "<b>Oi" + (PERFIL.nome.trim() ? ", " + iaEsc(PERFIL.nome.trim().split(/\s+/)[0]) : "") + "! Pergunte sobre este arquivo.</b><br>Eu leio o texto aberto, explico o que ficar difícil, resumo as seções e sugiro flashcards para revisar."
         : "<b>Abra um arquivo.</b><br>A IA conversa sobre o texto que estiver aberto.";
       guardada.appendChild(boas);
       if (arquivoAberto) iaPorArquivo.set(arquivoAberto, guardada);
@@ -22227,6 +22349,8 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
        aparecia escrito assim. Sem dias não há teto: zero. */
     var teto = SETE_DIAS.length ? Math.max.apply(null, SETE_DIAS.map(function (d) { return d.n; })) : 0;
     var cols = $("colunas7d"), dias = $("dias7d");
+    var soma = SETE_DIAS.reduce(function (t, d) { return t + d.n; }, 0);
+    $("total7d").textContent = soma + " no total";
     cols.innerHTML = "";
     dias.innerHTML = "";
     var topo = document.createElement("span");

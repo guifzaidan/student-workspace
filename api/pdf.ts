@@ -17,6 +17,7 @@ import puppeteer, { type Browser } from 'puppeteer-core';
 import { existsSync } from 'node:fs';
 /* A extensão `.js` é obrigatória: ver o comentário de import em `dados.ts`. */
 import { db, garantirSchema } from './_db.js';
+import { exigirUsuario } from './_sessao.js';
 
 /* O documento chega com o CSS inteiro da página, que já passa de 200 KB; o
    teto deixa folga para um texto grande sem chegar ao limite de corpo da
@@ -69,13 +70,13 @@ async function abrirNavegador(): Promise<Browser> {
 /* As imagens do texto apontam para `/api/imagem?id=...`. Elas entram no
    documento já embutidas, lidas direto do banco: assim o PDF não depende de o
    servidor alcançar o próprio site, o que falharia num preview protegido. */
-async function embutirImagens(html: string): Promise<string> {
+async function embutirImagens(html: string, u: string): Promise<string> {
   const ids = Array.from(new Set(Array.from(html.matchAll(/\/api\/imagem\?id=([A-Za-z0-9_]+)/g), (m) => m[1])));
   if (!ids.length) return html;
   await garantirSchema();
   const r = await db().execute({
-    sql: `SELECT id, tipo, dados FROM sinapse_imagens WHERE id IN (${ids.map(() => '?').join(',')})`,
-    args: ids,
+    sql: `SELECT id, tipo, dados FROM sinapse_imagens WHERE usuario_id = ? AND id IN (${ids.map(() => '?').join(',')})`,
+    args: [u, ...ids],
   });
   const porId = new Map<string, string>();
   for (const l of r.rows as unknown as { id: string; tipo: string; dados: string }[]) {
@@ -97,6 +98,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(405).json({ erro: 'Método não permitido' });
     return;
   }
+  const u = exigirUsuario(req, res);
+  if (!u) return;
   let pagina: Awaited<ReturnType<Browser['newPage']>> | null = null;
   try {
     const corpo = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body ?? {});
@@ -108,7 +111,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const b = await abrirNavegador();
     pagina = await b.newPage();
     /* O `load` espera as imagens e as folhas de estilo; as fontes, logo abaixo. */
-    await pagina.setContent(await embutirImagens(html), { waitUntil: 'load', timeout: 25000 });
+    await pagina.setContent(await embutirImagens(html, u), { waitUntil: 'load', timeout: 25000 });
     /* As fontes vêm do Google: o PDF só sai depois que elas chegaram, senão a
        primeira página sairia na fonte do sistema. */
     await pagina.evaluate(() => document.fonts.ready.then(() => true));

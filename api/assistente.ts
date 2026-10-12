@@ -24,6 +24,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { z } from 'zod';
 import { perguntar, responderErro, semTravessao, temChave, texto, type Arquivo } from './_ia';
+import { exigirUsuario } from './_sessao.js';
 
 /* O texto do arquivo é cortado aqui, e não na tela: um arquivo enorme não
    pode estourar o pedido, e o Claude é avisado do corte. */
@@ -235,6 +236,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(405).json({ erro: 'Método não permitido' });
     return;
   }
+  /* A IA custa por pedido: só quem tem conta chama. */
+  if (!exigirUsuario(req, res)) return;
   if (!temChave()) {
     res.status(503).json({ erro: 'A chave da IA não está configurada. Defina ANTHROPIC_API_KEY ou GEMINI_API_KEY no .env.' });
     return;

@@ -21,6 +21,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { z } from 'zod';
 import { perguntar as perguntarIA, responderErro, semTravessao, temChave, texto, type Arquivo, type Material } from './_ia';
+import { exigirUsuario } from './_sessao.js';
 
 /* O corpo de uma função da Vercel para em 4,5 MB, e os arquivos chegam em
    base64, que é um terço maior que o original. O teto deixa folga para o
@@ -142,6 +143,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     res.status(405).json({ erro: 'Método não permitido' });
     return;
   }
+  /* A IA custa por pedido: só quem tem conta chama. */
+  if (!exigirUsuario(req, res)) return;
   if (!temChave()) {
     res.status(503).json({ erro: 'A chave da IA não está configurada. Defina ANTHROPIC_API_KEY ou GEMINI_API_KEY no .env.' });
     return;

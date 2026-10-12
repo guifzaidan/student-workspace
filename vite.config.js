@@ -23,7 +23,9 @@ function apiLocal(env) {
       // no processo do servidor, que é onde o handler roda.
       // CHROME_PATH é opcional: o Chrome que gera o PDF dos arquivos.
       // ANTHROPIC_API_KEY e GEMINI_API_KEY são as do assistente de plano de estudos.
-      for (const chave of ['TURSO_DATABASE_URL', 'TURSO_AUTH_TOKEN', 'CHROME_PATH', 'ANTHROPIC_API_KEY', 'GEMINI_API_KEY', 'GEMINI_MODEL']) {
+      // GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET e SESSAO_SEGREDO são as da entrada.
+      for (const chave of ['TURSO_DATABASE_URL', 'TURSO_AUTH_TOKEN', 'CHROME_PATH', 'ANTHROPIC_API_KEY', 'GEMINI_API_KEY', 'GEMINI_MODEL',
+        'GOOGLE_CLIENT_ID', 'GOOGLE_CLIENT_SECRET', 'SESSAO_SEGREDO']) {
         if (env[chave]) process.env[chave] = env[chave];
       }
 

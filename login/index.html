@@ -14,8 +14,7 @@
    A tela de entrada do Sinapse.
 
    Duas partes. À esquerda, uma coluna estreita e centrada: a marca, o
-   título, o botão principal (entrar com o Google), o caminho alternativo
-   (e-mail e senha, que abre o formulário ali mesmo).
+   título e o botão de entrar com o Google, que por ora é a única porta.
    À direita, um painel lima no padrão do convite da apresentação, com a
    frase da marca e peças do app soltas por todo o painel (flashcard,
    deck, mapa mental, Pomodoro, mapa de calor, agente de IA, turma, semana,
@@ -110,66 +109,9 @@ button { cursor: pointer; }
 .btn-google { background: var(--tinta); color: var(--branco); }
 .btn-google .g { width: 22px; height: 22px; border-radius: 50%; background: var(--branco); display: grid; place-items: center; }
 .btn-google .g svg { width: 14px; height: 14px; }
-.btn-lima { background: var(--lima); color: var(--tinta); box-shadow: var(--sombra-dura); }
-.btn-lima:hover { box-shadow: 5px 5px 0 var(--tinta); }
-/* Enquanto falta e-mail ou senha, o botão fica apagado, sem sombra. */
-.btn-lima.apagado { background: #E4E5E1; color: var(--cinza2); border-color: #CDCFD3; box-shadow: none; transform: none; cursor: default; }
-.btn svg.seta { width: 18px; height: 18px; transition: transform .3s var(--mola); }
-.btn:hover svg.seta { transform: translateX(3px); }
-
-.alternar {
-  display: block; margin: 16px auto 0; padding: 4px 8px; border: 0; background: none;
-  font-size: 13.5px; font-weight: 700; color: var(--cinza);
-  text-decoration: underline; text-decoration-color: var(--fio); text-underline-offset: 4px;
-}
-.alternar:hover { color: var(--tinta); text-decoration-color: var(--cinza2); }
-
-/* O formulário de e-mail e senha: fechado por padrão, abre com mola. */
-/* A altura abre e fecha devagar, e o que está dentro entra deslizando e
-   aparecendo, um campo depois do outro. A borda só é solta (para a sombra do
-   campo em foco aparecer inteira) depois que a gaveta terminou de abrir. */
-.form-email { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .55s var(--curva); }
-.form-email.aberto { grid-template-rows: 1fr; }
-.form-email > div { overflow: hidden; min-height: 0; }
-.form-email.solto > div { overflow: visible; }
-.form-email form > * { opacity: 0; transform: translateY(-10px); transition: opacity .25s ease, transform .3s var(--curva); }
-.form-email.aberto form > * { opacity: 1; transform: none; transition: opacity .4s ease, transform .5s var(--mola); }
-.form-email.aberto form > :nth-child(1) { transition-delay: .12s; }
-.form-email.aberto form > :nth-child(2) { transition-delay: .19s; }
-.form-email.aberto form > :nth-child(3) { transition-delay: .26s; }
-.form-email.aberto form > :nth-child(4) { transition-delay: .33s; }
-/* O texto do link troca sumindo e voltando, sem pular. */
-.alternar { transition: opacity .18s ease, color .2s; }
-.alternar.trocando { opacity: 0; }
-form { display: grid; gap: 10px; padding-top: 18px; }
-.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-.ou { display: flex; align-items: center; gap: 12px; font-size: 12px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--cinza2); }
-.ou::before, .ou::after { content: ""; flex: 1; height: 1.5px; background: var(--fio); }
-.campo { display: grid; gap: 6px; }
-.campo label { font-weight: 800; font-size: 13.5px; }
-.caixa { position: relative; }
-.caixa input {
-  width: 100%; height: 50px; padding: 0 16px;
-  background: var(--branco); border: 2px solid var(--tinta); border-radius: 14px;
-  font-weight: 600; font-size: 15.5px;
-  box-shadow: 0 0 0 var(--tinta);
-  transition: box-shadow .15s var(--curva), transform .15s var(--curva), background .15s;
-}
-.caixa input:hover { background: var(--cinza-claro); }
-.caixa input::placeholder { color: var(--cinza2); font-weight: 500; }
-.caixa input:focus { outline: none; transform: translate(-2px, -2px); box-shadow: 4px 4px 0 var(--tinta); background: var(--cinza-claro); }
-.caixa input[aria-invalid="true"] { border-color: var(--rosa-forte); box-shadow: 3px 3px 0 var(--rosa-forte); }
-.caixa .com-olho { padding-right: 56px; }
-.olho {
-  position: absolute; top: 50%; right: 7px; transform: translateY(-50%);
-  width: 38px; height: 38px; border: 0; border-radius: 10px; background: transparent;
-  display: grid; place-items: center; color: var(--cinza);
-}
-.olho:hover { background: var(--papel); color: var(--tinta); }
-.olho svg { width: 20px; height: 20px; }
-.erro { margin: 0; color: #B23A6B; font-weight: 700; font-size: 13.5px; }
+.erro { margin: 14px 0 0; color: #B23A6B; font-weight: 700; font-size: 13.5px; }
 .erro:empty { display: none; }
-.btn:focus-visible, .olho:focus-visible, .marca:focus-visible, .alternar:focus-visible { outline: 3px solid var(--cinza2); outline-offset: 3px; }
+.btn:focus-visible, .marca:focus-visible { outline: 3px solid var(--cinza2); outline-offset: 3px; }
 
 /* ─── O painel ───────────────────────────────────────────────────────── */
 /* No padrão do convite da apresentação: lima liso, contorno preto e sombra
@@ -441,9 +383,6 @@ form { display: grid; gap: 10px; padding-top: 18px; }
   <symbol id="a-sorriso" viewBox="0 0 64 64"><circle cx="32" cy="32" r="26" style="fill:var(--cor, #FFE27A)" stroke="#121316" stroke-width="3"/><ellipse cx="23" cy="26" rx="3.4" ry="4.6" fill="#121316"/><ellipse cx="41" cy="26" rx="3.4" ry="4.6" fill="#121316"/><path d="M19 37c3 7 9 10 13 10s10-3 13-10" fill="none" stroke="#121316" stroke-width="3.6" stroke-linecap="round"/><path d="M16 20c2-5 6-8 10-9" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/></symbol>
   <symbol id="a-coracao" viewBox="0 0 64 64"><path d="M32 54C14 42 6 32 6 22c0-9 7-15 15-15 5 0 9 3 11 7 2-4 6-7 11-7 8 0 15 6 15 15 0 10-8 20-26 32z" style="fill:var(--cor, #DCCBFF)" stroke="#121316" stroke-width="3" stroke-linejoin="round"/><path d="M15 19c1-4 4-6 7-6" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/></symbol>
   <symbol id="a-raio" viewBox="0 0 64 64"><path d="M37 4 12 36h17l-5 24 28-34H34Z" style="fill:var(--cor, #FFE27A)" stroke="#121316" stroke-width="3" stroke-linejoin="round"/></symbol>
-  <symbol id="seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
-  <symbol id="olho-aberto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></symbol>
-  <symbol id="olho-fechado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3l18 18M10.6 5.1A10 10 0 0 1 12 5c6.4 0 10 7 10 7a17 17 0 0 1-3 3.9M6.6 6.6A17 17 0 0 0 2 12s3.6 7 10 7a9.6 9.6 0 0 0 5.4-1.6M9.9 9.9a3 3 0 0 0 4.2 4.2"/></symbol>
 </svg>
 
 <div class="tela">
@@ -457,35 +396,13 @@ form { display: grid; gap: 10px; padding-top: 18px; }
       <h1 id="titulo">Que bom te <span class="grifo">ver.</span></h1>
       <p class="sub">Entre para continuar seus resumos, cards e revisões.</p>
 
-      <a class="btn btn-google" href="/app/" id="google">
+      <!-- Por ora a única porta é o Google: a ida e a volta passam pela
+           /api/entrar, que abre a sessão e devolve a pessoa no app. -->
+      <a class="btn btn-google" href="/api/entrar" id="google">
         <span class="g" aria-hidden="true"><svg><use href="#google"/></svg></span>
         Entrar com o Google
       </a>
-      <button class="alternar" type="button" id="alternar" aria-expanded="false" aria-controls="formEmail">Entrar com e-mail e senha</button>
-
-      <div class="form-email" id="formEmail">
-        <div>
-          <form id="entrar" novalidate>
-            <div class="campo">
-              <label class="sr" for="email">E-mail</label>
-              <div class="caixa">
-                <input id="email" name="email" type="email" autocomplete="email" placeholder="E-mail" required>
-              </div>
-            </div>
-            <div class="campo">
-              <label class="sr" for="senha">Senha</label>
-              <div class="caixa">
-                <input id="senha" class="com-olho" name="senha" type="password" autocomplete="current-password" placeholder="Senha" required>
-                <button class="olho" type="button" id="olho" aria-label="Mostrar a senha" aria-pressed="false">
-                  <svg aria-hidden="true"><use id="olhoIcone" href="#olho-aberto"/></svg>
-                </button>
-              </div>
-            </div>
-            <p class="erro" id="erro" role="alert"></p>
-            <button class="btn btn-lima apagado" type="submit" id="botaoEntrar" aria-disabled="true">Entrar <svg class="seta" aria-hidden="true"><use href="#seta"/></svg></button>
-          </form>
-        </div>
-      </div>
+      <p class="erro" id="erro" role="alert"></p>
     </main>
   </div>
 
@@ -600,14 +517,7 @@ form { display: grid; gap: 10px; padding-top: 18px; }
 </div>
 
 <script>
-  const form = document.getElementById('entrar');
-  const email = document.getElementById('email');
-  const senha = document.getElementById('senha');
   const erro = document.getElementById('erro');
-  const olho = document.getElementById('olho');
-  const olhoIcone = document.getElementById('olhoIcone');
-  const alternar = document.getElementById('alternar');
-  const formEmail = document.getElementById('formEmail');
 
   // O mapa de calor do painel: 12 semanas de 7 dias, mais quente nas
   // recentes, acendendo da esquerda, uma coluna de cada vez.
@@ -639,65 +549,16 @@ form { display: grid; gap: 10px; padding-top: 18px; }
     setInterval(() => { restam = restam > 0 ? restam - 1 : 1500; pintarPomo(); }, 1000);
   }
 
-  // "Entrar com e-mail e senha" abre (e fecha) o formulário ali mesmo.
-  alternar.addEventListener('click', () => {
-    const abrir = !formEmail.classList.contains('aberto');
-    formEmail.classList.remove('solto');
-    formEmail.classList.toggle('aberto', abrir);
-    alternar.setAttribute('aria-expanded', String(abrir));
-    alternar.classList.add('trocando');
-    setTimeout(() => {
-      alternar.textContent = abrir ? 'Voltar para o Google' : 'Entrar com e-mail e senha';
-      alternar.classList.remove('trocando');
-    }, 180);
-    if (abrir) setTimeout(() => email.focus({ preventScroll: true }), 420);
-  });
-
-  // Terminada a abertura, a borda é solta para a sombra do foco aparecer.
-  formEmail.addEventListener('transitionend', (e) => {
-    if (e.target === formEmail && e.propertyName === 'grid-template-rows' && formEmail.classList.contains('aberto')) formEmail.classList.add('solto');
-  });
-
-  olho.addEventListener('click', () => {
-    const mostrando = senha.type === 'text';
-    senha.type = mostrando ? 'password' : 'text';
-    olho.setAttribute('aria-pressed', String(!mostrando));
-    olho.setAttribute('aria-label', mostrando ? 'Mostrar a senha' : 'Esconder a senha');
-    olhoIcone.setAttribute('href', mostrando ? '#olho-aberto' : '#olho-fechado');
-  });
-
-  // O botão só acende com e-mail e senha preenchidos.
-  const botaoEntrar = document.getElementById('botaoEntrar');
-  function conferir() {
-    const pronto = email.value.trim() !== '' && senha.value !== '';
-    botaoEntrar.classList.toggle('apagado', !pronto);
-    botaoEntrar.setAttribute('aria-disabled', String(!pronto));
-  }
-  // O aviso some assim que a pessoa volta a digitar no campo que errou.
-  for (const campo of [email, senha]) {
-    campo.addEventListener('input', () => {
-      campo.removeAttribute('aria-invalid');
-      erro.textContent = '';
-      conferir();
-    });
+  // A /api/entrar devolve aqui o que deu errado, e o recado sai da URL para
+  // não voltar num recarregar.
+  const recado = new URLSearchParams(location.search).get('erro');
+  if (recado) {
+    erro.textContent = recado;
+    history.replaceState(null, '', '/login');
   }
 
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    let problema = '';
-    if (!email.value.trim()) problema = 'Escreva o seu e-mail.';
-    else if (!email.checkValidity()) problema = 'Esse e-mail não parece certo.';
-    else if (!senha.value) problema = 'Escreva a sua senha.';
-    if (problema) {
-      const campo = !email.value.trim() || !email.checkValidity() ? email : senha;
-      campo.setAttribute('aria-invalid', 'true');
-      campo.focus();
-      erro.textContent = problema;
-      return;
-    }
-    // Ainda não há contas: por enquanto, entrar leva direto ao app.
-    location.href = '/app/';
-  });
+  // Quem já tem sessão não precisa passar pela entrada.
+  fetch('/api/conta').then((r) => { if (r.ok) location.replace('/app/'); }).catch(() => {});
 </script>
 </body>
 </html>

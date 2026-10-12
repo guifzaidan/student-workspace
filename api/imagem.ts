@@ -14,12 +14,18 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { db, garantirSchema } from './_db.js';
+import { exigirUsuario } from './_sessao.js';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'GET') {
     res.status(405).json({ erro: 'Método não suportado.' });
     return;
   }
+
+  /* A imagem é de quem a subiu: sem sessão, ou com a de outra pessoa, ela
+     não existe. */
+  const u = exigirUsuario(req, res);
+  if (!u) return;
 
   const id = String((req.query as Record<string, unknown>).id ?? '');
   if (!id) {
@@ -30,8 +36,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     await garantirSchema();
     const r = await db().execute({
-      sql: 'SELECT tipo, dados FROM sinapse_imagens WHERE id = ?',
-      args: [id],
+      sql: 'SELECT tipo, dados FROM sinapse_imagens WHERE id = ? AND usuario_id = ?',
+      args: [id, u],
     });
     const linha = r.rows[0] as unknown as { tipo: string; dados: string } | undefined;
     if (!linha) {
@@ -42,7 +48,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const bytes = Buffer.from(linha.dados, 'base64');
     res.setHeader('Content-Type', linha.tipo);
     res.setHeader('Content-Length', String(bytes.length));
-    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    /* `private`: só o navegador de quem pediu guarda; um cache no meio do
+       caminho não pode entregar a imagem a outra pessoa. */
+    res.setHeader('Cache-Control', 'private, max-age=31536000, immutable');
     res.status(200).send(bytes);
   } catch (erro) {
     res.status(500).json({ erro: erro instanceof Error ? erro.message : String(erro) });

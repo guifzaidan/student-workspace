@@ -38,6 +38,21 @@ export function db(): Client {
  * dado. Acrescentar uma coluna depois é escrever mais uma linha aqui.
  */
 const SCHEMA = [
+  /* Quem usa o Sinapse. Por ora só se entra pelo Google: o `google_id` é o
+     `sub` do token, que não muda nunca, enquanto o e-mail pode mudar. Ele
+     aceita nulo para a conta que nasceu antes do login existir: ela é achada
+     pelo e-mail no primeiro acesso e ganha o `google_id` ali. */
+  `CREATE TABLE IF NOT EXISTS sinapse_usuarios (
+     id            TEXT PRIMARY KEY,
+     google_id     TEXT UNIQUE,
+     email         TEXT NOT NULL,
+     nome          TEXT NOT NULL DEFAULT '',
+     foto          TEXT NOT NULL DEFAULT '',
+     criado_em     TEXT NOT NULL,
+     ultimo_acesso TEXT
+   )`,
+  `CREATE INDEX IF NOT EXISTS idx_usuarios_email ON sinapse_usuarios (email)`,
+
   `CREATE TABLE IF NOT EXISTS sinapse_pastas (
      id           TEXT PRIMARY KEY,
      nome         TEXT NOT NULL,
@@ -203,13 +218,32 @@ const SCHEMA = [
    )`,
 
   // O uso da plataforma, em minutos ativos por hora (UTC, `AAAA-MM-DDTHH`). Uma
-  // linha por hora, e não por acesso: o mapa de calor do Dashboard só precisa
-  // do total de cada hora, e a tabela cresce no máximo 24 linhas por dia.
+  // linha por pessoa e hora, e não por acesso: o mapa de calor do Dashboard só
+  // precisa do total de cada hora, e a tabela cresce no máximo 24 linhas por
+  // dia para cada um.
   `CREATE TABLE IF NOT EXISTS sinapse_acessos (
-     hora    TEXT PRIMARY KEY,
-     minutos INTEGER NOT NULL DEFAULT 0
+     usuario_id TEXT NOT NULL,
+     hora       TEXT NOT NULL,
+     minutos    INTEGER NOT NULL DEFAULT 0,
+     PRIMARY KEY (usuario_id, hora)
    )`,
 ];
+
+/**
+ * As tabelas que guardam o que é de alguém. Cada uma leva `usuario_id`, até
+ * as que já pertencem a uma pasta ou deck: com a coluna na própria linha, toda
+ * leitura e toda escrita filtram pela dona sem junção, e esquecer o filtro numa
+ * consulta não abre o acervo de outra pessoa pela porta do pai.
+ */
+export const TABELAS_DO_USUARIO = [
+  'sinapse_pastas', 'sinapse_arquivos', 'sinapse_decks', 'sinapse_flashcards', 'sinapse_rascunhos',
+  'sinapse_revisoes', 'sinapse_imagens', 'sinapse_ciclos', 'sinapse_questoes', 'sinapse_provas', 'sinapse_planos',
+];
+
+/* Antes do login, o Sinapse tinha uma pessoa só, e tudo o que já está no banco
+   é dela. Na primeira subida com contas, essas linhas passam a ser desta
+   conta, criada aqui sem `google_id`; ela o ganha quando entrar pelo Google. */
+const DONA_DO_ACERVO_ANTIGO = 'milena.fepaes@gmail.com';
 
 /**
  * Colunas que nasceram depois da tabela.
@@ -250,13 +284,65 @@ async function garantirColunas(cx: ReturnType<typeof db>): Promise<void> {
  */
 async function preencherAcessos(cx: ReturnType<typeof db>): Promise<void> {
   await cx.execute(
-    `INSERT OR IGNORE INTO sinapse_acessos (hora, minutos)
-     SELECT hora, MIN(60, SUM(m)) FROM (
-       SELECT substr(revisado_em, 1, 13) AS hora, 1 AS m FROM sinapse_revisoes
+    `INSERT OR IGNORE INTO sinapse_acessos (usuario_id, hora, minutos)
+     SELECT usuario_id, hora, MIN(60, SUM(m)) FROM (
+       SELECT usuario_id, substr(revisado_em, 1, 13) AS hora, 1 AS m FROM sinapse_revisoes
        UNION ALL
-       SELECT substr(comecou_em, 1, 13), minutos FROM sinapse_ciclos WHERE terminou_em IS NOT NULL
-     ) GROUP BY hora`,
+       SELECT usuario_id, substr(comecou_em, 1, 13), minutos FROM sinapse_ciclos WHERE terminou_em IS NOT NULL
+     ) WHERE usuario_id IS NOT NULL GROUP BY usuario_id, hora`,
   );
+}
+
+/** A conta da dona do acervo antigo, criada na primeira vez que for preciso. */
+async function contaDoAcervoAntigo(cx: ReturnType<typeof db>): Promise<string> {
+  const achada = await cx.execute('SELECT id FROM sinapse_usuarios WHERE lower(email) = ? LIMIT 1', [DONA_DO_ACERVO_ANTIGO]);
+  if (achada.rows.length) return String((achada.rows[0] as unknown as { id: string }).id);
+  const id = novoId('usr');
+  await cx.execute('INSERT INTO sinapse_usuarios (id, email, criado_em) VALUES (?, ?, ?)', [id, DONA_DO_ACERVO_ANTIGO, agora()]);
+  return id;
+}
+
+/**
+ * Dá dona a cada linha. Tabela sem a coluna ganha a coluna, e o que já estava
+ * nela vai para a conta do acervo antigo; banco novo, sem linha nenhuma, nem
+ * cria essa conta.
+ */
+async function separarPorUsuario(cx: ReturnType<typeof db>): Promise<void> {
+  let dona: string | null = null;
+  const donaAntiga = async () => (dona ??= await contaDoAcervoAntigo(cx));
+
+  for (const tabela of TABELAS_DO_USUARIO) {
+    const info = await cx.execute(`PRAGMA table_info(${tabela})`);
+    if (!info.rows.some((l) => (l as unknown as { name: string }).name === 'usuario_id')) {
+      await cx.execute(`ALTER TABLE ${tabela} ADD COLUMN usuario_id TEXT`);
+    }
+    const orfas = await cx.execute(`SELECT 1 FROM ${tabela} WHERE usuario_id IS NULL LIMIT 1`);
+    if (orfas.rows.length) {
+      await cx.execute(`UPDATE ${tabela} SET usuario_id = ? WHERE usuario_id IS NULL`, [await donaAntiga()]);
+    }
+    await cx.execute(`CREATE INDEX IF NOT EXISTS idx_${tabela.replace('sinapse_', '')}_usuario ON ${tabela} (usuario_id)`);
+  }
+
+  /* Os acessos tinham a hora como chave, e chave não se troca em SQLite: a
+     tabela é refeita com (usuario_id, hora), numa transação só, para não
+     existir um instante sem ela. */
+  const acessos = await cx.execute('PRAGMA table_info(sinapse_acessos)');
+  if (!acessos.rows.some((l) => (l as unknown as { name: string }).name === 'usuario_id')) {
+    const temLinha = (await cx.execute('SELECT 1 FROM sinapse_acessos LIMIT 1')).rows.length > 0;
+    await cx.batch([
+      `CREATE TABLE sinapse_acessos_nova (
+         usuario_id TEXT NOT NULL,
+         hora       TEXT NOT NULL,
+         minutos    INTEGER NOT NULL DEFAULT 0,
+         PRIMARY KEY (usuario_id, hora)
+       )`,
+      ...(temLinha
+        ? [{ sql: 'INSERT INTO sinapse_acessos_nova (usuario_id, hora, minutos) SELECT ?, hora, minutos FROM sinapse_acessos', args: [await donaAntiga()] }]
+        : []),
+      'DROP TABLE sinapse_acessos',
+      'ALTER TABLE sinapse_acessos_nova RENAME TO sinapse_acessos',
+    ], 'write');
+  }
 }
 
 /**
@@ -273,8 +359,9 @@ export function garantirSchema(): Promise<void> {
       `SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'sinapse_acessos'`,
     );
     for (const ddl of SCHEMA) await cx.execute(ddl);
-    if (!antes.rows.length) await preencherAcessos(cx);
     await garantirColunas(cx);
+    await separarPorUsuario(cx);
+    if (!antes.rows.length) await preencherAcessos(cx);
     await cx.execute('PRAGMA foreign_keys = ON');
   })().catch((erro) => {
     // Falhou: solta a promessa para a próxima requisição tentar de novo, em vez

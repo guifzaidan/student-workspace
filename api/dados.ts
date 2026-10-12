@@ -21,6 +21,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
    Aponta para `_db.ts` mesmo assim: com `moduleResolution: "bundler"`, o
    TypeScript lê `.js` como o `.ts` correspondente. */
 import { db, garantirSchema, novoId, agora } from './_db.js';
+import { abrirSessao, exigirUsuario, fecharSessao } from './_sessao.js';
 
 type Linha = Record<string, unknown>;
 
@@ -103,38 +104,40 @@ function hoje(): string {
 }
 
 // ── Leitura ──────────────────────────────────────────────────────────────────
-async function lerTudo() {
+async function lerTudo(u: string) {
   const cx = db();
-  const [pastas, arquivos, decks, cards, rascunhos, revisoes, ciclos, acessos, questoes, provas, planos] = await Promise.all([
-    cx.execute('SELECT * FROM sinapse_pastas ORDER BY posicao, criada_em'),
-    cx.execute('SELECT * FROM sinapse_arquivos ORDER BY posicao, criado_em'),
-    cx.execute('SELECT * FROM sinapse_decks ORDER BY posicao, criado_em'),
-    cx.execute('SELECT * FROM sinapse_flashcards ORDER BY criado_em'),
+  const [eu, pastas, arquivos, decks, cards, rascunhos, revisoes, ciclos, acessos, questoes, provas, planos] = await Promise.all([
+    cx.execute('SELECT email, nome, foto FROM sinapse_usuarios WHERE id = ?', [u]),
+    cx.execute('SELECT * FROM sinapse_pastas WHERE usuario_id = ? ORDER BY posicao, criada_em', [u]),
+    cx.execute('SELECT * FROM sinapse_arquivos WHERE usuario_id = ? ORDER BY posicao, criado_em', [u]),
+    cx.execute('SELECT * FROM sinapse_decks WHERE usuario_id = ? ORDER BY posicao, criado_em', [u]),
+    cx.execute('SELECT * FROM sinapse_flashcards WHERE usuario_id = ? ORDER BY criado_em', [u]),
     // O mais novo primeiro, que é a ordem em que a tela os empilha.
-    cx.execute('SELECT * FROM sinapse_rascunhos ORDER BY criado_em DESC'),
+    cx.execute('SELECT * FROM sinapse_rascunhos WHERE usuario_id = ? ORDER BY criado_em DESC', [u]),
     cx.execute(
       `SELECT substr(revisado_em, 1, 10) AS dia, COUNT(*) AS total,
               SUM(CASE WHEN grau >= 2 THEN 1 ELSE 0 END) AS acertos
          FROM sinapse_revisoes
-        WHERE revisado_em >= datetime('now', '-30 days')
+        WHERE usuario_id = ? AND revisado_em >= datetime('now', '-30 days')
         GROUP BY dia ORDER BY dia`,
+      [u],
     ),
     cx.execute(
       `SELECT COALESCE(SUM(minutos), 0) AS minutos, COUNT(*) AS total
          FROM sinapse_ciclos
-        WHERE terminou_em IS NOT NULL AND substr(comecou_em, 1, 10) = ?`,
-      [hoje()],
+        WHERE usuario_id = ? AND terminou_em IS NOT NULL AND substr(comecou_em, 1, 10) = ?`,
+      [u, hoje()],
     ),
     // Doze semanas de uso, para o mapa de calor do Dashboard.
-    cx.execute('SELECT hora, minutos FROM sinapse_acessos WHERE hora >= ? ORDER BY hora', [
-      new Date(Date.now() - 84 * 86400000).toISOString().slice(0, 13),
+    cx.execute('SELECT hora, minutos FROM sinapse_acessos WHERE usuario_id = ? AND hora >= ? ORDER BY hora', [
+      u, new Date(Date.now() - 84 * 86400000).toISOString().slice(0, 13),
     ]),
     // A mais nova primeiro, que é a ordem em que o banco as lista.
-    cx.execute('SELECT * FROM sinapse_questoes ORDER BY criada_em DESC'),
+    cx.execute('SELECT * FROM sinapse_questoes WHERE usuario_id = ? ORDER BY criada_em DESC', [u]),
     // As últimas cinquenta provas bastam para o histórico e para a média.
-    cx.execute('SELECT * FROM sinapse_provas ORDER BY feita_em DESC LIMIT 50'),
+    cx.execute('SELECT * FROM sinapse_provas WHERE usuario_id = ? ORDER BY feita_em DESC LIMIT 50', [u]),
     // O mais novo primeiro, que é a ordem da tela de planos.
-    cx.execute('SELECT * FROM sinapse_planos ORDER BY criado_em DESC'),
+    cx.execute('SELECT * FROM sinapse_planos WHERE usuario_id = ? ORDER BY criado_em DESC', [u]),
   ]);
 
   const porPasta = new Map<string, Linha[]>();
@@ -154,8 +157,15 @@ async function lerTudo() {
     porPasta.set(texto(linha.pasta_id), arr);
   }
 
+  /* A sessão é válida, mas a conta não existe mais: quem chama trata como
+     sem sessão. */
+  const conta = eu.rows[0] as unknown as Linha | undefined;
+  if (!conta) return null;
+
   const dia = hoje();
   return {
+    /* Quem está usando: o botão da conta e a IA se desenham daqui. */
+    eu: { email: texto(conta.email), nome: texto(conta.nome), foto: texto(conta.foto) },
     pastas: (pastas.rows as unknown as Linha[]).map((l) => ({
       id: texto(l.id),
       nome: texto(l.nome),
@@ -286,7 +296,11 @@ function emDias(dias: number): string {
   return d.toISOString().slice(0, 10);
 }
 
-async function gravar(corpo: Record<string, unknown>) {
+/* `u` é a dona, tirada da sessão e nunca do corpo: todo INSERT a grava, e todo
+   UPDATE e DELETE a exige no WHERE. Um id de outra pessoa mandado pela tela
+   não acha linha, e a escrita não faz nada. Os ids de pasta, deck e arquivo
+   que ligam uma coisa a outra passam pelo mesmo crivo, num subselect. */
+async function gravar(corpo: Record<string, unknown>, u: string) {
   const cx = db();
   const acao = texto(corpo.acao);
   const t = agora();
@@ -295,28 +309,29 @@ async function gravar(corpo: Record<string, unknown>) {
     case 'pasta.criar': {
       const id = novoId('pas');
       await cx.execute(
-        `INSERT INTO sinapse_pastas (id, nome, descricao, etiquetas, posicao, criada_em, atualizada_em)
-         VALUES (?, ?, ?, ?, (SELECT COALESCE(MAX(posicao), 0) + 1 FROM sinapse_pastas), ?, ?)`,
-        [id, texto(corpo.nome), texto(corpo.desc), juntar(corpo.tags), t, t],
+        `INSERT INTO sinapse_pastas (id, usuario_id, nome, descricao, etiquetas, posicao, criada_em, atualizada_em)
+         VALUES (?, ?, ?, ?, ?, (SELECT COALESCE(MAX(posicao), 0) + 1 FROM sinapse_pastas WHERE usuario_id = ?), ?, ?)`,
+        [id, u, texto(corpo.nome), texto(corpo.desc), juntar(corpo.tags), u, t, t],
       );
       return { id };
     }
     case 'pasta.renomear':
       await cx.execute(
-        'UPDATE sinapse_pastas SET nome = ?, descricao = ?, etiquetas = ?, atualizada_em = ? WHERE id = ?',
-        [texto(corpo.nome), texto(corpo.desc), juntar(corpo.tags), t, texto(corpo.id)],
+        'UPDATE sinapse_pastas SET nome = ?, descricao = ?, etiquetas = ?, atualizada_em = ? WHERE id = ? AND usuario_id = ?',
+        [texto(corpo.nome), texto(corpo.desc), juntar(corpo.tags), t, texto(corpo.id), u],
       );
       return { ok: true };
     case 'pasta.excluir':
-      await cx.execute('DELETE FROM sinapse_pastas WHERE id = ?', [texto(corpo.id)]);
+      await cx.execute('DELETE FROM sinapse_pastas WHERE id = ? AND usuario_id = ?', [texto(corpo.id), u]);
       return { ok: true };
 
     case 'arquivo.criar': {
       const id = novoId('arq');
       await cx.execute(
-        `INSERT INTO sinapse_arquivos (id, pasta_id, nome, descricao, etiquetas, corpo, posicao, criado_em, atualizado_em)
-         VALUES (?, ?, ?, ?, ?, ?, (SELECT COALESCE(MAX(posicao), 0) + 1 FROM sinapse_arquivos), ?, ?)`,
-        [id, texto(corpo.pastaId), texto(corpo.nome), texto(corpo.desc), juntar(corpo.tags), texto(corpo.corpo), t, t],
+        `INSERT INTO sinapse_arquivos (id, usuario_id, pasta_id, nome, descricao, etiquetas, corpo, posicao, criado_em, atualizado_em)
+         VALUES (?, ?, (SELECT id FROM sinapse_pastas WHERE id = ? AND usuario_id = ?), ?, ?, ?, ?,
+                 (SELECT COALESCE(MAX(posicao), 0) + 1 FROM sinapse_arquivos WHERE usuario_id = ?), ?, ?)`,
+        [id, u, texto(corpo.pastaId), u, texto(corpo.nome), texto(corpo.desc), juntar(corpo.tags), texto(corpo.corpo), u, t, t],
       );
       return { id };
     }
@@ -325,7 +340,7 @@ async function gravar(corpo: Record<string, unknown>) {
         `UPDATE sinapse_arquivos
             SET nome = ?, descricao = ?, corpo = ?, notas = ?, margem = ?, postits = COALESCE(?, postits),
                 propostas_ia = COALESCE(?, propostas_ia), atualizado_em = ?
-          WHERE id = ?`,
+          WHERE id = ? AND usuario_id = ?`,
         [
           texto(corpo.nome), texto(corpo.desc), texto(corpo.corpo),
           /* As notas viajam já serializadas: elas se prendem a marcas dentro do
@@ -339,12 +354,12 @@ async function gravar(corpo: Record<string, unknown>) {
           /* As propostas da IA ainda não decididas: uma aba antiga, que não
              as conhece, não as apaga. */
           typeof corpo.propostasIA === 'string' ? corpo.propostasIA : null,
-          t, texto(corpo.id),
+          t, texto(corpo.id), u,
         ],
       );
       return { ok: true };
     case 'arquivo.excluir':
-      await cx.execute('DELETE FROM sinapse_arquivos WHERE id = ?', [texto(corpo.id)]);
+      await cx.execute('DELETE FROM sinapse_arquivos WHERE id = ? AND usuario_id = ?', [texto(corpo.id), u]);
       return { ok: true };
 
     /* Esvaziar uma pasta antes de apagá-la. Numa instrução só, e não um UPDATE
@@ -352,29 +367,31 @@ async function gravar(corpo: Record<string, unknown>) {
        para trás no meio do caminho seria levado junto pelo ON DELETE CASCADE. */
     case 'arquivos.mover':
       await cx.execute(
-        'UPDATE sinapse_arquivos SET pasta_id = ?, atualizado_em = ? WHERE pasta_id = ?',
-        [texto(corpo.para), t, texto(corpo.de)],
+        `UPDATE sinapse_arquivos SET pasta_id = (SELECT id FROM sinapse_pastas WHERE id = ? AND usuario_id = ?), atualizado_em = ?
+          WHERE pasta_id = ? AND usuario_id = ?`,
+        [texto(corpo.para), u, t, texto(corpo.de), u],
       );
       return { ok: true };
 
     case 'deck.criar': {
       const id = novoId('dck');
       await cx.execute(
-        `INSERT INTO sinapse_decks (id, nome, descricao, novos_por_dia, posicao, criado_em, atualizado_em)
-         VALUES (?, ?, ?, ?, (SELECT COALESCE(MAX(posicao), 0) + 1 FROM sinapse_decks), ?, ?)`,
-        [id, texto(corpo.nome), texto(corpo.desc), numero(corpo.novosPorDia, 20), t, t],
+        `INSERT INTO sinapse_decks (id, usuario_id, nome, descricao, novos_por_dia, posicao, criado_em, atualizado_em)
+         VALUES (?, ?, ?, ?, ?, (SELECT COALESCE(MAX(posicao), 0) + 1 FROM sinapse_decks WHERE usuario_id = ?), ?, ?)`,
+        [id, u, texto(corpo.nome), texto(corpo.desc), numero(corpo.novosPorDia, 20), u, t, t],
       );
       return { id };
     }
     case 'deck.excluir':
-      await cx.execute('DELETE FROM sinapse_decks WHERE id = ?', [texto(corpo.id)]);
+      await cx.execute('DELETE FROM sinapse_decks WHERE id = ? AND usuario_id = ?', [texto(corpo.id), u]);
       return { ok: true };
 
     /* O mesmo, para os cards de um deck que vai ser apagado. */
     case 'cards.mover':
       await cx.execute(
-        'UPDATE sinapse_flashcards SET deck_id = ?, atualizado_em = ? WHERE deck_id = ?',
-        [texto(corpo.para), t, texto(corpo.de)],
+        `UPDATE sinapse_flashcards SET deck_id = (SELECT id FROM sinapse_decks WHERE id = ? AND usuario_id = ?), atualizado_em = ?
+          WHERE deck_id = ? AND usuario_id = ?`,
+        [texto(corpo.para), u, t, texto(corpo.de), u],
       );
       return { ok: true };
 
@@ -387,13 +404,17 @@ async function gravar(corpo: Record<string, unknown>) {
         ids.push(id);
         return {
           sql: `INSERT INTO sinapse_flashcards
-                  (id, deck_id, arquivo_id, frente, verso, imagem_frente, imagem_verso, trecho, origem,
+                  (id, usuario_id, deck_id, arquivo_id, frente, verso, imagem_frente, imagem_verso, trecho, origem,
                    proxima_revisao, criado_em, atualizado_em)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                VALUES (?, ?, (SELECT id FROM sinapse_decks WHERE id = ? AND usuario_id = ?),
+                        (SELECT id FROM sinapse_arquivos WHERE id = ? AND usuario_id = ?), ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
           args: [
             id,
+            u,
             texto(corpo.deckId ?? c.deckId),
+            u,
             texto(c.arquivoId) || null,
+            u,
             texto(c.frente),
             texto(c.verso),
             texto(c.imagemFrente),
@@ -410,7 +431,7 @@ async function gravar(corpo: Record<string, unknown>) {
          uma falha no meio deixava o card salvo e o rascunho de volta na tela no
          próximo carregamento, e salvá-lo de novo duplicava o card. */
       for (const rid of Array.isArray(corpo.rascunhoIds) ? corpo.rascunhoIds : []) {
-        escritas.push({ sql: 'DELETE FROM sinapse_rascunhos WHERE id = ?', args: [texto(rid)] });
+        escritas.push({ sql: 'DELETE FROM sinapse_rascunhos WHERE id = ? AND usuario_id = ?', args: [texto(rid), u] });
       }
       await cx.batch(escritas, 'write');
       return { ids };
@@ -420,40 +441,41 @@ async function gravar(corpo: Record<string, unknown>) {
       const id = novoId('rsc');
       await cx.execute(
         `INSERT INTO sinapse_rascunhos
-           (id, arquivo_id, frente, verso, imagem_frente, imagem_verso, trecho, origem, criado_em)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [id, texto(corpo.arquivoId) || null, texto(corpo.frente), texto(corpo.verso),
+           (id, usuario_id, arquivo_id, frente, verso, imagem_frente, imagem_verso, trecho, origem, criado_em)
+         VALUES (?, ?, (SELECT id FROM sinapse_arquivos WHERE id = ? AND usuario_id = ?), ?, ?, ?, ?, ?, ?, ?)`,
+        [id, u, texto(corpo.arquivoId) || null, u, texto(corpo.frente), texto(corpo.verso),
          texto(corpo.imagemFrente), texto(corpo.imagemVerso), texto(corpo.trecho), texto(corpo.origem), t],
       );
       return { id };
     }
     case 'rascunho.salvar':
       await cx.execute(
-        'UPDATE sinapse_rascunhos SET frente = ?, verso = ?, imagem_frente = ?, imagem_verso = ? WHERE id = ?',
-        [texto(corpo.frente), texto(corpo.verso), texto(corpo.imagemFrente), texto(corpo.imagemVerso), texto(corpo.id)],
+        'UPDATE sinapse_rascunhos SET frente = ?, verso = ?, imagem_frente = ?, imagem_verso = ? WHERE id = ? AND usuario_id = ?',
+        [texto(corpo.frente), texto(corpo.verso), texto(corpo.imagemFrente), texto(corpo.imagemVerso), texto(corpo.id), u],
       );
       return { ok: true };
     case 'rascunho.excluir':
-      await cx.execute('DELETE FROM sinapse_rascunhos WHERE id = ?', [texto(corpo.id)]);
+      await cx.execute('DELETE FROM sinapse_rascunhos WHERE id = ? AND usuario_id = ?', [texto(corpo.id), u]);
       return { ok: true };
     case 'card.salvar':
       await cx.execute(
         `UPDATE sinapse_flashcards
-            SET frente = ?, verso = ?, imagem_frente = ?, imagem_verso = ?, deck_id = ?, atualizado_em = ?
-          WHERE id = ?`,
+            SET frente = ?, verso = ?, imagem_frente = ?, imagem_verso = ?,
+                deck_id = COALESCE((SELECT id FROM sinapse_decks WHERE id = ? AND usuario_id = ?), deck_id), atualizado_em = ?
+          WHERE id = ? AND usuario_id = ?`,
         [texto(corpo.frente), texto(corpo.verso), texto(corpo.imagemFrente), texto(corpo.imagemVerso),
-         texto(corpo.deckId), t, texto(corpo.id)],
+         texto(corpo.deckId), u, t, texto(corpo.id), u],
       );
       return { ok: true };
     case 'card.excluir':
-      await cx.execute('DELETE FROM sinapse_flashcards WHERE id = ?', [texto(corpo.id)]);
+      await cx.execute('DELETE FROM sinapse_flashcards WHERE id = ? AND usuario_id = ?', [texto(corpo.id), u]);
       return { ok: true };
 
     case 'card.revisar': {
       const grau = numero(corpo.grau);
       const atual = await cx.execute(
-        'SELECT deck_id, intervalo_dias, facilidade, repeticoes, acertos, tentativas FROM sinapse_flashcards WHERE id = ?',
-        [texto(corpo.id)],
+        'SELECT deck_id, intervalo_dias, facilidade, repeticoes, acertos, tentativas FROM sinapse_flashcards WHERE id = ? AND usuario_id = ?',
+        [texto(corpo.id), u],
       );
       const linha = atual.rows[0] as unknown as Linha;
       if (!linha) return { ok: false };
@@ -464,12 +486,12 @@ async function gravar(corpo: Record<string, unknown>) {
                    SET intervalo_dias = ?, facilidade = ?, repeticoes = repeticoes + 1,
                        tentativas = tentativas + 1, acertos = acertos + ?,
                        proxima_revisao = ?, atualizado_em = ?
-                 WHERE id = ?`,
-          args: [passo.intervalo, passo.facilidade, grau >= 2 ? 1 : 0, emDias(passo.intervalo), t, texto(corpo.id)],
+                 WHERE id = ? AND usuario_id = ?`,
+          args: [passo.intervalo, passo.facilidade, grau >= 2 ? 1 : 0, emDias(passo.intervalo), t, texto(corpo.id), u],
         },
         {
-          sql: 'INSERT INTO sinapse_revisoes (flashcard_id, deck_id, grau, revisado_em) VALUES (?, ?, ?, ?)',
-          args: [texto(corpo.id), texto(linha.deck_id), grau, t],
+          sql: 'INSERT INTO sinapse_revisoes (usuario_id, flashcard_id, deck_id, grau, revisado_em) VALUES (?, ?, ?, ?, ?)',
+          args: [u, texto(corpo.id), texto(linha.deck_id), grau, t],
         },
       ]);
       return { proxima: emDias(passo.intervalo) };
@@ -493,14 +515,14 @@ async function gravar(corpo: Record<string, unknown>) {
          ele. Se a tela manda um id que o banco não tem mais, a imagem entra
          solta em vez de a gravação inteira cair na chave estrangeira. */
       await cx.execute(
-        `INSERT INTO sinapse_imagens (id, arquivo_id, nome, tipo, bytes, dados, criada_em)
-         VALUES (?, (SELECT id FROM sinapse_arquivos WHERE id = ?), ?, ?, ?, ?, ?)`,
-        [id, texto(corpo.arquivoId) || null, texto(corpo.nome), tipo, bytes, dados, t],
+        `INSERT INTO sinapse_imagens (id, usuario_id, arquivo_id, nome, tipo, bytes, dados, criada_em)
+         VALUES (?, ?, (SELECT id FROM sinapse_arquivos WHERE id = ? AND usuario_id = ?), ?, ?, ?, ?, ?)`,
+        [id, u, texto(corpo.arquivoId) || null, u, texto(corpo.nome), tipo, bytes, dados, t],
       );
       return { id, url: `/api/imagem?id=${id}` };
     }
     case 'imagem.excluir':
-      await cx.execute('DELETE FROM sinapse_imagens WHERE id = ?', [texto(corpo.id)]);
+      await cx.execute('DELETE FROM sinapse_imagens WHERE id = ? AND usuario_id = ?', [texto(corpo.id), u]);
       return { ok: true };
 
     case 'questao.criar': {
@@ -510,9 +532,9 @@ async function gravar(corpo: Record<string, unknown>) {
          tem mais deixa a questão solta, em vez de derrubar a gravação. */
       await cx.execute(
         `INSERT INTO sinapse_questoes
-           (id, arquivo_id, enunciado, alternativas, correta, explicacao, trecho, origem, criada_em, atualizada_em)
-         VALUES (?, (SELECT id FROM sinapse_arquivos WHERE id = ?), ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [id, texto(corpo.arquivoId) || null, q.enunciado, JSON.stringify(q.alts), q.correta, q.explicacao,
+           (id, usuario_id, arquivo_id, enunciado, alternativas, correta, explicacao, trecho, origem, criada_em, atualizada_em)
+         VALUES (?, ?, (SELECT id FROM sinapse_arquivos WHERE id = ? AND usuario_id = ?), ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [id, u, texto(corpo.arquivoId) || null, u, q.enunciado, JSON.stringify(q.alts), q.correta, q.explicacao,
          texto(corpo.trecho), texto(corpo.origem), t, t],
       );
       return { id };
@@ -522,13 +544,13 @@ async function gravar(corpo: Record<string, unknown>) {
       await cx.execute(
         `UPDATE sinapse_questoes
             SET enunciado = ?, alternativas = ?, correta = ?, explicacao = ?, atualizada_em = ?
-          WHERE id = ?`,
-        [q.enunciado, JSON.stringify(q.alts), q.correta, q.explicacao, t, texto(corpo.id)],
+          WHERE id = ? AND usuario_id = ?`,
+        [q.enunciado, JSON.stringify(q.alts), q.correta, q.explicacao, t, texto(corpo.id), u],
       );
       return { ok: true };
     }
     case 'questao.excluir':
-      await cx.execute('DELETE FROM sinapse_questoes WHERE id = ?', [texto(corpo.id)]);
+      await cx.execute('DELETE FROM sinapse_questoes WHERE id = ? AND usuario_id = ?', [texto(corpo.id), u]);
       return { ok: true };
 
     /* A prova chega inteira no fim: o histórico entra e cada questão soma a
@@ -545,16 +567,16 @@ async function gravar(corpo: Record<string, unknown>) {
       const acertos = respostas.filter((x) => x.certa).length;
       const escritas: { sql: string; args: (string | number)[] }[] = [
         {
-          sql: `INSERT INTO sinapse_provas (id, escopo, total, acertos, segundos, respostas, feita_em)
-                VALUES (?, ?, ?, ?, ?, ?, ?)`,
-          args: [id, texto(corpo.escopo), respostas.length, acertos,
+          sql: `INSERT INTO sinapse_provas (id, usuario_id, escopo, total, acertos, segundos, respostas, feita_em)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+          args: [id, u, texto(corpo.escopo), respostas.length, acertos,
                  Math.max(0, Math.round(numero(corpo.segundos))), JSON.stringify(respostas), t],
         },
         ...respostas.map((x) => ({
           sql: `UPDATE sinapse_questoes
                    SET tentativas = tentativas + 1, acertos = acertos + ?
-                 WHERE id = ?`,
-          args: [x.certa ? 1 : 0, x.q],
+                 WHERE id = ? AND usuario_id = ?`,
+          args: [x.certa ? 1 : 0, x.q, u],
         })),
       ];
       await cx.batch(escritas, 'write');
@@ -570,10 +592,11 @@ async function gravar(corpo: Record<string, unknown>) {
       if (!nome) throw new Error('O plano precisa de um nome.');
       const id = novoId('pln');
       await cx.execute(
-        `INSERT INTO sinapse_planos (id, nome, respostas, cronograma, pasta_id, deck_id, criado_em, atualizado_em)
-         VALUES (?, ?, ?, ?, (SELECT id FROM sinapse_pastas WHERE id = ?), (SELECT id FROM sinapse_decks WHERE id = ?), ?, ?)`,
-        [id, nome, JSON.stringify(objeto(corpo.respostas)), JSON.stringify(objeto(corpo.cronograma)),
-         texto(corpo.pastaId) || null, texto(corpo.deckId) || null, t, t],
+        `INSERT INTO sinapse_planos (id, usuario_id, nome, respostas, cronograma, pasta_id, deck_id, criado_em, atualizado_em)
+         VALUES (?, ?, ?, ?, ?, (SELECT id FROM sinapse_pastas WHERE id = ? AND usuario_id = ?),
+                 (SELECT id FROM sinapse_decks WHERE id = ? AND usuario_id = ?), ?, ?)`,
+        [id, u, nome, JSON.stringify(objeto(corpo.respostas)), JSON.stringify(objeto(corpo.cronograma)),
+         texto(corpo.pastaId) || null, u, texto(corpo.deckId) || null, u, t, t],
       );
       return { id };
     }
@@ -585,28 +608,28 @@ async function gravar(corpo: Record<string, unknown>) {
       await cx.execute(
         `UPDATE sinapse_planos
             SET nome = ?, respostas = ?, cronograma = ?,
-                pasta_id = COALESCE((SELECT id FROM sinapse_pastas WHERE id = ?), pasta_id),
-                deck_id = COALESCE((SELECT id FROM sinapse_decks WHERE id = ?), deck_id),
+                pasta_id = COALESCE((SELECT id FROM sinapse_pastas WHERE id = ? AND usuario_id = ?), pasta_id),
+                deck_id = COALESCE((SELECT id FROM sinapse_decks WHERE id = ? AND usuario_id = ?), deck_id),
                 atualizado_em = ?
-          WHERE id = ?`,
+          WHERE id = ? AND usuario_id = ?`,
         [nome, JSON.stringify(objeto(corpo.respostas)), JSON.stringify(objeto(corpo.cronograma)),
-         texto(corpo.pastaId), texto(corpo.deckId), t, texto(corpo.id)],
+         texto(corpo.pastaId), u, texto(corpo.deckId), u, t, texto(corpo.id), u],
       );
       return { ok: true };
     }
     case 'plano.excluir':
-      await cx.execute('DELETE FROM sinapse_planos WHERE id = ?', [texto(corpo.id)]);
+      await cx.execute('DELETE FROM sinapse_planos WHERE id = ? AND usuario_id = ?', [texto(corpo.id), u]);
       return { ok: true };
 
     case 'ciclo.comecar': {
       const r = await cx.execute(
-        'INSERT INTO sinapse_ciclos (rotulo, arquivo_id, minutos, comecou_em) VALUES (?, ?, ?, ?)',
-        [texto(corpo.rotulo), texto(corpo.arquivoId) || null, numero(corpo.minutos, 25), t],
+        'INSERT INTO sinapse_ciclos (usuario_id, rotulo, arquivo_id, minutos, comecou_em) VALUES (?, ?, ?, ?, ?)',
+        [u, texto(corpo.rotulo), texto(corpo.arquivoId) || null, numero(corpo.minutos, 25), t],
       );
       return { id: Number(r.lastInsertRowid) };
     }
     case 'ciclo.terminar':
-      await cx.execute('UPDATE sinapse_ciclos SET terminou_em = ? WHERE id = ?', [t, numero(corpo.id)]);
+      await cx.execute('UPDATE sinapse_ciclos SET terminou_em = ? WHERE id = ? AND usuario_id = ?', [t, numero(corpo.id), u]);
       return { ok: true };
 
     case 'acesso.marcar': {
@@ -621,9 +644,9 @@ async function gravar(corpo: Record<string, unknown>) {
         : t.slice(0, 13);
       const minutos = Math.max(1, Math.min(60, Math.round(numero(corpo.minutos, 1))));
       await cx.execute(
-        `INSERT INTO sinapse_acessos (hora, minutos) VALUES (?, ?)
-         ON CONFLICT(hora) DO UPDATE SET minutos = MIN(60, minutos + excluded.minutos)`,
-        [hora, minutos],
+        `INSERT INTO sinapse_acessos (usuario_id, hora, minutos) VALUES (?, ?, ?)
+         ON CONFLICT(usuario_id, hora) DO UPDATE SET minutos = MIN(60, minutos + excluded.minutos)`,
+        [u, hora, minutos],
       );
       return { ok: true };
     }
@@ -635,14 +658,24 @@ async function gravar(corpo: Record<string, unknown>) {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
+    const u = exigirUsuario(req, res);
+    if (!u) return;
     await garantirSchema();
     if (req.method === 'GET') {
-      res.status(200).json(await lerTudo());
+      const tudo = await lerTudo(u);
+      if (!tudo) {
+        fecharSessao(req, res);
+        res.status(401).json({ erro: 'Essa conta não existe mais.', semSessao: true });
+        return;
+      }
+      /* Abrir o app empurra a validade da sessão para frente: quem usa não cai. */
+      abrirSessao(req, res, u);
+      res.status(200).json(tudo);
       return;
     }
     if (req.method === 'POST') {
       const corpo = typeof req.body === 'string' ? JSON.parse(req.body) : (req.body ?? {});
-      res.status(200).json(await gravar(corpo));
+      res.status(200).json(await gravar(corpo, u));
       return;
     }
     res.setHeader('Allow', 'GET, POST');
