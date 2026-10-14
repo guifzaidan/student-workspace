@@ -9,7 +9,7 @@
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Manrope:wght@400;500;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Caveat:wght@600;700&family=Manrope:wght@400;500;700;800&display=swap">
 <style>
 /* ═══════════════════════════════════════════════════════════════════════
    Sinapse - estudo ativo.
@@ -3683,6 +3683,216 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
 }
 .filter-dropdown-option.active .sinal-bloco { border-color: var(--gray2); color: var(--black); }
 
+/* ─── Voltar ao quarto ───────────────────────────────────────────────────
+   O quarto é a casa do app: de qualquer tela, este botão no pé da coluna de
+   conteúdo (o canto direito é do lançador) leva de volta a ele, no estado em
+   que ficou. Some no próprio quarto. O rótulo abre no hover, com o atalho. */
+.quarto-voltar {
+  position: fixed;
+  left: calc(220px + 24px); bottom: 24px;
+  z-index: 390;
+  display: inline-flex; align-items: center; gap: 0;
+  height: 44px; padding: 0 12px;
+  border: 1px solid var(--gray3);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--black);
+  box-shadow: 0 1px 2px rgba(20, 22, 30, .06), 0 8px 22px -10px rgba(20, 22, 30, .28);
+  font-size: 13px; font-weight: 700;
+  transition: left 0.28s cubic-bezier(0.4,0,0.2,1), gap var(--transition), border-color var(--transition), transform var(--transition-spring), opacity var(--transition);
+}
+.quarto-voltar svg { flex-shrink: 0; }
+.quarto-voltar-rotulo { display: inline-flex; align-items: center; gap: 8px; max-width: 0; overflow: hidden; white-space: nowrap; transition: max-width .28s cubic-bezier(.2, .8, .2, 1); }
+.quarto-voltar-rotulo kbd {
+  padding: 1px 6px; border: 1px solid var(--gray3); border-radius: 5px;
+  font: inherit; font-size: 11px; font-weight: 700; color: var(--gray);
+}
+.quarto-voltar:hover, .quarto-voltar:focus-visible { outline: none; gap: 8px; border-color: var(--black); transform: translateY(-1px); }
+.quarto-voltar:hover .quarto-voltar-rotulo, .quarto-voltar:focus-visible .quarto-voltar-rotulo { max-width: 200px; }
+body:has(#casca[data-menu="fechado"]) .quarto-voltar { left: 24px; }
+body[data-quarto-mini] .quarto-voltar { display: none; }
+
+/* ─── O modo quarto ───
+   O menu sai, o quarto toma a página inteira e o resto fica nos cantos: a
+   marca em cima à esquerda, a busca, o tema, a volta ao menu e o perfil em cima
+   à direita, e os atalhos numa coluna à esquerda. A folha, aqui, é um cartão solto à direita, com os cantos todos redondos, para
+   os atalhos da coluna da esquerda continuarem à mão enquanto ela está aberta. */
+.hud { position: fixed; inset: 0; z-index: 35; pointer-events: none; }
+.hud[hidden] { display: none; }
+.hud > * { pointer-events: auto; }
+.hud-marca {
+  position: absolute; left: 24px; top: 20px;
+  display: inline-flex; align-items: center; gap: 9px;
+  font-family: "Bricolage Grotesque", sans-serif; font-size: 20px; font-weight: 800; letter-spacing: -.02em;
+  color: var(--black);
+}
+.hud-marca svg { width: 26px; height: 26px; }
+/* O canto de cima, à direita: a busca, o tema e a volta ao menu, e o perfil
+   logo depois, num cartão do tamanho do rodapé do menu. */
+.hud-canto {
+  position: absolute; right: 20px; top: 14px;
+  display: flex; align-items: center; gap: 10px;
+}
+/* O canto em si não pega clique, só o que está nele: com a folha do arquivo
+   aberta, a busca e o perfil somem, e a caixa vazia deles cobria as abas do
+   trilho, que moram justo ali. */
+.hud > .hud-canto { pointer-events: none; }
+.hud-canto > * { pointer-events: auto; }
+.hud-conta {
+  width: 232px; padding: 4px;
+  border: 1px solid var(--gray3); border-radius: 16px;
+  background: var(--white);
+  box-shadow: 0 1px 2px rgba(20, 22, 30, .05), 0 10px 26px -12px rgba(20, 22, 30, .3);
+  transition: opacity .2s ease;
+}
+.hud-conta:empty { display: none; }
+/* O mesmo giro da marca no menu, na landing e na entrada. */
+.hud-marca:hover .app-marca-simbolo { transform: rotate(60deg); }
+.hud-topo { display: flex; gap: 8px; }
+.hud-botao, .hud-atalho {
+  display: inline-flex; align-items: center; gap: 8px;
+  height: 40px; padding: 0 14px;
+  border: 1px solid var(--gray3); border-radius: var(--radius-pill);
+  background: var(--white); color: var(--black);
+  font-size: 13px; font-weight: 700;
+  box-shadow: 0 1px 2px rgba(20, 22, 30, .05), 0 6px 18px -10px rgba(20, 22, 30, .25);
+  transition: border-color var(--transition), transform var(--transition-spring), background var(--transition);
+}
+.hud-botao.so-icone { width: 40px; padding: 0; justify-content: center; }
+.hud-botao kbd { padding: 1px 6px; border: 1px solid var(--gray3); border-radius: 5px; font: inherit; font-size: 11px; color: var(--gray); }
+.hud-botao:hover, .hud-botao:focus-visible, .hud-atalho:hover, .hud-atalho:focus-visible { outline: none; border-color: var(--black); transform: translateY(-1px); }
+/* Os atalhos numa barra só, em pé, à esquerda, no meio da altura. Fechada,
+   mostra só os ícones; com o ponteiro em cima (ou o foco do teclado dentro),
+   alarga e mostra os nomes, por cima do que estiver ao lado. A folha das
+   telas abre à direita da barra fechada (ver `.pagina.em-folha`). */
+.hud { --hud-coluna: 48px; }
+.hud-atalhos {
+  position: absolute; left: 24px; top: 50%; transform: translateY(-50%);
+  width: var(--hud-coluna);
+  display: flex; flex-direction: column; gap: 2px;
+  padding: 5px;
+  border: 1px solid var(--gray3); border-radius: 24px;
+  background: var(--white);
+  box-shadow: 0 1px 2px rgba(20, 22, 30, .05), 0 10px 26px -12px rgba(20, 22, 30, .3);
+  overflow: hidden;
+  transition: width .26s cubic-bezier(.2, .8, .2, 1), opacity .2s ease;
+}
+/* O foco só abre a barra quando vem do teclado (focus-visible): o clique deixa
+   o botão com foco, e a barra ficava aberta depois de o ponteiro sair. */
+.hud-atalhos:hover, .hud-atalhos:has(:focus-visible) { width: 158px; }
+/* Escolhido o lugar, a barra recolhe na hora, mesmo com o ponteiro ainda em
+   cima; volta a abrir quando ele sai e entra de novo. */
+#hudAtalhos.recolhida { width: var(--hud-coluna); }
+#hudAtalhos.recolhida .hud-atalho span { opacity: 0; transition-delay: 0s; }
+.hud-atalhos .hud-atalho {
+  width: 100%; height: 36px; padding: 0 11px; gap: 11px;
+  border: 0; border-radius: 18px; background: transparent; box-shadow: none;
+  justify-content: flex-start;
+  transition: background var(--transition), color var(--transition);
+}
+.hud-atalhos .hud-atalho:hover, .hud-atalhos .hud-atalho:focus-visible { transform: none; background: var(--gray4); }
+.hud-atalho svg { width: 16px; height: 16px; flex-shrink: 0; }
+.hud-atalho span { white-space: nowrap; opacity: 0; transition: opacity .16s ease; }
+.hud-atalhos:hover .hud-atalho span, .hud-atalhos:has(:focus-visible) .hud-atalho span { opacity: 1; transition-delay: .06s; }
+.hud-atalhos .hud-atalho.ativo, .hud-atalhos .hud-atalho.ativo:hover { background: var(--black); color: var(--bg); }
+@media (prefers-reduced-motion: reduce) { .hud-atalhos, .hud-atalho span { transition: none; } }
+
+body[data-modo="quarto"] .admin-casca { grid-template-columns: 0px minmax(0, 1fr); }
+body[data-modo="quarto"] .app-menu { visibility: hidden; }
+body[data-modo="quarto"] .menu-abrir { display: none !important; }
+body[data-modo="quarto"] .pagina[data-pagina="relatorios"] .admin-page-header { display: none; }
+body[data-modo="quarto"] .pagina[data-pagina="relatorios"] .admin-content-wrap { padding: 0; overflow: hidden; }
+body[data-modo="quarto"] .pagina[data-pagina="relatorios"] .quarto { flex: 1; min-height: 0; margin: 0; display: flex; flex-direction: column; }
+body[data-modo="quarto"] .pagina[data-pagina="relatorios"] .quarto .quarto-palco,
+body[data-modo="quarto"] .pagina[data-pagina="relatorios"] .quarto.estreito.focado .quarto-palco {
+  flex: 1; height: auto; min-height: 0; border: 0; border-radius: 0;
+}
+/* O painel do zoom desce para não ficar sob os cantos de cima, e
+   vai até o rodapé. */
+body[data-modo="quarto"] .quarto-painel { top: 72px; bottom: 24px; right: 20px; }
+body[data-modo="quarto"] .pagina.em-folha {
+  /* A mesma folga dos dois lados: a da esquerda é a da barra de atalhos. */
+  top: 72px; left: calc(24px + 48px + 16px); right: calc(24px + 48px + 16px); bottom: 24px;
+  border-bottom: 1px solid var(--gray3);
+  border-radius: 20px;
+  box-shadow: 0 24px 60px -20px rgba(20, 22, 30, .4);
+}
+body[data-modo="quarto"] .folha-alca { top: 22px; }
+body[data-modo="quarto"] .pagina.em-folha { transition: top .3s cubic-bezier(.2, .8, .2, 1), left .3s cubic-bezier(.2, .8, .2, 1), right .3s cubic-bezier(.2, .8, .2, 1), bottom .3s cubic-bezier(.2, .8, .2, 1), border-radius .3s; }
+/* Na hora de usar (um arquivo aberto, a revisão, uma prova), a folha toma a
+   tela quase toda: os cantos do modo quarto saem de cena e fica só a alça de
+   volta, no alto. Navegando (as listas), ela volta ao cartão do meio. */
+body[data-modo="quarto"] .pagina.em-folha:is([data-pagina="revisao"], [data-pagina="prova"]),
+body[data-modo="quarto"] .pagina.em-folha:has(> .vista[data-vista="arquivo"]:not([hidden])) {
+  /* A mesma folga nos quatro lados; a alça fica por cima da borda de cima. */
+  top: 8px; left: 8px; right: 8px; bottom: 8px;
+  border-radius: 16px;
+}
+body[data-modo="quarto"]:has(.pagina.em-folha:is([data-pagina="revisao"], [data-pagina="prova"])) :is(.hud-marca, .hud-topo, .hud-atalhos, .hud-conta),
+body[data-modo="quarto"]:has(.pagina.em-folha > .vista[data-vista="arquivo"]:not([hidden])) :is(.hud-marca, .hud-topo, .hud-atalhos, .hud-conta) {
+  opacity: 0; pointer-events: none;
+}
+body[data-modo="quarto"]:has(.pagina.em-folha:is([data-pagina="revisao"], [data-pagina="prova"])) .folha-alca,
+body[data-modo="quarto"]:has(.pagina.em-folha > .vista[data-vista="arquivo"]:not([hidden])) .folha-alca { top: 2px; }
+.hud-marca, .hud-topo { transition: opacity .2s ease; }
+/* Com o menu recolhido, as telas abrem espaço para o botão de reabrir, que aqui não existe. */
+body[data-modo="quarto"] .admin-casca[data-menu="fechado"] .admin-content-wrap > :first-child { padding-left: 0; }
+body[data-modo="quarto"] .admin-casca[data-menu="fechado"] .trilha-tela { padding-left: 24px; }
+/* A faixa de falha ocupa o alto da página: os cantos de cima descem para baixo dela. */
+body:has(#faixaFalha:not([hidden])) .hud-marca { top: 64px; }
+body:has(#faixaFalha:not([hidden])) .hud-canto { top: 58px; }
+@media (max-width: 768px) { .hud { display: none; } }
+
+/* O quarto no canto: o mesmo #quarto, encolhido numa janelinha viva. Tocar
+   nela volta ao quarto; o balão e o painel ficam para o tamanho cheio. */
+.quarto-mini {
+  position: fixed;
+  left: calc(220px + 20px); bottom: 20px;
+  z-index: 390;
+  width: 280px; height: 190px;
+  border: 1px solid var(--gray3);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--white);
+  box-shadow: 0 2px 4px rgba(20, 22, 30, .06), 0 16px 36px -14px rgba(20, 22, 30, .35);
+  cursor: pointer;
+  transform-origin: bottom left;
+  transition: left 0.28s cubic-bezier(0.4,0,0.2,1), transform var(--transition-spring), border-color var(--transition);
+  animation: quarto-mini-entra .35s cubic-bezier(.2, 1.2, .35, 1) backwards;
+}
+.quarto-mini[hidden] { display: none; }
+.quarto-mini:hover { transform: scale(1.04); border-color: var(--black); }
+body:has(#casca[data-menu="fechado"]) .quarto-mini { left: 20px; }
+.quarto-mini .quarto { margin: 0; height: 100%; }
+.quarto-mini .quarto .quarto-palco, .quarto-mini .quarto.estreito.focado .quarto-palco { height: 100%; border: 0; border-radius: 0; }
+.quarto-mini .quarto-dica, .quarto-mini .quarto-painel { display: none !important; }
+.quarto-mini-rotulo {
+  position: absolute; left: 10px; bottom: 10px; z-index: 5;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: var(--radius-pill);
+  background: var(--black); color: var(--bg);
+  font-size: 11.5px; font-weight: 800; pointer-events: none;
+}
+.quarto-mini-rotulo kbd { font: inherit; font-size: 10.5px; opacity: .65; }
+.quarto-mini-fechar {
+  position: absolute; right: 8px; top: 8px; z-index: 5;
+  width: 26px; height: 26px; display: grid; place-items: center;
+  border: 1px solid var(--gray3); border-radius: 50%;
+  background: var(--white); color: var(--gray);
+  opacity: 0; transition: opacity var(--transition);
+}
+.quarto-mini:hover .quarto-mini-fechar, .quarto-mini-fechar:focus-visible { opacity: 1; outline: none; color: var(--black); }
+@keyframes quarto-mini-entra { from { opacity: 0; transform: translateY(16px) scale(.9); } }
+@media (prefers-reduced-motion: reduce) { .quarto-mini { animation: none; transition: none; } }
+body:has(.pagina[data-pagina="relatorios"]:not([hidden])) .quarto-voltar { opacity: 0; pointer-events: none; transform: translateY(8px); }
+@media (max-width: 768px) {
+  .quarto-voltar, body:has(#casca[data-menu="fechado"]) .quarto-voltar { left: 16px; bottom: calc(84px + env(safe-area-inset-bottom, 0px)); }
+  .quarto-voltar-rotulo kbd { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .quarto-voltar, .quarto-voltar-rotulo { transition: none; }
+}
+
 /* ─── Lançador de ferramentas ────────────────────────────────────────────
    Um botão no canto que abre para cima. Os itens não flutuam soltos: eles
    ficam pendurados num trilho que nasce do próprio botão, e os centros de
@@ -3887,6 +4097,275 @@ body.arrastando-painel { user-select: none; cursor: col-resize; }
 }
 .dux-spinner-row { display: flex; align-items: center; justify-content: center; padding: 28px 16px; }
 
+/* ─── O quarto de estudos ───
+   A abertura do Dashboard: um diorama 3D desenhado pelo app/quarto.js. O palco
+   brilha como os outros esqueletos até a cena ficar pronta, e a cena entra num
+   fade. */
+.quarto { position: relative; margin-bottom: 22px; }
+.quarto-palco {
+  position: relative;
+  height: clamp(420px, calc(100vh - 150px), 960px);
+  border: 1px solid var(--gray3);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  /* O tom do céu da hora (o app/quarto.js põe --ceu-topo e --ceu-base), bem
+     misturado ao fundo da casa: dá para sentir a manhã e a noite sem tirar o
+     contraste do que fica por cima. */
+  background: radial-gradient(ellipse at 50% 30%,
+    color-mix(in srgb, var(--white) 68%, var(--ceu-topo, var(--white))) 0%,
+    color-mix(in srgb, var(--bg) 80%, var(--ceu-base, var(--bg))) 80%);
+  transition: background 1.2s ease;
+}
+/* O papel do fundo: pontinhos numa grade isométrica, no mesmo ângulo do
+   quarto (30°), como um caderno de desenho técnico. Duas camadas da mesma
+   grade, uma deslocada meia célula, fazem o losango. A grade some perto das
+   bordas e fica mais nítida em volta do quarto. A tela 3D vem por cima. */
+.quarto-palco::before {
+  content: "";
+  position: absolute; inset: 0; z-index: 0;
+  pointer-events: none;
+  --ponto: color-mix(in srgb, var(--black) 11%, transparent);
+  background:
+    radial-gradient(circle, var(--ponto) 1.1px, transparent 1.6px) 0 0 / 38px 21.94px,
+    radial-gradient(circle, var(--ponto) 1.1px, transparent 1.6px) 19px 10.97px / 38px 21.94px;
+  -webkit-mask-image: radial-gradient(ellipse 75% 70% at 50% 50%, #000 35%, transparent 100%);
+  mask-image: radial-gradient(ellipse 75% 70% at 50% 50%, #000 35%, transparent 100%);
+}
+.quarto:not(.pronto):not(.sem-3d) .quarto-palco::before { display: none; }
+.quarto-palco > .quarto-tela { position: relative; z-index: 1; }
+.quarto:not(.pronto):not(.sem-3d) .quarto-palco {
+  background: linear-gradient(90deg, var(--gray4) 0%, color-mix(in srgb, var(--gray3) 70%, var(--gray4)) 50%, var(--gray4) 100%);
+  background-size: 200% 100%;
+  animation: assist-brilho 1.4s ease-in-out infinite;
+}
+.quarto-tela { display: block; width: 100%; height: 100%; opacity: 0; transition: opacity .7s ease; touch-action: manipulation; }
+.quarto.pronto .quarto-tela { opacity: 1; }
+.quarto.sem-3d .quarto-palco { display: none; }
+/* O balão do quarto é um recado à mão, como os rabiscos da LP: o texto a
+   caneta ao lado do objeto e uma seta rabiscada até ele. */
+.quarto-dica { position: absolute; inset: 0; z-index: 2; pointer-events: none; overflow: hidden; }
+.quarto-dica-seta { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.quarto-dica-seta path {
+  fill: none; stroke: var(--black); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round;
+  stroke-dasharray: 1 2; stroke-dashoffset: 1;
+  transition: stroke-dashoffset .15s ease;
+}
+.quarto-dica.visivel .quarto-dica-seta path { stroke-dashoffset: 0; }
+.quarto-dica.visivel .quarto-dica-seta .seta { transition: stroke-dashoffset .45s cubic-bezier(.2, .8, .2, 1) .08s; }
+.quarto-dica.visivel .quarto-dica-seta .ponta { transition: stroke-dashoffset .18s cubic-bezier(.2, .8, .2, 1) .5s; }
+.quarto-dica-nota {
+  position: absolute; left: 0; top: 0;
+  display: flex; flex-direction: column; gap: 2px;
+  width: max-content; max-width: 320px;
+  font-family: "Caveat", "Bricolage Grotesque", cursive; line-height: 1;
+  color: var(--black);
+  opacity: 0;
+  transform: translate(var(--tx, 0), -100%) rotate(var(--g, -3deg)) scale(.7);
+  transition: opacity .12s, transform .2s cubic-bezier(.2, .8, .2, 1);
+}
+.quarto-dica-nota.lado-esq { --tx: -100%; align-items: flex-end; text-align: right; --g: -3deg; }
+.quarto-dica-nota.lado-dir { align-items: flex-start; --g: 3deg; }
+.quarto-dica.visivel .quarto-dica-nota {
+  opacity: 1; transform: translate(var(--tx, 0), -100%) rotate(var(--g, -3deg));
+  transition: opacity .2s, transform .45s cubic-bezier(.2, 1.3, .35, 1);
+}
+/* O título leva uma passada de marca-texto lima, que corre da esquerda para
+   a direita quando o recado aparece. A tinta é sempre escura, sobre o lima. */
+.quarto-dica-titulo {
+  max-width: 100%; padding: 1px 8px 3px;
+  font-size: 26px; font-weight: 700; letter-spacing: -.01em; color: #121316;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  border-radius: 3px 10px 4px 12px / 9px 4px 11px 5px;
+  background: linear-gradient(100deg, transparent 0 2%, #C6F36B 3% 97%, transparent 98%) no-repeat left / 0% 100%;
+  transition: background-size .12s ease;
+}
+.quarto-dica.visivel .quarto-dica-titulo { background-size: 100% 100%; transition: background-size .35s cubic-bezier(.2, .8, .2, 1) .05s; }
+.quarto-dica-sub { padding: 0 8px; font-size: 19px; font-weight: 600; color: var(--gray); white-space: nowrap; }
+.quarto-dica-sub:empty { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  .quarto-dica-seta path, .quarto-dica-nota, .quarto-dica-titulo { transition: none !important; }
+}
+/* O painel do zoom: desliza da direita, ao lado do objeto aproximado; no
+   celular sobe de baixo, como uma folha. */
+.quarto-painel {
+  position: absolute; z-index: 3;
+  top: 14px; right: 14px; bottom: 14px;
+  width: 340px;
+  display: flex; flex-direction: column; gap: 10px;
+  padding: 16px 18px 18px;
+  overflow-y: auto; overscroll-behavior: contain;
+  background: var(--white);
+  border: 1px solid var(--gray3);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, .14), 0 2px 8px rgba(0, 0, 0, .06);
+  opacity: 0; transform: translateX(24px); visibility: hidden;
+  transition: opacity .3s ease, transform .45s cubic-bezier(.2, .8, .2, 1), visibility 0s linear .45s;
+}
+.quarto-painel.aberto {
+  opacity: 1; transform: none; visibility: visible;
+  transition: opacity .35s ease .15s, transform .55s cubic-bezier(.2, .8, .2, 1) .1s, visibility 0s;
+}
+/* Nada encolhe: o que não cabe rola dentro do painel. */
+.quarto-painel > * { flex-shrink: 0; }
+/* O painel de aquecimento: desenhado, mas sem ser visto nem tocado. */
+.quarto-painel.aquecendo { opacity: .001 !important; pointer-events: none; transition: none !important; }
+.qp-topo { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.qp-sobre { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--gray2); }
+.qp-fechar {
+  width: 30px; height: 30px; flex-shrink: 0;
+  display: grid; place-items: center;
+  border: 1px solid var(--gray3); border-radius: 50%;
+  background: var(--white); color: var(--black);
+  font-size: 18px; line-height: 1;
+  transition: background var(--transition), border-color var(--transition);
+}
+.qp-fechar:hover, .qp-fechar:focus-visible { outline: none; background: var(--gray4); border-color: var(--black); }
+.qp-volta {
+  align-self: flex-start; padding: 2px 0; border: 0; background: none;
+  font-size: 12.5px; font-weight: 700; color: var(--gray);
+}
+.qp-volta:hover, .qp-volta:focus-visible { outline: none; color: var(--black); }
+.qp-titulo { margin: 0; font-family: "Bricolage Grotesque", "Manrope", sans-serif; font-size: 22px; font-weight: 800; letter-spacing: -.03em; line-height: 1.15; overflow-wrap: anywhere; }
+.qp-sub { margin: -4px 0 0; font-size: 13px; color: var(--gray); line-height: 1.45; }
+.qp-corpo { display: flex; flex-direction: column; gap: 12px; min-height: 0; }
+.qp-numeros { display: grid; grid-template-columns: repeat(auto-fit, minmax(92px, 1fr)); gap: 8px; }
+.qp-numero { padding: 10px 12px; border-radius: var(--radius-md); background: var(--gray4); display: flex; flex-direction: column; gap: 2px; }
+.qp-numero strong { font-size: 20px; font-weight: 800; letter-spacing: -.02em; }
+.qp-numero span { font-size: 11.5px; font-weight: 600; color: var(--gray); }
+.qp-relogio {
+  font-family: "Bricolage Grotesque", "Manrope", sans-serif;
+  font-size: 54px; font-weight: 800; letter-spacing: -.04em; line-height: 1;
+  font-variant-numeric: tabular-nums; text-align: center;
+  padding: 14px 0 8px;
+}
+.qp-rotulo { margin: 4px 0 -4px; font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--gray2); }
+.qp-lista { display: flex; flex-direction: column; gap: 4px; }
+.qp-item {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; padding: 9px 11px;
+  border: 1px solid var(--gray3); border-radius: var(--radius-md);
+  background: var(--white); text-align: left;
+  transition: border-color var(--transition), background var(--transition), transform var(--transition-spring);
+}
+button.qp-item:hover, button.qp-item:focus-visible { outline: none; border-color: var(--black); transform: translateX(2px); }
+.qp-item.ativo { border-color: var(--black); background: var(--gray4); }
+.qp-item.feito .qp-item-titulo { text-decoration: line-through; color: var(--gray); }
+.qp-item-textos { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.qp-item-titulo { font-size: 13px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qp-item-meta { font-size: 11.5px; color: var(--gray); }
+.qp-seta { font-size: 18px; color: var(--gray2); line-height: 1; }
+.qp-selo {
+  flex-shrink: 0; min-width: 24px; padding: 2px 7px;
+  border-radius: var(--radius-pill); border: 1.5px solid #121316;
+  background: #C6F36B; color: #121316;
+  font-size: 11.5px; font-weight: 800; text-align: center;
+}
+.qp-nota { margin: 0; font-size: 12.5px; color: var(--gray); line-height: 1.45; }
+.qp-acoes { display: flex; flex-wrap: wrap; gap: 8px; margin-top: auto; padding-top: 6px; }
+.qp-botao {
+  flex: 1 1 auto; min-height: 40px; padding: 0 16px;
+  border-radius: var(--radius-pill);
+  font-size: 13.5px; font-weight: 800;
+  transition: transform var(--transition-spring), background var(--transition), border-color var(--transition), opacity var(--transition);
+}
+.qp-botao.primario { background: var(--black); color: var(--bg); border: 1px solid var(--black); }
+.qp-botao.secundario { background: var(--white); color: var(--black); border: 1px solid var(--gray3); }
+.qp-botao:not(:disabled):hover, .qp-botao:focus-visible { outline: none; transform: translateY(-1px); }
+.qp-botao.secundario:not(:disabled):hover { border-color: var(--black); }
+.qp-botao:disabled { opacity: .4; cursor: default; }
+/* Os formulários do painel: editar a questão, o card, a pasta. */
+.qp-form { display: flex; flex-direction: column; gap: 10px; }
+.qp-campo { display: flex; flex-direction: column; gap: 5px; }
+.qp-campo-rotulo { font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--gray2); }
+.qp-entrada {
+  width: 100%; padding: 8px 10px;
+  border: 1px solid var(--gray3); border-radius: var(--radius-sm);
+  background: var(--white); color: var(--black);
+  font: inherit; font-size: 13px; line-height: 1.45; resize: vertical;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.qp-entrada:focus { outline: none; border-color: var(--black); box-shadow: 0 0 0 3px var(--yd); }
+.qp-entrada::placeholder { color: var(--gray2); }
+.qp-alt { display: flex; align-items: center; gap: 8px; }
+.qp-alt input[type="radio"] { width: 16px; height: 16px; flex-shrink: 0; accent-color: var(--black); }
+.qp-erro { margin: 0; font-size: 12.5px; font-weight: 700; color: var(--red); }
+.qp-erro:empty { display: none; }
+.qp-botao.perigo { background: var(--white); color: var(--red); border: 1px solid var(--gray3); }
+.qp-botao.perigo:hover { border-color: var(--red); }
+.qp-botao.mini { flex: 0 0 auto; min-height: 30px; width: 34px; padding: 0; font-size: 16px; }
+.qp-paginas { display: flex; align-items: center; justify-content: center; gap: 12px; font-size: 12.5px; font-weight: 700; color: var(--gray); }
+/* As placas: o nome de cada ferramenta em cima do objeto dela, sempre à
+   vista no quarto inteiro. Um pino liga a placa ao objeto. Com zoom, saem. */
+.quarto-placas { position: absolute; inset: 0; z-index: 2; pointer-events: none; transition: opacity .25s ease; }
+.quarto.focado .quarto-placas { opacity: 0; }
+.quarto.focado .quarto-placa { pointer-events: none; }
+.quarto-placa {
+  position: absolute; left: 0; top: 0;
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 30px; padding: 0 6px 0 10px;
+  border: 1px solid var(--gray3); border-radius: var(--radius-pill);
+  background: var(--white); color: var(--black);
+  font-size: 12.5px; font-weight: 800; white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(20, 22, 30, .06), 0 8px 18px -8px rgba(20, 22, 30, .3);
+  pointer-events: auto; cursor: pointer;
+  will-change: transform;
+  transition: border-color var(--transition), background var(--transition), color var(--transition), box-shadow var(--transition);
+}
+.quarto-placa::after {
+  content: ""; position: absolute; left: 50%; top: 100%;
+  /* O pino vai da placa até o objeto: o JS mede a distância em --haste. */
+  width: 2px; height: calc(var(--haste, 14px) - 3px); margin-left: -1px;
+  background: var(--gray3);
+  transition: background var(--transition);
+}
+.quarto-placa::before {
+  content: ""; position: absolute; left: 50%; top: calc(100% + var(--haste, 14px) - 3px);
+  width: 6px; height: 6px; margin-left: -3px; border-radius: 50%;
+  background: var(--black);
+}
+.quarto-placa svg { flex-shrink: 0; }
+.quarto-placa-valor {
+  padding: 2px 7px; border-radius: var(--radius-pill);
+  background: var(--gray4); color: var(--gray);
+  font-size: 11px; font-weight: 800; font-variant-numeric: tabular-nums;
+}
+.quarto-placa-valor[hidden] { display: none; }
+.quarto-placa:not(:has(.quarto-placa-valor:not([hidden]))) { padding-right: 10px; }
+.quarto-placa.acesa, .quarto-placa:focus-visible { outline: none; border-color: var(--black); background: var(--black); color: var(--bg); }
+.quarto-placa.acesa::after, .quarto-placa:focus-visible::after { background: var(--black); }
+.quarto-placa.acesa .quarto-placa-valor, .quarto-placa:focus-visible .quarto-placa-valor { background: #C6F36B; color: #121316; }
+.quarto.estreito .quarto-placa { height: 26px; font-size: 11px; gap: 5px; padding-left: 8px; }
+.quarto.estreito .quarto-placa svg { width: 13px; height: 13px; }
+.quarto-mini .quarto-placas { display: none; }
+/* A prova na prancheta: as alternativas quebram linha, a certa fica verde e
+   a errada escolhida, vermelha; a correção vem num quadro logo embaixo. */
+.qp-alternativas .qp-item-titulo { white-space: normal; line-height: 1.4; }
+.qp-alternativas .qp-item.certa { border-color: #3E7C3A; background: color-mix(in srgb, #3E7C3A 10%, var(--white)); }
+.qp-alternativas .qp-item.errada { border-color: #C0473A; background: color-mix(in srgb, #C0473A 10%, var(--white)); }
+.qp-correcao { padding: 10px 12px; border-radius: var(--radius-md); font-size: 13px; line-height: 1.45; }
+.qp-correcao strong { display: block; font-size: 14px; font-weight: 800; }
+.qp-correcao p { margin: 4px 0 0; color: var(--gray); }
+.qp-correcao.certa { background: color-mix(in srgb, #3E7C3A 12%, var(--white)); color: #2C5A29; }
+.qp-correcao.errada { background: color-mix(in srgb, #C0473A 12%, var(--white)); color: #8E3128; }
+/* Palco estreito (o JS marca): o painel vira uma folha embaixo. */
+.quarto.estreito .quarto-painel {
+  top: auto; left: 10px; right: 10px; bottom: 10px;
+  width: auto; max-height: 54%;
+  transform: translateY(28px);
+}
+.quarto.estreito .quarto-painel.aberto { transform: none; }
+/* Com zoom no celular o palco cresce: o objeto em cima, a folha embaixo. */
+.quarto.estreito .quarto-palco { transition: height .45s cubic-bezier(.2, .8, .2, 1); }
+.quarto.estreito.focado .quarto-palco { height: min(calc(100dvh - 150px), 720px); }
+@media (prefers-reduced-motion: reduce) {
+  .quarto-painel, .quarto-painel.aberto { transition: opacity .2s ease, visibility 0s; transform: none; }
+}
+@media (max-width: 640px) { .quarto-palco { height: 340px; } }
+@media (prefers-reduced-motion: reduce) {
+  .quarto:not(.pronto):not(.sem-3d) .quarto-palco { animation: none; }
+  .quarto-tela { transition: none; }
+}
+
 /* ─── A primeira carga ───
    Enquanto o banco não responde, cada bloco mostra a própria forma em cinza,
    com um brilho correndo (o mesmo do assistente). Os dados chegam no lugar
@@ -3927,17 +4406,17 @@ body[data-carregando] .topbar-conta-nome { width: 96px; height: 11px; margin-bot
 body[data-carregando] .topbar-conta-email { width: 128px; height: 9px; border-radius: 4px; }
 
 /* A chegada: só os blocos de dado aparecem, o título da tela já estava lá. */
-body[data-chegou] :is(.kpi-fila, .colunas, .coluna-dias, .mapa-grade, .decks-grade, .pastas-grade, #listaArquivos, tbody) {
+body[data-chegou] :is(.kpi-fila, .decks-grade, .pastas-grade, #listaArquivos, tbody) {
   animation: chegaDado .45s cubic-bezier(.2, .8, .2, 1) both;
 }
-body[data-chegou] :is(.mapa-grade, .decks-grade, .pastas-grade) { animation-delay: .06s; }
+body[data-chegou] :is(.decks-grade, .pastas-grade) { animation-delay: .06s; }
 body[data-chegou] tbody { animation-delay: .12s; }
 @keyframes chegaDado { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
 .topbar-conta-avatar, .topbar-conta-nome, .topbar-conta-email { transition: color .3s ease, background-color .3s ease; }
 
 @media (prefers-reduced-motion: reduce) {
   .esq, body[data-carregando] :is(.topbar-conta-avatar, .topbar-conta-nome, .topbar-conta-email) { animation: none; }
-  body[data-chegou] :is(.kpi-fila, .colunas, .coluna-dias, .mapa-grade, .decks-grade, .pastas-grade, #listaArquivos, tbody) { animation: none; }
+  body[data-chegou] :is(.kpi-fila, .decks-grade, .pastas-grade, #listaArquivos, tbody) { animation: none; }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .dux-spinner { animation-duration: 2.4s; } }
@@ -4675,6 +5154,60 @@ body:has(.pagina:not([hidden]) .vista[data-vista="arquivo"]:not([hidden]) .estud
 
 /* ═══ Telas ══════════════════════════════════════════════════════════ */
 .pagina { flex: 1; min-height: 0; min-width: 0; display: flex; flex-direction: column; }
+/* ─── A folha sobre o quarto ───
+   A tela aberta pelo quarto sobe por cima dele, numa folha com os cantos de
+   cima redondos; o quarto fica atrás, sob um véu desfocado, e a alça no alto
+   devolve a ele. Só entrada com fill backwards: transform que fica cria bloco
+   de contenção para os fixed de dentro da tela. */
+.app-principal { position: relative; }
+.folha-fundo {
+  position: absolute; inset: 0; z-index: 30;
+  background: color-mix(in srgb, var(--bg) 35%, transparent);
+  backdrop-filter: blur(6px);
+  animation: folha-fundo-entra .28s ease backwards;
+}
+.folha-fundo[hidden] { display: none; }
+.folha-fundo.saindo { opacity: 0; transition: opacity .22s ease; }
+/* A alça fica numa camada acima da folha, e a folha encosta por trás dela:
+   a borda de cima da folha passa no meio da alça. Ela aparece e some com o
+   fundo, que vem logo antes dela. */
+.folha-alca {
+  position: absolute; z-index: 33; top: 12px; left: 50%;
+  transform: translateX(-50%);
+  animation: folha-fundo-entra .28s ease backwards;
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 30px; padding: 0 14px;
+  border: 1px solid var(--gray3); border-radius: var(--radius-pill);
+  background: var(--white); color: var(--black);
+  font-size: 12.5px; font-weight: 700;
+  box-shadow: 0 4px 14px -6px rgba(20, 22, 30, .25);
+  transition: border-color var(--transition), transform var(--transition-spring);
+}
+.folha-alca:hover, .folha-alca:focus-visible { outline: none; border-color: var(--black); transform: translateX(-50%) translateY(2px); }
+.folha-fundo[hidden] + .folha-alca { display: none; }
+.folha-fundo.saindo + .folha-alca { opacity: 0; transition: opacity .22s ease; }
+.pagina.em-folha {
+  position: absolute; z-index: 31;
+  /* `em-folha`, e não `folha`: `.folha` é a folha A4 do editor, e o nome
+     igual trazia o recuo dela (44px 56px) para a tela inteira. */
+  top: 27px; left: 14px; right: 14px; bottom: 0;
+  background: var(--bg);
+  border: 1px solid var(--gray3); border-bottom: 0;
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -10px 40px -14px rgba(20, 22, 30, .35);
+  overflow: hidden;
+  animation: folha-entra .42s cubic-bezier(.2, 1, .3, 1) backwards;
+}
+.pagina.em-folha.folha-sai { animation: folha-sai .24s cubic-bezier(.4, 0, 1, 1) forwards; }
+@keyframes folha-entra { from { transform: translateY(60%); opacity: .4; } }
+@keyframes folha-sai { to { transform: translateY(70%); opacity: 0; } }
+@keyframes folha-fundo-entra { from { opacity: 0; } }
+@media (max-width: 768px) {
+  .pagina.em-folha { top: 27px; left: 0; right: 0; border-radius: 18px 18px 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pagina.em-folha, .folha-fundo, .folha-alca { animation: none; }
+}
 .pagina[hidden] { display: none; }
 
 /* ─── Cartão de indicador ────────────────────────────────────────────── */
@@ -6795,111 +7328,6 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
 .deck-acoes { display: flex; gap: 8px; }
 .deck-acoes .btn { flex: 1; }
 
-/* Barras dos últimos sete dias. Série única, um tom só, rótulo em tinta de
-   texto: a cor aqui diz "isto é dado", não identifica ninguém. */
-.grafico { padding: 16px 18px 14px; }
-.grafico-topo { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 34px; }
-.grafico-titulo { font-size: 13px; font-weight: 800; letter-spacing: -.01em; }
-.grafico-legenda { font-size: 11.5px; font-weight: 600; color: var(--gray2); }
-.colunas { display: flex; align-items: flex-end; gap: 2px; height: 116px; position: relative; border-bottom: 1px solid var(--gray3); }
-.colunas::before {
-  content: '';
-  position: absolute;
-  left: 0; right: 0; top: 0;
-  border-top: 1px dashed var(--gray3);
-}
-.coluna { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: flex-end; height: 100%; position: relative; cursor: default; }
-.coluna-barra {
-  background: var(--yellow);
-  border-radius: 4px 4px 0 0;
-  /* A tinta a 75% fica num cinza escuro em repouso, e acende inteira sob o
-     ponteiro e no dia de hoje: é o que separa hoje dos outros dias. */
-  opacity: .75;
-  transition: opacity var(--transition), background var(--transition);
-  min-height: 3px;
-}
-.coluna:hover .coluna-barra, .coluna.hoje .coluna-barra { opacity: 1; }
-.coluna-dias { display: flex; gap: 2px; margin-top: 7px; }
-.coluna-dia { flex: 1; min-width: 0; text-align: center; font-size: 10.5px; font-weight: 700; color: var(--gray2); text-transform: uppercase; letter-spacing: .04em; }
-.coluna-dia.hoje { color: var(--black); }
-.grafico-teto { position: absolute; top: -7px; right: 0; font-size: 10.5px; font-weight: 700; color: var(--gray2); background: var(--white); padding-left: 6px; }
-.coluna-balao {
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--black);
-  color: var(--bg);
-  font-size: 11px;
-  font-weight: 700;
-  padding: 5px 9px;
-  border-radius: var(--radius-sm);
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--transition);
-  z-index: 2;
-}
-.coluna:hover .coluna-balao { opacity: 1; }
-
-/* O mapa de calor do uso: dia da semana nas linhas, hora nas colunas. Um tom
-   só em cinco degraus, e o vazio é o cinza da folha, não um rosa apagado. */
-.mapa-uso .grafico-topo { margin-bottom: 16px; }
-.mapa-grade {
-  display: grid;
-  grid-template-columns: 64px repeat(24, minmax(0, 1fr));
-  gap: 2px;
-  position: relative;
-}
-.mapa-faixa {
-  font-size: 10.5px; font-weight: 700; color: var(--gray);
-  padding: 0 0 4px 2px; margin-right: 2px;
-  border-bottom: 1.5px solid var(--gray3);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.mapa-dia-curto { display: none; }
-.mapa-dia, .mapa-hora {
-  font-size: 10.5px; font-weight: 700; color: var(--gray2);
-  display: flex; align-items: center;
-}
-.mapa-dia { font-size: 11px; color: var(--gray); }
-.mapa-hora { justify-content: center; height: 18px; margin-top: 2px; font-variant-numeric: tabular-nums; text-transform: none; white-space: nowrap; }
-.mapa-celula { height: 20px; border-radius: 3px; background: var(--gray4); cursor: default; }
-.mapa-celula:hover { outline: 2px solid var(--black); outline-offset: -1px; }
-.mapa-n0 { background: var(--gray4); }
-.mapa-n1 { background: var(--mapa-1); }
-.mapa-n2 { background: var(--mapa-2); }
-.mapa-n3 { background: var(--mapa-3); }
-.mapa-n4 { background: var(--mapa-4); }
-.mapa-rodape { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 12px; }
-.mapa-pico { font-size: 11.5px; font-weight: 600; color: var(--gray2); }
-.mapa-pico b { color: var(--black); font-weight: 700; }
-.mapa-escala { display: inline-flex; align-items: center; gap: 3px; font-size: 10.5px; font-weight: 700; color: var(--gray2); }
-.mapa-escala i { width: 12px; height: 12px; border-radius: 3px; }
-.mapa-escala i:first-child { margin-left: 4px; }
-.mapa-escala i:last-child { margin-right: 4px; }
-.mapa-balao {
-  position: absolute;
-  background: var(--black);
-  color: var(--bg);
-  font-size: 11px;
-  font-weight: 700;
-  padding: 5px 9px;
-  border-radius: var(--radius-sm);
-  white-space: nowrap;
-  pointer-events: none;
-  transform: translate(-50%, calc(-100% - 6px));
-  z-index: 2;
-}
-@media (max-width: 640px) {
-  .mapa-grade { grid-template-columns: 30px repeat(24, minmax(0, 1fr)); gap: 1px; }
-  .mapa-celula { height: 16px; border-radius: 2px; }
-  .mapa-dia-longo, .mapa-hora-meio { visibility: hidden; }
-  .mapa-dia-longo { display: none; }
-  .mapa-dia-curto { display: inline; text-transform: uppercase; }
-  .mapa-faixa { font-size: 9.5px; }
-}
-
 /* ─── Barra inferior do celular ──────────────────────────────────────── */
 .nav-inferior { display: none; }
 
@@ -7394,6 +7822,9 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
           </svg>
           <span>sinapse</span>
         </div>
+        <button type="button" class="topo-icone" id="btnModoQuarto" title="Modo quarto: sem menu, tudo em volta do quarto" aria-label="Ligar o modo quarto">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9L12 3Z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>
+        </button>
         <button type="button" class="topo-icone" id="btnMenu" title="Recolher menu" aria-label="Recolher menu">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M9 4v16"/><path d="m16 10-2 2 2 2"/></svg>
         </button>
@@ -7456,19 +7887,6 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
       </div>
 
       <div class="app-menu-rodape">
-        <!-- A visão: as telas de sempre, ou o acervo inteiro como uma rede. -->
-        <div class="app-menu-linha">
-          <span>Visão</span>
-          <button type="button" class="seg" id="visaoSeg" data-lado="a" role="switch" aria-checked="false" aria-label="Visão sináptica" title="Visão sináptica">
-            <span class="seg-thumb" aria-hidden="true"></span>
-            <span class="seg-opt on" id="optVisaoLista" aria-hidden="true">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5"/></svg>
-            </span>
-            <span class="seg-opt" id="optVisaoSinapse" aria-hidden="true">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 12 6 6M12 12l7-3M12 12l-2 8M12 12l7 6"/><circle cx="12" cy="12" r="3"/><circle cx="5" cy="5" r="2"/><circle cx="20" cy="8.5" r="2"/><circle cx="9.5" cy="20.5" r="1.6"/><circle cx="19.5" cy="18.5" r="1.6"/></svg>
-            </span>
-          </button>
-        </div>
         <div class="app-menu-linha">
           <span>Tema</span>
           <button type="button" class="seg" id="temaSeg" data-lado="a" aria-label="Alternar tema">
@@ -7499,6 +7917,13 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
 
   <!-- ═══ Conteúdo ═══ -->
   <main class="app-principal">
+    <!-- O fundo da folha: cobre o quarto quando uma tela sobe por cima dele. -->
+    <div class="folha-fundo" id="folhaFundo" hidden></div>
+    <!-- A alça fica fora do fundo: dentro dele ela não passaria por cima da folha. -->
+    <button type="button" class="folha-alca" id="folhaAlca" title="Voltar ao quarto (H)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+      Voltar ao quarto
+    </button>
     <div class="faixa-falha" id="faixaFalha" role="status" hidden>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
       <span>Sem conexão com o banco.</span>
@@ -7707,61 +8132,20 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
        <div class="admin-page-header">
          <div style="min-width:0">
            <h1 class="admin-page-title">Dashboard</h1>
-           <p class="admin-page-desc">O andamento do estudo, em números.</p>
+           <p class="admin-page-desc">Seu quarto de estudos. Toque num objeto para ir até ele.</p>
          </div>
        </div>
 
-       <div class="kpi-fila" id="kpisPainel"></div>
-
-       <div class="bloco grafico">
-         <div class="grafico-topo">
-           <span class="grafico-titulo">Cards revisados nos últimos sete dias</span>
-           <span class="grafico-legenda" id="total7d"></span>
-         </div>
-         <div class="colunas" id="colunas7d"></div>
-         <div class="coluna-dias" id="dias7d"></div>
-       </div>
-
-       <div class="bloco grafico mapa-uso">
-         <div class="grafico-topo">
-           <span class="grafico-titulo">Quando você usa a plataforma</span>
-           <span class="grafico-legenda" id="mapaUsoTotal"></span>
-         </div>
-         <div class="mapa-grade" id="mapaUso" role="table" aria-label="Minutos de uso por dia da semana e hora, nas últimas 12 semanas"></div>
-         <div class="mapa-rodape">
-           <span class="mapa-pico" id="mapaUsoPico"></span>
-           <span class="mapa-escala" aria-hidden="true">Menos<i class="mapa-n0"></i><i class="mapa-n1"></i><i class="mapa-n2"></i><i class="mapa-n3"></i><i class="mapa-n4"></i>Mais</span>
+       <!-- O quarto 3D: a cena é do app/quarto.js. -->
+       <div class="quarto" id="quarto">
+         <div class="quarto-palco">
+           <div class="quarto-dica" aria-hidden="true">
+             <svg class="quarto-dica-seta"><path class="seta" pathLength="1"/><path class="ponta" pathLength="1"/></svg>
+             <span class="quarto-dica-nota"><span class="quarto-dica-titulo"></span><span class="quarto-dica-sub"></span></span>
+           </div>
          </div>
        </div>
 
-       <div class="bloco-cabecalho">
-         <span class="bloco-titulo-solto">Desempenho por deck</span>
-         <button type="button" class="btn btn-secondary btn-sm" id="btnNovoDeck">
-           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
-           Novo deck
-         </button>
-       </div>
-       <div class="decks-grade" id="gradeDecks"></div>
-
-       <div class="bloco-cabecalho">
-         <span class="bloco-titulo-solto">Pastas mais estudadas</span>
-       </div>
-       <div class="admin-table-wrap">
-         <div class="admin-table-rolagem">
-           <table class="admin-table">
-             <thead>
-               <tr>
-                 <th>Pasta</th>
-                 <th style="text-align:right">Arquivos</th>
-                 <th style="text-align:right">Flashcards</th>
-                 <th style="text-align:right">Tempo em foco</th>
-                 <th>Último estudo</th>
-               </tr>
-             </thead>
-             <tbody id="corpoPorPasta"></tbody>
-           </table>
-         </div>
-       </div>
       </div>
     </section>
 
@@ -8762,6 +9146,62 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
   </div>
 </div>
 
+<!-- ═══ O modo quarto ═══
+     Sem o menu: o quarto ocupa a página e o resto fica nos cantos, em volta
+     dele. A marca no alto à esquerda, a busca, o tema, a volta ao menu e o
+     perfil no alto à direita, os atalhos numa coluna à esquerda (o lançador já mora no canto
+     direito). Tudo o que se abre sobe como folha por cima do quarto. -->
+<div class="hud" id="hud" hidden>
+  <div class="hud-marca">
+    <svg class="app-marca-simbolo" viewBox="0 0 32 32" aria-hidden="true">
+      <g stroke="currentColor" stroke-width="3.6" stroke-linecap="round">
+        <path d="M16 16 18.72 5.86M16 16l10.14-2.72M16 16l7.42 7.42M16 16l-2.72 10.14M16 16 5.86 18.72M16 16 8.58 8.58"/>
+      </g>
+      <g fill="currentColor">
+        <circle cx="16" cy="16" r="4.8"/>
+        <circle cx="19.11" cy="4.41" r="3.4"/><circle cx="27.59" cy="12.89" r="3.4"/><circle cx="24.49" cy="24.49" r="3.4"/>
+        <circle cx="12.89" cy="27.59" r="3.4"/><circle cx="4.41" cy="19.11" r="3.4"/><circle cx="7.51" cy="7.51" r="3.4"/>
+      </g>
+    </svg>
+    <span>sinapse</span>
+  </div>
+  <!-- O canto de cima, à direita: a busca, o tema e a volta ao menu ao lado do
+       perfil, o mesmo botão da conta do menu, que muda para cá no modo quarto. -->
+  <div class="hud-canto">
+  <div class="hud-topo">
+    <button type="button" class="hud-botao" id="hudBusca" title="Busca rápida (Ctrl+K)">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><circle cx="11" cy="11" r="7.5"/><path d="M21 21l-4.35-4.35"/></svg>
+      <span>Buscar</span><kbd>Ctrl K</kbd>
+    </button>
+    <button type="button" class="hud-botao so-icone" id="hudTema" title="Alternar tema" aria-label="Alternar tema">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17Z" fill="currentColor"/></svg>
+    </button>
+    <button type="button" class="hud-botao so-icone" id="hudSairModo" title="Voltar ao modo com menu" aria-label="Voltar ao modo com menu">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M9 4v16"/></svg>
+    </button>
+  </div>
+  <div class="hud-conta" id="hudConta"></div>
+  </div>
+  <nav class="hud-atalhos" id="hudAtalhos" aria-label="Atalhos">
+    <button type="button" class="hud-atalho" data-hud="pastas"><span>Pastas</span></button>
+    <button type="button" class="hud-atalho" data-hud="decks"><span>Decks</span></button>
+    <button type="button" class="hud-atalho" data-hud="questoes"><span>Questões</span></button>
+    <button type="button" class="hud-atalho" data-hud="planos"><span>Planos</span></button>
+    <button type="button" class="hud-atalho" data-hud="pomodoro"><span>Pomodoro</span></button>
+  </nav>
+</div>
+
+<div class="quarto-mini" id="quartoMini" hidden>
+  <span class="quarto-mini-rotulo">Quarto <kbd>H</kbd></span>
+  <button type="button" class="quarto-mini-fechar" id="quartoMiniFechar" title="Trocar pelo botão" aria-label="Trocar o quarto do canto pelo botão">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 12h12"/></svg>
+  </button>
+</div>
+<button type="button" class="quarto-voltar" id="quartoVoltar" aria-label="Voltar ao quarto" title="Voltar ao quarto (H)">
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9L12 3Z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>
+  <span class="quarto-voltar-rotulo">Quarto <kbd>H</kbd></span>
+</button>
+
 <div class="fab" id="fab" data-aberto="false">
   <span class="fab-trilho" aria-hidden="true"></span>
   <div class="fab-itens" id="fabItens" role="menu" aria-label="Criar">
@@ -9240,20 +9680,13 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
   function mostrarEspera() {
     document.body.setAttribute("data-carregando", "");
     document.body.removeAttribute("data-chegou");
-    esqueleto("kpisPainel", repete(4, ESQ_KPI));
     esqueleto("kpisDecks", repete(4, ESQ_KPI));
-    var alturas = [38, 62, 45, 80, 54, 70, 30];
-    esqueleto("colunas7d", repete(7, function (i) { return '<i class="esq esq-coluna" style="height:' + alturas[i] + '%"></i>'; }));
-    esqueleto("dias7d", repete(7, '<span class="coluna-dia"><i class="esq" style="width:22px;height:8px;margin:2px auto 0"></i></span>'));
-    esqueleto("mapaUso", '<i class="esq" style="grid-column:1/-1;height:150px"></i>');
-    esqueleto("gradeDecks", repete(3, ESQ_CARTAO));
     esqueleto("gradeDecksPagina", repete(3, ESQ_CARTAO));
     esqueleto("gradePastas", repete(3, ESQ_CARTAO));
     esqueleto("listaArquivos", '<div class="esq-lista">' + repete(4, function (i) {
       return '<i class="esq" style="width:' + (72 - i * 9) + '%"></i>';
     }) + "</div>");
     esqueleto("corpoTabela", esqLinhas(4, 5));
-    esqueleto("corpoPorPasta", esqLinhas(3, 5));
   }
 
   /* O fim da espera, deu certo ou não: tira as formas e deixa os blocos
@@ -9378,7 +9811,7 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
       SETE_DIAS.push({
         dia: nomes[dt.getDay()],
         data: dt.toLocaleDateString("pt-BR", { day: "numeric", month: "long" }),
-        n: r.total, hoje: r.dia === hoje
+        n: r.total, acertos: r.acertos || 0, hoje: r.dia === hoje
       });
     });
 
@@ -9443,28 +9876,8 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
   }
 
   function pintarKpis() {
-    var hoje = new Date().toISOString().slice(0, 10);
-    var doDia = null, soma = 0, acertos = 0;
-    REVISOES.forEach(function (r) {
-      if (r.dia === hoje) doDia = r;
-      soma += r.total;
-      acertos += r.acertos;
-    });
-    var taxa = soma ? Math.round(acertos / soma * 100) + "%" : "-";
     var seq = diasSeguidos();
     var ciclos = FOCO_HOJE.ciclos;
-    var naFila = filaDoDia("").length;
-
-    pintarFileiraKpi("kpisPainel", [
-      { rotulo: "Revisados hoje", valor: doDia ? String(doDia.total) : "0",
-        nota: naFila ? naFila + (naFila === 1 ? " ainda na fila" : " ainda na fila") : "fila vazia" },
-      { rotulo: "Em foco hoje", valor: emHoras(FOCO_HOJE.minutos),
-        nota: ciclos + (ciclos === 1 ? " ciclo" : " ciclos") },
-      { rotulo: "Acerto em 30 dias", valor: taxa,
-        nota: soma ? soma + (soma === 1 ? " revisão" : " revisões") : "sem histórico" },
-      { rotulo: "Dias seguidos", valor: String(seq),
-        nota: seq ? "sem quebrar a sequência" : "comece hoje" }
-    ]);
 
     pintarFileiraKpi("kpisPomodoro", [
       { rotulo: "Em foco hoje", valor: emHoras(FOCO_HOJE.minutos), nota: "somando os ciclos" },
@@ -9480,11 +9893,8 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
   function repintarTudo() {
     pintarPastas();
     pintarGradeDecks();
-    pintarDecks();
     pintarTabela();
     pintarArquivos();
-    pintarGrafico(); pintarMapaDeUso();
-    pintarPorPasta();
     pintarKpis();
     pintarQuestoes();
     pintarPlanos();
@@ -9497,6 +9907,8 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
        Refazê-la a cada repintura jogaria fora uma sessão em curso toda vez que
        qualquer outra coisa do app mudasse. */
     if (paginaAtual === "revisao" && !revisaoEmCurso()) montarFila();
+    /* O quarto 3D se refaz com o acervo. */
+    document.dispatchEvent(new CustomEvent("sinapse:dados"));
   }
 
   function carregar() {
@@ -9810,7 +10222,10 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
     var r = btnConta.getBoundingClientRect();
     menuConta.style.left = r.left + "px";
     menuConta.style.width = r.width + "px";
-    menuConta.style.bottom = (window.innerHeight - r.top + 8) + "px";
+    /* Abre para o lado que tem espaço: para cima no rodapé do menu, para baixo
+       quando o botão está no alto (o perfil do modo quarto). */
+    if (r.top > window.innerHeight / 2) menuConta.style.bottom = (window.innerHeight - r.top + 8) + "px";
+    else menuConta.style.top = (r.bottom + 8) + "px";
     document.body.appendChild(menuConta);
     btnConta.setAttribute("aria-expanded", "true");
     Array.prototype.forEach.call(menuConta.querySelectorAll(".conta-menu-item"), function (b) {
@@ -12240,6 +12655,190 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
     entrada.click();
   }
 
+  /* ── Texto colado de outro documento ──
+     Docs e Word mandam cada trecho com a fonte, o tamanho, a entrelinha, as
+     margens e o alinhamento de lá escritos nele. Na folha daqui isso vira
+     texto em outra letra, justificado com buracos entre as palavras e com
+     espaços que nenhum botão da barra desfaz. Fica o que é sentido: negrito,
+     itálico, sublinhado, riscado, cor, fundo, centralizado e à direita. As
+     tabelas passam como vieram, porque a largura das colunas e o fundo das
+     células são a própria tabela. */
+  function colado(html) {
+    var molde = document.createElement("template");
+    molde.innerHTML = html;
+    var raiz = molde.content;
+    Array.prototype.forEach.call(raiz.querySelectorAll("meta, style, script, link, title, xml"), function (el) { el.remove(); });
+    var andador = document.createTreeWalker(raiz, NodeFilter.SHOW_COMMENT), comentarios = [];
+    while (andador.nextNode()) comentarios.push(andador.currentNode);
+    comentarios.forEach(function (c) { c.remove(); });
+
+    Array.prototype.slice.call(raiz.querySelectorAll("*")).forEach(function (el) {
+      if (!raiz.contains(el)) return;
+      if (el.tagName === "O:P") { el.remove(); return; }
+      if (el.closest("table") || el.tagName === "IMG") return;
+      /* O Docs embrulha tudo num <b> de peso normal, que só existe para
+         carregar a marca dele. */
+      if ((el.tagName === "B" && /^(normal|400)$/.test(el.style.fontWeight)) || el.tagName === "FONT") {
+        desembrulhar(el);
+        return;
+      }
+      if (el.hasAttribute("style")) limparEstiloColado(el);
+      ["id", "lang", "dir", "align", "width", "height"].forEach(function (a) { el.removeAttribute(a); });
+      if (/(^|\s)Mso/.test(el.className)) el.removeAttribute("class");
+      if (el.tagName === "SPAN" && !el.attributes.length) desembrulhar(el);
+    });
+    return molde;
+  }
+
+  function desembrulhar(el) {
+    while (el.firstChild) el.parentNode.insertBefore(el.firstChild, el);
+    el.remove();
+  }
+
+  function corEscura(v) {
+    var m = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(v);
+    return m ? +m[1] < 70 && +m[2] < 70 && +m[3] < 70 : /^(windowtext|black|#000(000)?)$/i.test(v);
+  }
+  function fundoVazio(v) {
+    var m = /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?/.exec(v);
+    if (!m) return /^(transparent|white|initial|inherit|#fff(fff)?)$/i.test(v);
+    return (m[4] != null && +m[4] === 0) || (+m[1] > 240 && +m[2] > 240 && +m[3] > 240);
+  }
+
+  function limparEstiloColado(el) {
+    var s = el.style, fica = [];
+    var peso = s.fontWeight, italico = s.fontStyle, risco = s.textDecorationLine;
+    var cor = s.color, fundo = s.backgroundColor, alinha = s.textAlign, sobe = s.verticalAlign;
+    if (/^(bold|bolder|[6-9]00)$/.test(peso)) fica.push("font-weight:" + peso);
+    if (/^(italic|oblique)/.test(italico)) fica.push("font-style:italic");
+    if (risco && risco !== "none") fica.push("text-decoration:" + risco);
+    if (cor && !corEscura(cor) && !/^(inherit|initial|currentcolor)$/i.test(cor)) fica.push("color:" + cor);
+    if (fundo && !fundoVazio(fundo)) fica.push("background-color:" + fundo);
+    if (/^(center|right)$/.test(alinha)) fica.push("text-align:" + alinha);
+    if (/^(super|sub)$/.test(sobe)) fica.push("vertical-align:" + sobe);
+    if (fica.length) el.setAttribute("style", fica.join(";"));
+    else el.removeAttribute("style");
+  }
+
+  /* ── A imagem que chega no meio do texto ──
+     Colada junto com o texto, a imagem vem dentro do parágrafo, com o tamanho
+     e a flutuação do documento de lá: fica espremida entre as linhas e não é
+     figura, sem alça, sem prévia, sem posição. Cada uma sai da linha para uma
+     figura própria, no mesmo ponto do texto, e sobe para o banco como as
+     outras. As imagens que o Word manda como arquivo local, que a página não
+     tem como abrir, são trocadas pelos arquivos que vieram na colagem, na
+     ordem. Devolve a última figura feita. */
+  function figurarImagensSoltas(arquivos) {
+    var reserva = (arquivos || []).slice(), ultima = null, perdidas = 0;
+    Array.prototype.slice.call(arquivoCorpo.querySelectorAll("img")).forEach(function (img) {
+      if (img.closest(".figura, [contenteditable='false']")) return;
+      var figura = soltarDaLinha(img);
+      ultima = figura;
+      var nova = document.createElement("img");
+      nova.src = img.getAttribute("src") || "";
+      nova.alt = img.getAttribute("alt") || "Imagem do arquivo";
+      ["img", "externa"].forEach(function (k) { if (img.dataset[k]) nova.dataset[k] = img.dataset[k]; });
+      figura.appendChild(nova);
+      img.remove();
+      if (!subirImagemSolta(figura, nova, reserva)) perdidas++;
+    });
+    if (perdidas) {
+      avisar("error", perdidas > 1 ? "Algumas imagens não vieram" : "Uma imagem não veio",
+        "O documento de origem mandou só o endereço no computador dele. Copie e cole a imagem sozinha.");
+    }
+    return ultima;
+  }
+
+  /* A linha é partida na imagem: o que vinha antes fica em cima, a figura no
+     meio, o resto embaixo. Dentro de célula, item de lista ou destaque, a
+     figura fica lá dentro, como a que se insere pela barra. */
+  function soltarDaLinha(img) {
+    var dono = img.parentElement.closest("td, th, li, .aviso-caixa, details > div, blockquote");
+    if (!dono || !arquivoCorpo.contains(dono)) dono = arquivoCorpo;
+    var figura = document.createElement("figure");
+    figura.className = "figura";
+    figura.setAttribute("contenteditable", "false");
+    var linha = img;
+    while (linha.parentNode !== dono) linha = linha.parentNode;
+    if (linha === img) {
+      img.before(figura);
+    } else {
+      var r = document.createRange();
+      r.setStart(linha, 0);
+      r.setEndBefore(img);
+      var antes = linha.cloneNode(false);
+      antes.appendChild(r.extractContents());
+      r = document.createRange();
+      r.setStartAfter(img);
+      r.setEnd(linha, linha.childNodes.length);
+      var depois = linha.cloneNode(false);
+      depois.appendChild(r.extractContents());
+      if (temConteudo(antes)) linha.before(antes);
+      linha.before(figura);
+      if (temConteudo(depois)) linha.before(depois);
+      figura.appendChild(img);
+      linha.remove();
+    }
+    /* Sem linha depois, não haveria onde pôr o cursor para seguir escrevendo. */
+    if (!figura.nextElementSibling) {
+      var p = document.createElement("p");
+      p.innerHTML = "<br>";
+      figura.after(p);
+    }
+    return figura;
+  }
+
+  function temConteudo(el) {
+    return el.textContent.replace(/[\s ​]/g, "") !== "" || !!el.querySelector("img, table, hr");
+  }
+
+  /* Sobe a imagem que ainda mora fora do banco. Endereço de outro site que não
+     deixa ser lido continua apontando para lá, marcado para não tentar de novo
+     a cada abertura. Devolve falso só quando não há imagem nenhuma para
+     mostrar. */
+  function subirImagemSolta(figura, img, reserva) {
+    var src = img.getAttribute("src") || "";
+    if (img.dataset.img || img.dataset.externa) return true;
+    var deFora = /^https?:/i.test(src), pegar;
+    if (/^file:/i.test(src) || !src) {
+      if (!reserva.length) { figura.remove(); return false; }
+      var arq = reserva.shift();
+      img.src = URL.createObjectURL(arq);
+      pegar = Promise.resolve(arq);
+    } else {
+      pegar = fetch(src).then(function (r) {
+        if (!r.ok) throw new Error("A imagem não abriu.");
+        return r.blob();
+      });
+    }
+    pegar.then(function (blob) {
+      var tipo = /^image\//.test(blob.type) ? blob.type : "image/png";
+      if (blob.size > TETO_IMAGEM) throw new Error("Imagem grande demais.");
+      return lerBase64(blob).then(function (base64) {
+        return gravar({
+          acao: "imagem.criar", tipo: tipo, nome: blob.name || "imagem-colada",
+          arquivoId: (arquivoAberto && arquivoAberto.id) || "", dados: base64
+        });
+      });
+    }).then(function (r) {
+      if (!r || !r.url) throw new Error("O servidor de imagens não respondeu.");
+      img.src = r.url;
+      img.dataset.img = r.id;
+      if (img.isConnected) salvarTexto();
+    }).catch(function (e) {
+      if (deFora) {
+        img.dataset.externa = "1";
+        if (img.isConnected) salvarTexto();
+        return;
+      }
+      var estava = figura.isConnected;
+      figura.remove();
+      if (estava) salvarTexto();
+      avisar("error", "Não deu para inserir a imagem", e.message);
+    });
+    return true;
+  }
+
   /* Colar um print é o caminho mais curto, e o mais usado: o que vem da área de
      transferência entra aqui antes de o navegador colar a sua própria versão,
      que seria uma data: URL dentro do texto. */
@@ -12248,6 +12847,24 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
     if (!dados) return;
 
     var imagens = Array.prototype.slice.call(dados.files || []).filter(ehImagem);
+
+    /* Texto de outro documento, com ou sem imagem no meio: entra limpo, e as
+       imagens viram figura. Só imagem, sem texto, segue pelo caminho do print,
+       que é o arquivo de verdade e não um endereço que pode não abrir. */
+    var html = dados.getData("text/html");
+    var molde = html ? colado(html) : null;
+    if (molde && (molde.content.textContent.trim() || (!imagens.length && molde.content.querySelector("img")))) {
+      e.preventDefault();
+      document.execCommand("insertHTML", false, molde.innerHTML);
+      var ultima = figurarImagensSoltas(imagens);
+      var sel = window.getSelection();
+      if (ultima && (!sel.rangeCount || !sel.anchorNode.isConnected)) {
+        porCursorEm(ultima.nextElementSibling || ultima.parentNode, !ultima.nextElementSibling);
+      }
+      salvarTexto();
+      return;
+    }
+
     if (imagens.length) {
       e.preventDefault();
       imagens.forEach(function (f, i) { inserirImagem(f, i === 0 ? blocoParaMidia() : null); });
@@ -12360,7 +12977,7 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
      conta como sair. */
   function ehFerramentaDaFigura(el) {
     return !!el && (el === botaoExcluirFigura || botaoExcluirFigura.contains(el) ||
-      barraFigura.contains(el) || el === alcaFigura);
+      barraFigura.contains(el) || alcaFigura.contains(el));
   }
 
   function posicaoDaFigura(fig) {
@@ -16229,11 +16846,11 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
   arquivoCorpo.addEventListener("load", agendarPaginar, true);
   /* Só a largura da coluna muda o layout. A altura muda o tempo todo com a
      própria paginação, e responder a ela fazia a folha se refazer em ciclo. */
-  var larguraDaColuna = 0;
+  var larguraDaFolhaMedida = 0;
   if (window.ResizeObserver) new ResizeObserver(function () {
     var w = folhaDoTexto.parentElement.clientWidth;
-    if (w === larguraDaColuna) return;
-    larguraDaColuna = w;
+    if (w === larguraDaFolhaMedida) return;
+    larguraDaFolhaMedida = w;
     aplicarLayout();
   }).observe(folhaDoTexto.parentElement);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(agendarPaginar);
@@ -17671,7 +18288,6 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
        o pedido sai com `deckId` vazio e a linha é recusada sem ninguém ver. */
     novo.pronto = gravar({ acao: "deck.criar", nome: nome, desc: novo.desc, novosPorDia: quantos })
       .then(function (r) { if (r.id) novo.id = r.id; return novo; });
-    pintarDecks();
     pintarGradeDecks();
     if (!quieto) avisar("success", "Deck criado", nome + ", com " + quantos + " cards novos por dia.");
     return novo;
@@ -17911,7 +18527,6 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
        as duas telas que a mostram forem repintadas. */
     pintarTabela();
     pintarGradeDecks();
-    pintarDecks();
     avisar("success", "Flashcard excluído", c.frente);
     if (c.id) gravar({ acao: "card.excluir", id: c.id });
   }
@@ -20825,7 +21440,6 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
     if (nome === "questoes") pintarQuestoes();
     if (nome === "planos") pintarPlanos();
     if (nome === "plano") pintarPlano();
-    if (nome === "relatorios") { pintarDecks(); pintarGrafico(); pintarMapaDeUso(); }
     /* A fila se refaz a cada entrada, e não uma vez no carregamento: card
        criado, excluído ou revisado depois disso mudava o acervo e não mudava a
        fila, que continuava oferecendo o que já não existia. */
@@ -20834,13 +21448,23 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
     marcarInferior(nome);
     pintarBalaoCiclo();
 
-    trocaDeNivel(sai, 0, 0, function () {
+    /* Com a folha, o quarto não sai: ele fica atrás, e a tela chega por cima
+       dele. Entrar e sair da folha tem o movimento próprio dela. */
+    if (nome === "relatorios") folha = false;
+    else if (modoQuarto && sai && sai.dataset.pagina === "relatorios") folha = true;
+    var semPassagem = folhaSemPassagem || (folha && sai && sai.dataset.pagina === "relatorios");
+    folhaSemPassagem = false;
+    trocaDeNivel(semPassagem ? null : sai, 0, 0, function () {
       var entra = null;
       Array.prototype.forEach.call(document.querySelectorAll(".pagina"), function (p) {
         var minha = p.dataset.pagina === nome;
-        p.hidden = !minha;
+        var quartoAtras = folha && p.dataset.pagina === "relatorios";
+        p.hidden = !minha && !quartoAtras;
+        p.classList.toggle("em-folha", folha && minha);
         if (minha) entra = p;
       });
+      pintarFolha();
+      posicionarQuarto();
       return entra;
     });
   }
@@ -20853,6 +21477,162 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
       if (b.dataset.ir === "pastas") irVista("lista", b.dataset.ir !== paginaAtual);
       irPaginaAtual(b.dataset.ir);
     });
+  });
+  /* Voltar ao quarto, de qualquer tela: pelo botão do canto ou pela tecla H,
+     fora de campo de texto. O quarto guarda o zoom e o painel em que ficou. */
+  function voltarAoQuarto() {
+    if (paginaAtual === "relatorios") return;
+    snLigar(false);
+    if (folha) { fecharFolha(); return; }
+    irPaginaAtual("relatorios");
+  }
+
+  /* ═══ A folha sobre o quarto ═════════════════════════════════════════
+     O que se abre pelo quarto (uma pasta, um arquivo, a revisão, um plano)
+     sobe como uma folha por cima dele, e o quarto fica atrás, desfocado.
+     Fechar a folha (a alça de cima, o fundo, o botão do canto ou a tecla H)
+     faz ela descer, e o quarto está lá como ficou. Ir pelo menu para outra
+     tela é sair do quarto: a folha vira a tela comum, sem movimento. */
+  var folha = false, folhaSemPassagem = false, folhaSaida = null;
+  var folhaFundo = $("folhaFundo");
+  function pintarFolha() {
+    document.body.toggleAttribute("data-folha", folha);
+    folhaFundo.hidden = !folha;
+    var aqui = paginaAtual === "plano" ? "planos" : paginaAtual;
+    Array.prototype.forEach.call(document.querySelectorAll(".hud-atalho"), function (b) {
+      b.classList.toggle("ativo", folha && b.dataset.hud === aqui);
+    });
+  }
+  function abrirFolha() {
+    if (paginaAtual === "relatorios") folha = true;
+  }
+  function fecharFolha() {
+    if (!folha || folhaSaida) return;
+    var aberta = document.querySelector(".pagina.em-folha");
+    var calmo = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var fim = function () {
+      folhaSaida = null;
+      if (aberta) aberta.classList.remove("folha-sai");
+      folhaSemPassagem = true;
+      irPaginaAtual("relatorios");
+    };
+    if (!aberta || calmo) { fim(); return; }
+    aberta.classList.add("folha-sai");
+    folhaFundo.classList.add("saindo");
+    folhaSaida = window.setTimeout(function () { folhaFundo.classList.remove("saindo"); fim(); }, 240);
+  }
+  function desfazerFolha() {
+    if (!folha) return;
+    if (folhaSaida) { window.clearTimeout(folhaSaida); folhaSaida = null; folhaFundo.classList.remove("saindo"); }
+    folha = false;
+    Array.prototype.forEach.call(document.querySelectorAll(".pagina"), function (p) {
+      p.classList.remove("em-folha", "folha-sai");
+      if (p.dataset.pagina === "relatorios") p.hidden = paginaAtual !== "relatorios";
+    });
+    pintarFolha();
+  }
+  /* ═══ O modo quarto ═════════════════════════════════════════════════
+     Sem o menu, o quarto toma a página e o resto fica nos cantos (o #hud).
+     Nada sai do quarto: toda tela sobe como folha por cima dele, até as que
+     se abrem pela busca ou pelo lançador. A escolha fica guardada; no celular
+     vale sempre o menu, que lá já é a barra de baixo. */
+  var CHAVE_MODO = "app.modo", modoQuarto = false, hud = $("hud"), contaCasa = btnConta.parentNode;
+  function modoGuardado() { try { return localStorage.getItem(CHAVE_MODO) === "quarto"; } catch (e) { return false; } }
+  function aplicarModo() {
+    var quer = modoGuardado() && !mqCelular.matches;
+    if (quer === modoQuarto) return;
+    modoQuarto = quer;
+    if (quer) document.body.dataset.modo = "quarto"; else delete document.body.dataset.modo;
+    hud.hidden = !quer;
+    /* A conta (avatar, nome e email) vai junto: no canto de baixo do quarto, e
+       o menu dela abre para cima, como no rodapé do menu. */
+    fecharConta();
+    (quer ? $("hudConta") : contaCasa).appendChild(btnConta);
+    if (quer && paginaAtual !== "relatorios" && !folha) {
+      // A tela aberta vira folha por cima do quarto, sem sair dela.
+      folha = true;
+      Array.prototype.forEach.call(document.querySelectorAll(".pagina"), function (p) {
+        if (p.dataset.pagina === "relatorios") p.hidden = false;
+        p.classList.toggle("em-folha", p.dataset.pagina === paginaAtual);
+      });
+    } else if (!quer && folha) {
+      desfazerFolha();
+    }
+    pintarFolha();
+    posicionarQuarto();
+  }
+  function trocarModo(quarto) {
+    try { localStorage.setItem(CHAVE_MODO, quarto ? "quarto" : "menu"); } catch (e) {}
+    aplicarModo();
+  }
+  $("btnModoQuarto").addEventListener("click", function () { trocarModo(true); });
+  $("hudSairModo").addEventListener("click", function () { trocarModo(false); });
+  $("hudBusca").addEventListener("click", abrirBusca);
+  $("hudTema").addEventListener("click", function () { $("temaSeg").click(); });
+  Array.prototype.forEach.call(document.querySelectorAll(".hud-atalho"), function (b) {
+    // O ícone é o mesmo do menu, para a mesma tela.
+    var ico = document.querySelector('.app-menu [data-ir="' + (b.dataset.ico || b.dataset.hud) + '"] .nav-leaf-ico svg');
+    if (ico) b.insertBefore(ico.cloneNode(true), b.firstChild);
+    b.addEventListener("click", function () {
+      $("hudAtalhos").classList.add("recolhida");
+      window.sinapseQuarto.abrir(b.dataset.hud);
+    });
+  });
+  $("hudAtalhos").addEventListener("mouseleave", function () { this.classList.remove("recolhida"); });
+  mqCelular.addEventListener("change", aplicarModo);
+
+  /* ═══ O quarto no canto ═════════════════════════════════════════════
+     Fora do Dashboard (e fora da folha), o quarto não some: ele encolhe para
+     uma janelinha no canto, ainda vivo. Tocar nela volta ao quarto, e tocar
+     num móvel dela volta já aproximando dele. O mesmo #quarto muda de lugar,
+     com a cena e o estado inteiros. No celular fica o botão, que cabe melhor.
+     O "–" da janelinha guarda a escolha de ficar só com o botão. */
+  var quartoCaixa = $("quarto"), quartoMini = $("quartoMini");
+  var quartoCasa = quartoCaixa.parentNode, quartoDepois = quartoCaixa.nextSibling;
+  var CHAVE_MINI = "quarto.mini";
+  function miniDesligada() { try { return localStorage.getItem(CHAVE_MINI) === "off"; } catch (e) { return false; } }
+  function posicionarQuarto() {
+    var naMini = paginaAtual !== "relatorios" && !folha && !modoQuarto && !mqCelular.matches && !miniDesligada();
+    if (naMini && quartoCaixa.parentNode !== quartoMini) quartoMini.insertBefore(quartoCaixa, quartoMini.firstChild);
+    if (!naMini && quartoCaixa.parentNode === quartoMini) quartoCasa.insertBefore(quartoCaixa, quartoDepois);
+    quartoMini.hidden = !naMini;
+    document.body.toggleAttribute("data-quarto-mini", naMini);
+  }
+  $("quartoMiniFechar").addEventListener("click", function (e) {
+    e.stopPropagation();
+    try { localStorage.setItem(CHAVE_MINI, "off"); } catch (er) {}
+    posicionarQuarto();
+  });
+  // A cena cuida dos toques nela; o que sobra (a borda, um arrasto) também volta.
+  quartoMini.addEventListener("click", voltarAoQuarto);
+  mqCelular.addEventListener("change", posicionarQuarto);
+
+  folhaFundo.addEventListener("click", function (e) { if (e.target === folhaFundo) fecharFolha(); });
+  $("folhaAlca").addEventListener("click", fecharFolha);
+  /* O menu chega antes de quem cuida do clique: o Dashboard fecha a folha, e
+     qualquer outra tela desfaz a folha antes de trocar. */
+  document.addEventListener("click", function (e) {
+    if (!folha) return;
+    var b = e.target.closest && e.target.closest("[data-ir], .nav-inferior-item");
+    if (!b) return;
+    if (b.dataset.ir === "relatorios") { e.stopImmediatePropagation(); fecharFolha(); return; }
+    desfazerFolha();
+  }, true);
+  $("quartoVoltar").addEventListener("click", voltarAoQuarto);
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "h" && e.key !== "H") return;
+    if (e.ctrlKey || e.metaKey || e.altKey || e.repeat || e.defaultPrevented) return;
+    var alvo = e.target;
+    if (alvo && (alvo.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(alvo.tagName))) return;
+    /* As janelas do app moram sempre na página e só aparecem quando abertas:
+       o que vale é estar à vista, e não existir. */
+    var janelaAberta = Array.prototype.some.call(document.querySelectorAll("dialog[open], [aria-modal=\"true\"]"), function (el) {
+      if (el.checkVisibility) return el.checkVisibility({ opacityProperty: true, visibilityProperty: true });
+      return el.getClientRects().length > 0;
+    });
+    if (janelaAberta) return;
+    e.preventDefault();
+    voltarAoQuarto();
   });
   function marcarInferior(nome) {
     var mapa = { pastas: 0, decks: 1, pomodoro: 2 };
@@ -22256,7 +23036,6 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
     delete copia.id;
     decks.splice(decks.indexOf(d) + 1, 0, copia);
     pintarGradeDecks();
-    pintarDecks();
     avisar("success", "Deck duplicado", copia.nome + " está na lista.");
     gravar({ acao: "deck.criar", nome: copia.nome, desc: copia.desc || "" })
       .then(function (r) { if (r.id) copia.id = r.id; });
@@ -22289,7 +23068,6 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
     if (deckAtual === d.nome) deckAtual = (destino && destino.nome) || (decks.length ? decks[0].nome : "");
     if (deckAberto === d) { deckAberto = destino || null; irVista("deck-lista"); }
     pintarGradeDecks();
-    pintarDecks();
     pintarTabela();
 
     if (destino && levados) {
@@ -22306,191 +23084,14 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
     mover.then(function () { gravar({ acao: "deck.excluir", id: d.id }); });
   }
 
-  function pintarDecks() {
-    var grade = $("gradeDecks");
-    if (!grade) return;
-    grade.className = "decks-grade lista-anima";
-    grade.innerHTML = "";
-    decks.forEach(function (d) { grade.appendChild(cartaoDeDeck(d)); });
-  }
-
   /* Sete dias, uma série só, um tom só: a cor diz "isto é dado", não separa
      ninguém. O dia de hoje é o único marcado, e o valor aparece no ponteiro em
      vez de um número em cima de cada barra. */
   var SETE_DIAS = [];
 
-  /* A tabela do painel sai das pastas carregadas. Aqui havia três linhas
-     escritas no HTML, que não mudavam com nada, nem ao criar uma pasta, nem
-     ao excluir. "Tempo em foco" por pasta o banco ainda não guarda, e por isso
-     aparece como traço em vez de um número inventado. */
-  function pintarPorPasta() {
-    var corpo = $("corpoPorPasta");
-    if (!corpo) return;
-    corpo.innerHTML = "";
-    PASTAS.forEach(function (c) {
-      var tr = document.createElement("tr");
-      tr.innerHTML =
-        '<td style="font-weight:600"></td>' +
-        '<td class="col-num"></td>' +
-        '<td class="col-num"></td>' +
-        '<td class="col-num">-</td>' +
-        '<td></td>';
-      var tds = tr.children;
-      tds[0].textContent = c.nome;
-      tds[1].textContent = (c.lista || []).length;
-      tds[2].textContent = cardsDaPasta(c);
-      tds[4].textContent = c.ultimo || "Ainda não estudado";
-      corpo.appendChild(tr);
-    });
-  }
-
-  function pintarGrafico() {
-    /* `Math.max` de lista vazia devolve `-Infinity`, e o teto do gráfico
-       aparecia escrito assim. Sem dias não há teto: zero. */
-    var teto = SETE_DIAS.length ? Math.max.apply(null, SETE_DIAS.map(function (d) { return d.n; })) : 0;
-    var cols = $("colunas7d"), dias = $("dias7d");
-    var soma = SETE_DIAS.reduce(function (t, d) { return t + d.n; }, 0);
-    $("total7d").textContent = soma + " no total";
-    cols.innerHTML = "";
-    dias.innerHTML = "";
-    var topo = document.createElement("span");
-    topo.className = "grafico-teto";
-    topo.textContent = teto;
-    cols.appendChild(topo);
-    SETE_DIAS.forEach(function (d) {
-      var col = document.createElement("div");
-      col.className = "coluna" + (d.hoje ? " hoje" : "");
-      var barra = document.createElement("div");
-      barra.className = "coluna-barra";
-      barra.style.height = Math.max(3, Math.round(d.n / teto * 100)) + "%";
-      var balao = document.createElement("span");
-      balao.className = "coluna-balao";
-      balao.textContent = d.data + ": " + d.n + " cards";
-      col.appendChild(balao);
-      col.appendChild(barra);
-      cols.appendChild(col);
-
-      var rot = document.createElement("span");
-      rot.className = "coluna-dia" + (d.hoje ? " hoje" : "");
-      rot.textContent = d.dia;
-      dias.appendChild(rot);
-    });
-  }
-
-  /* ═══ Mapa de uso ══════════════════════════════════════════════════
-     Os minutos ativos de cada hora, somados por dia da semana e hora do dia,
-     nas últimas doze semanas. O banco guarda a hora em UTC; o dia e a hora
-     que se veem aqui são os do relógio de quem está olhando. */
-  var DIAS_MAPA = [1, 2, 3, 4, 5, 6, 0];
-  var NOMES_DIA = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
-  var CURTOS_DIA = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
-  var DOZE_SEMANAS = 84 * 86400000;
-  var FAIXAS_MAPA = ["Madrugada", "Manhã", "Tarde", "Noite"];
-
+  /* ═══ Uso ══════════════════════════════════════════════════════════
+     Os minutos ativos de cada hora vão ao banco, que guarda a hora em UTC. */
   function horaUtc(ms) { return new Date(ms || Date.now()).toISOString().slice(0, 13); }
-
-  function gradeDeUso() {
-    var grade = [], corte = horaUtc(Date.now() - DOZE_SEMANAS);
-    for (var d = 0; d < 7; d++) { grade.push([]); for (var h = 0; h < 24; h++) grade[d].push(0); }
-    ACESSOS.forEach(function (a) {
-      if (a.hora < corte) return;
-      var dt = new Date(a.hora + ":00:00Z");
-      if (isNaN(dt)) return;
-      grade[dt.getDay()][dt.getHours()] += a.minutos;
-    });
-    return grade;
-  }
-
-  /* "7h 55min", e não o "7h 55" dos outros painéis: aqui o número aparece
-     sozinho num balão, sem a coluna que diria que é tempo. */
-  function tempoDeUso(min) {
-    var h = Math.floor(min / 60), m = min % 60;
-    return h ? h + "h" + (m ? " " + m + "min" : "") : m + "min";
-  }
-
-  function nivelDeUso(v, teto) { return v ? Math.max(1, Math.ceil(v / teto * 4)) : 0; }
-
-  function pintarMapaDeUso() {
-    var alvo = $("mapaUso");
-    if (!alvo) return;
-    var grade = gradeDeUso(), teto = 0, total = 0, pico = null;
-    grade.forEach(function (linha, d) {
-      linha.forEach(function (v, h) {
-        total += v;
-        if (v > teto) { teto = v; pico = { d: d, h: h }; }
-      });
-    });
-    alvo.innerHTML = "";
-    function vazio() {
-      var v = document.createElement("span");
-      v.setAttribute("role", "presentation");
-      alvo.appendChild(v);
-    }
-    /* As faixas do dia por cima das horas, cada uma cobrindo as suas seis. */
-    vazio();
-    FAIXAS_MAPA.forEach(function (f) {
-      var faixa = document.createElement("span");
-      faixa.className = "mapa-faixa";
-      faixa.setAttribute("role", "presentation");
-      faixa.style.gridColumn = "span 6";
-      faixa.textContent = f;
-      alvo.appendChild(faixa);
-    });
-    vazio();
-    for (var h = 0; h < 24; h++) {
-      var rot = document.createElement("span");
-      rot.className = "mapa-hora" + (h % 3 ? " mapa-hora-meio" : "");
-      rot.setAttribute("role", "presentation");
-      rot.textContent = h + "h";
-      alvo.appendChild(rot);
-    }
-    DIAS_MAPA.forEach(function (d) {
-      var dia = document.createElement("span");
-      dia.className = "mapa-dia";
-      dia.innerHTML = "<span class=\"mapa-dia-longo\"></span><span class=\"mapa-dia-curto\"></span>";
-      dia.firstChild.textContent = NOMES_DIA[d].charAt(0).toUpperCase() + NOMES_DIA[d].slice(1);
-      dia.lastChild.textContent = CURTOS_DIA[d];
-      alvo.appendChild(dia);
-      grade[d].forEach(function (v, h) {
-        var c = document.createElement("span");
-        c.className = "mapa-celula mapa-n" + nivelDeUso(v, teto);
-        c.dataset.texto = NOMES_DIA[d].charAt(0).toUpperCase() + NOMES_DIA[d].slice(1) +
-          ", das " + h + "h às " + ((h + 1) % 24) + "h: " + (v ? tempoDeUso(v) : "sem uso");
-        c.setAttribute("aria-label", c.dataset.texto);
-        alvo.appendChild(c);
-      });
-    });
-    $("mapaUsoTotal").textContent = total ? tempoDeUso(total) + " nas últimas 12 semanas" : "Últimas 12 semanas";
-    var picoEl = $("mapaUsoPico");
-    picoEl.textContent = "";
-    if (pico) {
-      picoEl.appendChild(document.createTextNode("Horário de mais uso: "));
-      var b = document.createElement("b");
-      b.textContent = NOMES_DIA[pico.d] + ", das " + pico.h + "h às " + ((pico.h + 1) % 24) + "h";
-      picoEl.appendChild(b);
-    } else {
-      picoEl.textContent = "O uso passa a ser contado a partir de agora.";
-    }
-  }
-
-  /* Um balão só para a grade inteira, e não um por célula: são 168 delas. */
-  (function () {
-    var alvo = $("mapaUso"), balao = null;
-    if (!alvo) return;
-    alvo.addEventListener("pointerover", function (e) {
-      var c = e.target.closest(".mapa-celula");
-      if (!c) return;
-      if (!balao) { balao = document.createElement("span"); balao.className = "mapa-balao"; }
-      balao.textContent = c.dataset.texto;
-      alvo.appendChild(balao);
-      var meio = c.offsetLeft + c.offsetWidth / 2;
-      balao.style.top = c.offsetTop + "px";
-      /* Nas pontas, o balão encosta na borda em vez de sair do bloco. */
-      var metade = balao.offsetWidth / 2;
-      balao.style.left = Math.max(metade, Math.min(alvo.clientWidth - metade, meio)) + "px";
-    });
-    alvo.addEventListener("pointerleave", function () { if (balao) balao.remove(); });
-  })();
 
   /* O que conta como uso: a aba à vista e algum gesto (tecla, clique, rolagem)
      nos últimos três minutos. Ler parado conta; a aba esquecida aberta não.
@@ -22514,7 +23115,6 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
     for (var i = ACESSOS.length - 1; i >= 0; i--) { if (ACESSOS[i].hora === hora) { a = ACESSOS[i]; break; } }
     if (!a) { a = { hora: hora, minutos: 0 }; ACESSOS.push(a); }
     a.minutos = Math.min(60, a.minutos + 1);
-    if (paginaAtual === "relatorios") pintarMapaDeUso();
   }
 
   setInterval(function () {
@@ -23533,6 +24133,9 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
     pintarPostits();
     /* As propostas da IA que esperam decisão voltam com as portas ligadas. */
     iaReatarPropostas();
+    /* Imagem colada antes de o colar saber fazer figura ficou presa no meio do
+       parágrafo: ela sai para a figura dela agora, e a mudança vai para o banco. */
+    if (figurarImagensSoltas()) salvarTexto();
   }
 
   /* ── O arquivo aberto ────────────────────────────────────────────────
@@ -27059,7 +27662,6 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
      abre aquele deck. `montarFila` vem depois de `irPaginaAtual` porque a
      entrada na tela também monta, mandar o escopo depois é o que faz a segunda
      chamada valer. */
-  $("btnNovoDeck").addEventListener("click", gavetaNovoDeck);
   $("btnNovoDeckTela").addEventListener("click", gavetaNovoDeck);
   $("btnFilaHoje").addEventListener("click", function () { irPaginaAtual("revisao"); montarFila(""); });
   $("btnRevisarDeck").addEventListener("click", function () {
@@ -27080,8 +27682,7 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
   /* O contexto do canvas é pedido no primeiro desenho, e não aqui: a rede
      pode nunca ser ligada. */
   var sinapse = $("sinapse"), snTela = $("sinapseTela"), snCtx = null;
-  var snBusca = $("sinapseBusca"), snAchados = $("sinapseAchados"), visaoSeg = $("visaoSeg");
-  var CHAVE_VISAO = "sinapse:visao";
+  var snBusca = $("sinapseBusca"), snAchados = $("sinapseAchados");
   var snLigada = false, snSaida = null, snDadosChegaram = false;
 
   var SN_TIPOS = {
@@ -28037,11 +28638,6 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
   function snLigar(sim) {
     if (sim === snLigada) return;
     snLigada = sim;
-    visaoSeg.dataset.lado = sim ? "b" : "a";
-    visaoSeg.setAttribute("aria-checked", sim ? "true" : "false");
-    $("optVisaoLista").classList.toggle("on", !sim);
-    $("optVisaoSinapse").classList.toggle("on", sim);
-    try { localStorage.setItem(CHAVE_VISAO, sim ? "1" : "0"); } catch (e) { /* sem armazenamento */ }
     clearTimeout(snSaida);
     if (sim) {
       sinapse.classList.remove("saindo");
@@ -28057,7 +28653,6 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
     sinapse.classList.add("saindo");
     snSaida = setTimeout(function () { sinapse.hidden = true; sinapse.classList.remove("saindo"); }, 180);
   }
-  visaoSeg.addEventListener("click", function () { snLigar(!snLigada); });
   if (window.ResizeObserver) new ResizeObserver(function () { if (snLigada) snRedimensionar(); }).observe(sinapse);
   else window.addEventListener("resize", function () { if (snLigada) snRedimensionar(); });
 
@@ -28082,11 +28677,250 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
   montarFiltrosDeQuestao();
   pintar();
   irVista("lista");
-  /* A visão escolhida da última vez volta com o app. */
-  try { if (localStorage.getItem(CHAVE_VISAO) === "1") snLigar(true); } catch (e) { /* sem armazenamento */ }
+  /* A visão sináptica saiu do menu; quem a deixou ligada não volta preso a ela. */
+  try { localStorage.removeItem("sinapse:visao"); } catch (e) { /* sem armazenamento */ }
+
+  /* ═══ Quarto de estudos ══════════════════════════════════════════════
+     A cena 3D do Dashboard mora no app/quarto.js, fora deste script. Ela lê o
+     estado por aqui e pede para abrir as telas por aqui: o que é de dentro
+     (pastas, decks, fila, Pomodoro) continua sendo só deste script. */
+  function semanaDoPlano() {
+    var pl = PLANOS[0];
+    if (!pl) return null;
+    var hoje = hojeLocal(), dt = dataDoDia(hoje);
+    var seg = somarDias(hoje, -((dt.getDay() + 6) % 7));
+    var nomes = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
+    var dias = [];
+    for (var i = 0; i < 7; i++) {
+      var data = somarDias(seg, i), d = dataDoDia(data);
+      dias.push({
+        data: data, hoje: data === hoje, nome: nomes[d.getDay()], numero: d.getDate(),
+        sessoes: sessoesDe(pl).filter(function (x) { return x.data === data; }).map(function (x) {
+          return { id: x.id, titulo: x.titulo, minutos: x.minutos, feita: !!x.feita, tipo: x.tipo, sobre: x.sobre || "" };
+        })
+      });
+    }
+    return { planoId: pl.id, plano: pl.nome, dias: dias };
+  }
+
+  window.sinapseQuarto = {
+    voltar: voltarAoQuarto,
+    estado: function () {
+      var hoje = new Date().toISOString().slice(0, 10), dia = hojeLocal();
+      var doDia = 0, soma = 0, acertos = 0;
+      REVISOES.forEach(function (r) {
+        if (r.dia === hoje) doDia = r.total;
+        soma += r.total;
+        acertos += r.acertos;
+      });
+      var qAcertos = 0, qTentativas = 0;
+      QUESTOES.forEach(function (q) { qAcertos += q.acertos || 0; qTentativas += q.tentativas || 0; });
+      return {
+        carregado: comBanco,
+        pastas: PASTAS.map(function (p) {
+          return {
+            id: p.id, nome: p.nome, desc: p.desc || "", arquivos: (p.lista || []).length, cards: cardsDaPasta(p),
+            lista: (p.lista || []).slice(0, 8).map(function (a) {
+              return { id: a.id, nome: a.nome, desc: a.desc || "", cards: cardsDoArquivo(a) };
+            })
+          };
+        }),
+        decks: decks.map(function (d) { return { nome: d.nome, conta: d.conta || 0, hoje: d.hoje || 0, retencao: d.retencao || 0 }; }),
+        filaHoje: filaDoDia("").length,
+        planos: PLANOS.length,
+        planoNome: PLANOS[0] ? PLANOS[0].nome : "",
+        /* Os planos com o que cai hoje, e a próxima sessão quando hoje está livre. */
+        planosLista: PLANOS.slice(0, 3).map(function (pl) {
+          var prox = proximaSessao(pl);
+          return {
+            id: pl.id, nome: pl.nome,
+            hoje: sessoesDe(pl).filter(function (x) { return x.data === dia; })
+              .map(function (x) { return { id: x.id, titulo: x.titulo, minutos: x.minutos, feita: !!x.feita }; }),
+            proxima: prox ? { titulo: prox.titulo, quando: diaPorExtenso(prox.data) } : null
+          };
+        }),
+        questoes: QUESTOES.length,
+        questoesLista: QUESTOES.filter(function (q) { return q.id; }).slice(0, 12).map(function (q) {
+          return { id: q.id, enunciado: q.enunciado, alternativas: q.alternativas.slice(), correta: q.correta,
+                   explicacao: q.explicacao, acertos: q.acertos, tentativas: q.tentativas };
+        }),
+        semana: semanaDoPlano(),
+        acertoQuestoes: qTentativas ? Math.round(qAcertos / qTentativas * 100) : null,
+        provas: PROVAS.slice(0, 3).map(function (pv) { return { acertos: pv.acertos, total: pv.total, quando: quandoFoi(pv.feitaEm) }; }),
+        numeros: {
+          revisadosHoje: doDia,
+          acerto30: soma ? Math.round(acertos / soma * 100) : null,
+          revisoes30: soma,
+          sequencia: diasSeguidos()
+        },
+        sete: SETE_DIAS.map(function (d) { return { dia: d.dia, data: d.data, n: d.n, acertos: d.acertos || 0, hoje: !!d.hoje }; }),
+        foco: { minutos: FOCO_HOJE.minutos, ciclos: FOCO_HOJE.ciclos, rodando: rodando, resta: resta, total: total, rotulo: rotulo }
+      };
+    },
+    /* Só o Pomodoro: o quarto consulta isto a cada segundo, e o estado inteiro
+       seria trabalho jogado fora nessa frequência. */
+    foco: function () {
+      return { minutos: FOCO_HOJE.minutos, ciclos: FOCO_HOJE.ciclos, rodando: rodando, resta: resta, total: total, rotulo: rotulo };
+    },
+    /* As questões para folhear na prancheta: todas, a mais nova primeiro. */
+    todasQuestoes: function () {
+      return QUESTOES.filter(function (q) { return q.id; }).map(function (q) {
+        return { id: q.id, enunciado: q.enunciado, alternativas: q.alternativas.slice(), correta: q.correta,
+                 explicacao: q.explicacao, acertos: q.acertos, tentativas: q.tentativas };
+      });
+    },
+    /* Uma prova rápida para fazer no quarto: as questões que mais pedem treino
+       (nunca feitas e as de menor acerto) primeiro, até `n`, em ordem sorteada. */
+    questoesDaProva: function (n) {
+      var nota = function (q) { return q.tentativas ? q.acertos / q.tentativas : -1; };
+      var escolhidas = this.todasQuestoes().sort(function (x, y) { return nota(x) - nota(y); }).slice(0, n || 10);
+      for (var i = escolhidas.length - 1; i > 0; i--) {
+        var j = Math.floor(Math.random() * (i + 1)), t = escolhidas[i];
+        escolhidas[i] = escolhidas[j]; escolhidas[j] = t;
+      }
+      return escolhidas;
+    },
+    /* Registra a prova feita no quarto como a da tela de Questões: cada questão
+       soma a tentativa, a prova entra no histórico e o banco grava. */
+    registrarProva: function (respostas, segundos) {
+      var acertos = 0;
+      respostas.forEach(function (r) {
+        var q = QUESTOES.filter(function (x) { return x.id === r.questaoId; })[0];
+        if (!q) return;
+        q.tentativas++;
+        if (r.certa) { q.acertos++; acertos++; }
+      });
+      PROVAS.unshift({ escopo: "Quarto de estudos", total: respostas.length, acertos: acertos, segundos: segundos,
+                       feitaEm: new Date().toISOString() });
+      gravar({ acao: "prova.registrar", escopo: "Quarto de estudos", segundos: segundos, respostas: respostas });
+      pintarQuestoes();
+      repintarTudo();
+    },
+    /* Os cards de um deck, para o leque da mesa. */
+    cartas: function (deck) {
+      return ACERVO_CARDS.filter(function (c) { return c.deck === deck && c.id; })
+        .map(function (c) { return { id: c.id, frente: c.frente, verso: c.verso, quando: c.quando, acertos: c.acertos }; });
+    },
+    /* Editar no quarto passa pelos mesmos caminhos das telas: o objeto em
+       memória muda, o banco grava e as telas se repintam. Devolve um recado
+       quando algo impede a gravação. */
+    editar: function (tipo, id, dados) {
+      if (tipo === "questao") {
+        var q = QUESTOES.filter(function (x) { return x.id === id; })[0];
+        if (!q) return "Essa questão não existe mais.";
+        var alts = [], correta = -1;
+        (dados.alternativas || []).forEach(function (a, i) {
+          var t = String(a || "").trim();
+          if (!t) return;
+          if (i === dados.correta) correta = alts.length;
+          alts.push(t);
+        });
+        if (!String(dados.enunciado || "").trim()) return "A questão precisa de um enunciado.";
+        if (alts.length < 2) return "A questão precisa de pelo menos duas alternativas.";
+        if (correta < 0) return "Marque qual alternativa é a certa.";
+        q.enunciado = String(dados.enunciado).trim();
+        q.alternativas = alts;
+        q.correta = correta;
+        q.explicacao = String(dados.explicacao || "").trim();
+        gravar({ acao: "questao.salvar", id: q.id, enunciado: q.enunciado,
+                 alternativas: q.alternativas, correta: q.correta, explicacao: q.explicacao });
+        pintarQuestoes();
+        avisar("success", "Questão atualizada", "Ela já entra assim nas próximas provas.");
+      } else if (tipo === "card") {
+        var c = ACERVO_CARDS.filter(function (x) { return x.id === id; })[0];
+        if (!c) return "Esse card não existe mais.";
+        if (!String(dados.frente || "").trim()) return "O card precisa de uma frente.";
+        c.frente = String(dados.frente).trim();
+        c.verso = String(dados.verso || "").trim();
+        gravar({ acao: "card.salvar", id: c.id, frente: c.frente, verso: c.verso,
+                 imagemFrente: c.imagemFrente, imagemVerso: c.imagemVerso, deckId: idDoDeck(c.deck) });
+        pintarTabela();
+        pintarGradeDecks();
+        avisar("success", "Flashcard atualizado", "A alteração vale para a próxima revisão.");
+      } else if (tipo === "pasta") {
+        var pasta = PASTAS.filter(function (x) { return x.id === id; })[0];
+        if (!pasta) return "Essa pasta não existe mais.";
+        var nome = String(dados.nome || "").trim();
+        if (!nome) return "A pasta precisa de um nome.";
+        var outra = acharPasta(nome);
+        if (outra && outra !== pasta) return "Já existe uma pasta com esse nome.";
+        pasta.nome = nome;
+        pasta.desc = String(dados.desc || "").trim();
+        salvarPasta(pasta);
+        if (pastaAberta === pasta) pintarCabecalhoDaPasta(pasta);
+        avisar("success", "Pasta atualizada", pasta.nome);
+      }
+      repintarTudo();
+      return "";
+    },
+    /* Excluir pergunta antes, sempre, pelo mesmo diálogo das telas. */
+    excluir: function (tipo, id, depois) {
+      var avisarQuarto = function () { repintarTudo(); if (depois) depois(); };
+      if (tipo === "questao") {
+        var q = QUESTOES.filter(function (x) { return x.id === id; })[0];
+        if (q) pedirExcluirQuestao(q, avisarQuarto);
+      } else if (tipo === "card") {
+        var c = ACERVO_CARDS.filter(function (x) { return x.id === id; })[0];
+        if (c) confirmarExclusao({ coisa: "flashcard", nome: c.frente, onConfirmar: function () { excluirCard(c); avisarQuarto(); } });
+      }
+    },
+    /* Marcar e desmarcar uma sessão do plano, como o círculo da tela do plano. */
+    alternarSessao: function (planoId, sessaoId) {
+      var pl = PLANOS.filter(function (x) { return x.id === planoId; })[0];
+      var sessao = pl && sessoesDe(pl).filter(function (x) { return x.id === sessaoId; })[0];
+      if (!sessao) return;
+      sessao.feita = !sessao.feita;
+      sessao.feitaEm = sessao.feita ? new Date().toISOString() : "";
+      sessaoMudou(pl, sessao);
+      document.dispatchEvent(new CustomEvent("sinapse:dados"));
+    },
+    abrir: function (onde, chave, extra) {
+      /* O Pomodoro anda ali mesmo, sem sair do quarto. */
+      if (onde === "foco.alternar") { tocar(); return; }
+      snLigar(false);
+      abrirFolha();
+      var pasta = null;
+      if (onde === "pasta" || onde === "arquivo") {
+        pasta = PASTAS.filter(function (x) { return x.id === chave; })[0] || null;
+        if (!pasta) onde = "pastas";
+      }
+      if (onde === "pasta") { irPaginaAtual("pastas"); abrirPasta(pasta); return; }
+      if (onde === "arquivo") {
+        var arq = (pasta.lista || []).filter(function (a) { return a.id === extra; })[0];
+        irPaginaAtual("pastas");
+        if (arq) abrirArquivo(pasta, arq); else abrirPasta(pasta);
+        return;
+      }
+      if (onde === "pasta.nova") { irVista("lista", paginaAtual !== "pastas"); irPaginaAtual("pastas"); gavetaNovaPasta(); return; }
+      if (onde === "pastas") { irVista("lista", paginaAtual !== "pastas"); irPaginaAtual("pastas"); return; }
+      if (onde === "revisao") { irPaginaAtual("revisao"); montarFila(chave || ""); return; }
+      if (onde === "deck") {
+        var d = decks.filter(function (x) { return x.nome === chave; })[0];
+        if (d) { abrirDeck(d); return; }
+        onde = "decks";
+      }
+      if (onde === "decks") { deckAberto = null; irVista("deck-lista"); irPaginaAtual("decks"); return; }
+      if (onde === "prova") { irPaginaAtual("questoes"); gavetaMontarProva(); return; }
+      if (onde === "plano" || onde === "sessao") {
+        var pl = PLANOS.filter(function (x) { return x.id === chave; })[0];
+        if (pl && onde === "sessao") {
+          var sessao = sessoesDe(pl).filter(function (x) { return x.id === extra; })[0];
+          if (sessao) { irParaSessao(pl, sessao); return; }
+        }
+        if (pl) { abrirPlano(pl); return; }
+        onde = "planos";
+      }
+      if (onde === "plano.novo") { irPaginaAtual("planos"); abrirAssistente(null); return; }
+      irPaginaAtual(onde);
+    }
+  };
+
+  /* O modo guardado vale desde a abertura. */
+  aplicarModo();
 
   carregar();
 })();
 </script>
+<script type="module" src="./quarto.js"></script>
 </body>
 </html>

@@ -70,6 +70,25 @@ for (const botao of itens) {
   dizer(visiveis.length === 1 && visiveis[0] === alvo, `${alvo} -> ${visiveis.join(',') || '(nenhuma)'}`);
 }
 
+console.log('\nmodo quarto');
+{
+  const visiveis = () => [...doc.querySelectorAll('[data-pagina]')].filter((p) => !p.hidden).map((p) => p.dataset.pagina).sort().join(',');
+  const clicar = (el) => el.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  clicar(doc.getElementById('btnModoQuarto'));
+  await esperar(100);
+  dizer(doc.body.dataset.modo === 'quarto' && !doc.getElementById('hud').hidden, 'liga, com os cantos à vista');
+  dizer(visiveis() === 'pomodoro,relatorios' && doc.querySelector('.pagina.em-folha')?.dataset.pagina === 'pomodoro', 'a tela aberta vira folha sobre o quarto: ' + visiveis());
+  clicar(doc.querySelector('.hud-atalho[data-hud="pastas"]'));
+  await esperar(400);
+  dizer(visiveis() === 'pastas,relatorios' && doc.querySelector('.pagina.em-folha')?.dataset.pagina === 'pastas', 'o atalho troca a folha: ' + visiveis());
+  doc.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'h', bubbles: true }));
+  await esperar(700);
+  dizer(visiveis() === 'relatorios' && !doc.querySelector('.pagina.em-folha'), 'H fecha a folha: ' + visiveis());
+  clicar(doc.getElementById('hudSairModo'));
+  await esperar(100);
+  dizer(!doc.body.dataset.modo && doc.getElementById('hud').hidden, 'desliga e o menu volta');
+}
+
 console.log('\nestado sem banco');
 // A semente saiu da página: o banco é a única fonte. Sem rede, o certo é a tela
 // vazia com a faixa de falha, e não conteúdo inventado.
