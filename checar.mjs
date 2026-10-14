@@ -25,6 +25,8 @@ const remendo = `
   window.fetch = function () { return Promise.reject(new Error('sem rede na verificação')); };
   Element.prototype.scrollTo = Element.prototype.scrollTo || function () {};
   Element.prototype.scrollIntoView = Element.prototype.scrollIntoView || function () {};
+  // A navegação pelo menu é testada no modo com menu; o modo quarto, que é o padrão, tem a seção dele.
+  try { localStorage.setItem('app.modo', 'menu'); } catch (e) {}
   window.__faltando = [];
   var __acha = document.getElementById.bind(document);
   document.getElementById = function (id) {

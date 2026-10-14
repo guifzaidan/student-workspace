@@ -2157,6 +2157,11 @@ async function iniciar() {
   const CIMA = new THREE.Vector3(0, 1, 0);
   const atual = { alvo: ALVO.clone(), zoom: 1, dir: DIRECAO.clone() };
   let quer = { alvo: ALVO.clone(), zoom: 1, dir: DIRECAO.clone() }, voo = null;
+  /* A vista de longe é da pessoa: a rodinha (ou a pinça do trackpad) aproxima
+     e afasta o quarto entre os limites, na direção do ponteiro. Sair do zoom
+     de um objeto volta para essa vista, e não para a de fábrica. */
+  const ZOOM_MIN = 0.75, ZOOM_MAX = 2.6;
+  const vistaLivre = { alvo: ALVO.clone(), zoom: 1 };
   const suave = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
   function voar(para) {
     quer = para;
@@ -2165,7 +2170,7 @@ async function iniciar() {
   /* O enquadramento do foco: a caixa dos objetos, vista pela câmera, tem de
      caber no que sobra do palco ao lado do painel (ou acima dele). */
   function vistaDe(cena) {
-    if (!cena) return { alvo: ALVO.clone(), zoom: 1, dir: DIRECAO.clone() };
+    if (!cena) return { alvo: vistaLivre.alvo.clone(), zoom: vistaLivre.zoom, dir: DIRECAO.clone() };
     const caixa3 = new THREE.Box3();
     // O que ainda está surgindo é medido no tamanho em que vai ficar.
     const escalas = [...surgindo].map((o) => [o, o.scale.clone()]);
@@ -2271,7 +2276,7 @@ async function iniciar() {
     if (jaFoi) {
       // Saindo para outra tela: o quarto volta inteiro, sem voo, para quando ela voltar.
       quer = vistaDe(null); voo = null;
-      atual.alvo.copy(quer.alvo); atual.zoom = 1; atual.dir.copy(DIRECAO);
+      atual.alvo.copy(quer.alvo); atual.zoom = quer.zoom; atual.dir.copy(DIRECAO);
     } else {
       voar(vistaDe(null));
     }
@@ -2470,6 +2475,41 @@ async function iniciar() {
   ajustar();
 
   const direcaoCamera = new THREE.Vector3();
+
+  // A rodinha: só de longe (com um objeto aproximado, o quarto é dele) e fora do canto.
+  const eixoDireita = new THREE.Vector3(), eixoCima = new THREE.Vector3();
+  renderer.domElement.addEventListener('wheel', (e) => {
+    if (focoAtual || naMini() || voo) return;
+    e.preventDefault();
+    const z0 = vistaLivre.zoom;
+    // A pinça do trackpad chega como rodinha com ctrl, em passos menores.
+    const z1 = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z0 * Math.exp(-e.deltaY * (e.ctrlKey ? 0.01 : 0.0015))));
+    if (z1 === z0) return;
+    const r = palco.getBoundingClientRect();
+    const nx = ((e.clientX - r.left) / r.width) * 2 - 1, ny = -(((e.clientY - r.top) / r.height) * 2 - 1);
+    // O ponto sob o ponteiro fica parado: o alvo da câmera anda o que o zoom moveria.
+    const k = 1 / z0 - 1 / z1;
+    eixoDireita.setFromMatrixColumn(camera.matrixWorld, 0);
+    eixoCima.setFromMatrixColumn(camera.matrixWorld, 1);
+    vistaLivre.alvo
+      .addScaledVector(eixoDireita, nx * ((camera.right - camera.left) / 2) * k)
+      .addScaledVector(eixoCima, ny * ((camera.top - camera.bottom) / 2) * k);
+    // De longe o quarto volta para o meio; de perto, o passeio tem margem.
+    const folga = Math.max(0, 1 - 1 / z1) * (camera.top - camera.bottom) * 0.6;
+    const desvio = vistaLivre.alvo.clone().sub(ALVO);
+    if (desvio.length() > folga) vistaLivre.alvo.copy(ALVO).addScaledVector(desvio.normalize(), folga);
+    vistaLivre.zoom = z1;
+    atual.alvo.copy(vistaLivre.alvo); atual.zoom = z1;
+    quer = vistaDe(null);
+    ponteiroAndou = true;
+    sombraSuja = true;
+  }, { passive: false });
+  // Duplo clique no vazio devolve a vista inteira.
+  renderer.domElement.addEventListener('dblclick', () => {
+    if (focoAtual || naMini() || acharAlvo()) return;
+    vistaLivre.alvo.copy(ALVO); vistaLivre.zoom = 1;
+    voar(vistaDe(null));
+  });
   function posicionarCamera() {
     if (voo) {
       /* O relógio do voo começa no primeiro quadro desenhado, e não no

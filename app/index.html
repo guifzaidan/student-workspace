@@ -21537,7 +21537,8 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
      se abrem pela busca ou pelo lançador. A escolha fica guardada; no celular
      vale sempre o menu, que lá já é a barra de baixo. */
   var CHAVE_MODO = "app.modo", modoQuarto = false, hud = $("hud"), contaCasa = btnConta.parentNode;
-  function modoGuardado() { try { return localStorage.getItem(CHAVE_MODO) === "quarto"; } catch (e) { return false; } }
+  /* O modo quarto é o padrão: o menu só vem quando a pessoa escolheu ele. */
+  function modoGuardado() { try { return localStorage.getItem(CHAVE_MODO) !== "menu"; } catch (e) { return true; } }
   function aplicarModo() {
     var quer = modoGuardado() && !mqCelular.matches;
     if (quer === modoQuarto) return;
