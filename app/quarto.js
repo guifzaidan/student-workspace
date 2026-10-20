@@ -2470,8 +2470,13 @@ async function iniciar() {
   }
   /* A folha do celular faz o palco crescer numa transição: realocar o canvas a
      cada quadro dela travava o zoom. O tamanho é acertado quando ele para. */
-  let esperaTamanho = 0;
-  new ResizeObserver(() => { clearTimeout(esperaTamanho); esperaTamanho = setTimeout(ajustar, 90); }).observe(palco);
+  let esperaTamanho = 0, rodando = false;
+  /* Parado (atrás da folha), o laço não redesenha: o canvas que muda de tamanho
+     fica em branco até alguém desenhar, então o quadro novo sai daqui mesmo. */
+  new ResizeObserver(() => {
+    clearTimeout(esperaTamanho);
+    esperaTamanho = setTimeout(() => { ajustar(); if (!rodando && visivel) renderer.render(cena, camera); }, 90);
+  }).observe(palco);
   ajustar();
 
   const direcaoCamera = new THREE.Vector3();
@@ -2583,7 +2588,7 @@ async function iniciar() {
 
   // ── O laço ────────────────────────────────────────────────────────────────
   const marcoZero = performance.now();
-  let inicio = -1, ultimoSegundo = -1, antes = 0, ultimoHovDia = -1;
+  let inicio = -1, ultimoSegundo = -1, antes = 0, ultimoHovDia = -1, quadrosLentos = 0;
   const entradaDe = new Map(entradas.map((e) => [e.obj, e]));
   const molaSaida = (x) => { const c = 1.6; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
   const ancoraMundo = new THREE.Vector3();
@@ -2592,6 +2597,14 @@ async function iniciar() {
     const t = (performance.now() - marcoZero) / 1000;
     const dt = Math.min(0.05, Math.max(0.001, t - antes));
     antes = t;
+    /* Máquina que não acompanha (uns três segundos seguidos abaixo de 35
+       quadros por segundo): a cena passa a desenhar em resolução 1. Perde um
+       pouco de nitidez numa tela de alta densidade, e devolve a folga ao resto
+       da página. */
+    if (renderer.getPixelRatio() > 1) {
+      quadrosLentos = dt > 0.028 ? quadrosLentos + 1 : Math.max(0, quadrosLentos - 2);
+      if (quadrosLentos > 90) { renderer.setPixelRatio(1); quadrosLentos = 0; }
+    }
     const quieto = calmo.matches;
     if (inicio < 0) inicio = t;
     if (!quieto) parallax.lerp(parallaxAlvo, Math.min(1, dt * 2.5));
@@ -2747,7 +2760,25 @@ async function iniciar() {
   /* O quarto só desenha quando está à vista: com o Dashboard escondido, ou a
      aba em segundo plano, a placa de vídeo descansa. */
   let visivel = false;
-  const ligar = () => renderer.setAnimationLoop(visivel && document.visibilityState === 'visible' ? quadro : null);
+  /* Com uma folha aberta por cima (um arquivo, a revisão, uma pasta), o quarto
+     fica atrás, desfocado, e o IntersectionObserver não sabe que ele está
+     coberto. Desenhar a cena a todo quadro por baixo de um desfoque de tela
+     cheia ocupava a placa de vídeo sem parar, e num computador mais fraco o
+     editor travava por cima. Coberto, o quarto congela no último quadro (atrás
+     do desfoque não se nota) e volta na hora em que a folha desce. A espera
+     deixa a folha terminar de subir com o quarto ainda vivo. */
+  let coberto = false, esperaCobrir = 0;
+  const ligar = () => {
+    rodando = visivel && !coberto && document.visibilityState === 'visible';
+    renderer.setAnimationLoop(rodando ? quadro : null);
+  };
+  const olharFolha = () => {
+    clearTimeout(esperaCobrir);
+    if (!document.body.hasAttribute('data-folha')) { coberto = false; ligar(); return; }
+    esperaCobrir = setTimeout(() => { coberto = true; ligar(); }, 600);
+  };
+  new MutationObserver(olharFolha).observe(document.body, { attributes: true, attributeFilter: ['data-folha'] });
+  olharFolha();
   new IntersectionObserver((r) => { visivel = r[0].isIntersecting; ligar(); }).observe(palco);
   document.addEventListener('visibilitychange', ligar);
 

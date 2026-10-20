@@ -12191,7 +12191,13 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
     if (e.key === "Escape" && !selPop.hidden) esconderPop();
   });
 
-  editor.addEventListener("scroll", marcarSecao, { passive: true });
+  /* A rolagem dispara várias vezes por quadro, e cada vez lia a posição de
+     todos os títulos: uma vez por quadro basta. */
+  var quadroSecao = 0;
+  editor.addEventListener("scroll", function () {
+    if (quadroSecao) return;
+    quadroSecao = requestAnimationFrame(function () { quadroSecao = 0; marcarSecao(); });
+  }, { passive: true });
   /* Rolar move o trecho, e o balão é `fixed`: sem acompanhar, ele fica parado
      sobre outra linha. Em captura porque a rolagem pode nascer de qualquer
      caixa por dentro da página, e `scroll` não sobe por borbulhamento. */
@@ -16435,33 +16441,28 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
   /* Em tela estreita a folha inteira não cabe: ela encolhe até caber, como
      no Docs. Abaixo de 85% o texto ficaria pequeno demais para ler, e aí a
      página some e o texto volta a correr solto na largura que houver. */
-  /* A folha aproveita a coluna: com espaço sobrando ela alarga até o teto,
-     para o texto não ficar espremido no meio de duas faixas vazias. Com pouco
-     espaço ela volta à largura do A4 e encolhe, como sempre. A altura e as
-     margens continuam as do A4, e é por elas que a página quebra. */
-  var LARGURA_TETO = 1040, FOLGA_LADOS = 48;
+  /* A folha tem sempre a largura do A4, como no Docs: abrir e fechar o índice
+     ou o painel só a desloca. Antes ela alargava para aproveitar a coluna, e
+     cada painel que abria mudava a largura do texto: as linhas quebravam em
+     outro lugar e o arquivo inteiro era repaginado. Num arquivo com dezenas de
+     tabelas isso custava quase um segundo a cada clique. */
 
   /* A folha não pode ficar trocando de jeito sozinha. Numa tela dividida, a
      coluna fica perto do limite em que as páginas ligam, e qualquer pixel
      mexia na decisão: ligadas, aparecia a barra de rolagem, a coluna perdia
      a largura dela e as páginas desligavam; desligadas, a barra sumia e elas
      ligavam de novo, sem parar. Agora a decisão tem folga (liga com 86% de
-     espaço e só desliga abaixo de 82%), a largura só muda quando a coluna
-     muda de verdade, o lugar da barra de rolagem fica reservado e, se ainda
-     assim a folha trocar de estado várias vezes num segundo, ela congela no
-     estado em que está por um instante. */
-  var LIGA_COM = 0.86, DESLIGA_COM = 0.82, PASSO_DE_LARGURA = 24;
-  var larguraDaFolha = 0, trocasRecentes = [], congeladoAte = 0;
+     espaço e só desliga abaixo de 82%), o lugar da barra de rolagem fica
+     reservado e, se ainda assim a folha trocar de estado várias vezes num
+     segundo, ela congela no estado em que está por um instante. */
+  var LIGA_COM = 0.86, DESLIGA_COM = 0.82;
+  var trocasRecentes = [], congeladoAte = 0, jeitoDaFolha = "";
   function aplicarLayout() {
     var coluna = folhaDoTexto.parentElement;
     if (!coluna.clientWidth) return;
     var rolador = roladorDoTexto();
     if (rolador && rolador.style.scrollbarGutter !== "stable") rolador.style.scrollbarGutter = "stable";
-    var alvo = Math.max(A4.largura, Math.min(LARGURA_TETO, coluna.clientWidth - FOLGA_LADOS));
-    if (!larguraDaFolha || Math.abs(alvo - larguraDaFolha) >= PASSO_DE_LARGURA || alvo === A4.largura || alvo === LARGURA_TETO) {
-      larguraDaFolha = alvo;
-    }
-    var largura = larguraDaFolha;
+    var largura = A4.largura;
     var cabe = coluna.clientWidth / largura;
     var agora = Date.now();
     var querLigar = comPaginas && (paginasNaTela ? cabe >= DESLIGA_COM : cabe >= LIGA_COM);
@@ -16475,17 +16476,22 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
       }
     }
     paginasNaTela = querLigar;
+    var z = paginasNaTela ? Math.min(1, cabe) * zoomAtual / 100 : zoomAtual / 100;
+    /* Com a folha do mesmo jeito (páginas, zoom e margem iguais), as quebras de
+       antes continuam certas: a paginação só confere as alturas e sai. É o caso
+       de abrir e fechar os painéis com espaço sobrando. */
+    var jeito = paginasNaTela + "|" + z + "|" + A4.margem;
+    if (jeito !== jeitoDaFolha) retratoPaginas = null;
+    jeitoDaFolha = jeito;
     folhaDoTexto.classList.toggle("folha-a4", paginasNaTela);
     folhaDoTexto.style.width = paginasNaTela ? largura + "px" : "";
     camadaFolhas.hidden = !paginasNaTela;
-    retratoPaginas = null;
     if (paginasNaTela) {
-      var z = Math.min(1, cabe) * zoomAtual / 100;
       folhaDoTexto.style.zoom = z === 1 ? "" : String(z);
       arquivoCorpo.style.zoom = "";
     } else {
       folhaDoTexto.style.zoom = "";
-      arquivoCorpo.style.zoom = zoomAtual === 100 ? "" : String(zoomAtual / 100);
+      arquivoCorpo.style.zoom = z === 1 ? "" : String(z);
       regrasPaginas.textContent = "";
       arquivoCorpo.style.minHeight = "";
     }
@@ -16691,7 +16697,12 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
        folhas travava a digitação por quase um décimo de segundo a cada tecla.
        A altura mínima fica onde estava enquanto se mede: tirar os empurrões
        encolhe o texto por um instante, e a rolagem pularia para cima junto. */
-    regrasPaginas.textContent = "";
+    /* Trocar as regras refaz o layout do texto inteiro: só se escreve o que
+       mudou. */
+    function porRegras(texto) {
+      if (regrasPaginas.textContent !== texto) regrasPaginas.textContent = texto;
+    }
+    porRegras("");
     /* A linha de tabela empurrada cresce junto (o empurrão é respiro dela), e
        o texto ao lado de uma imagem flutuante muda de altura conforme ela
        fica ou não ao lado dele: a altura que vale é a medida sem empurrão. */
@@ -16712,14 +16723,25 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
        o texto; e o texto ao lado dela, empurrado, deixa de contorná-la e muda
        de altura. Nesses dois casos a conta para, o que já se decidiu entra na
        página, e ela é medida de novo a partir do bloco em questão, que é
-       conferido outra vez, e corrigido se o empurrão não andou o previsto. */
+       conferido outra vez, e corrigido se o empurrão não andou o previsto.
+
+       Cada medida nova refaz o layout do texto inteiro. Num arquivo grande,
+       com tabelas e várias imagens flutuantes, o texto ao lado de uma imagem
+       pode não assentar nunca (empurrado, ele muda de altura e pede outro
+       empurrão), e a guarda antiga, de três medidas por bloco, deixava isso
+       correr por minutos: a aba congelava ao abrir o arquivo. Agora cada bloco
+       é remedido no máximo duas vezes, e a paginação inteira tem um teto de
+       tempo para remedir. Passado o teto, o resto segue pela conta, que pode
+       errar por pouco perto de uma imagem, mas não trava. */
     var empurroes = [], desvio = 0, fundo = A4.margem, fundoFlutua = -Infinity;
     var remediu = false, guarda = 3 * unidades.length + 20;
-    function aplicarEmpurroes() {
-      regrasPaginas.textContent = empurroes.map(function (e, i) {
+    var remedidas = [], prazoDeRemedir = performance.now() + 200;
+    function textoDosEmpurroes() {
+      return empurroes.map(function (e, i) {
         return e ? regraDeEmpurrar(e.alvo || unidades[i], e.base, e.empurra) : "";
       }).filter(Boolean).join("\n");
     }
+    function aplicarEmpurroes() { porRegras(textoDosEmpurroes()); }
     for (var k = 0; k < unidades.length; k++) {
       var u = unidades[k], topo = topos[k] + desvio, alto = altos[k];
       /* A primeira linha desce com a tabela inteira, e o cabeçalho não fica
@@ -16748,7 +16770,8 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
         if (empurra) {
           var e = empurroes[k] || (empurroes[k] = { base: baseDeEmpurrar(u), empurra: 0, alvo: u.inteira ? u : null });
           e.empurra += empurra;
-          if ((flutuantes[k] || topo < fundoFlutua) && guarda-- > 0) {
+          if ((flutuantes[k] || topo < fundoFlutua) && guarda-- > 0 &&
+              (remedidas[k] = (remedidas[k] || 0) + 1) <= 2 && performance.now() < prazoDeRemedir) {
             aplicarEmpurroes();
             medirDesde(k);
             desvio = 0;
@@ -16843,15 +16866,31 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
   }).observe(arquivoCorpo, {
     childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["open", "style", "class"]
   });
-  arquivoCorpo.addEventListener("load", agendarPaginar, true);
+  /* As imagens chegam uma a uma ao abrir o arquivo, e cada uma pedia a
+     paginação inteira: um texto com quinze imagens repaginava quinze vezes em
+     sequência. Agora a paginação espera as que chegam juntas. */
+  var esperaDasImagens = 0;
+  arquivoCorpo.addEventListener("load", function () {
+    clearTimeout(esperaDasImagens);
+    esperaDasImagens = setTimeout(agendarPaginar, 150);
+  }, true);
   /* Só a largura da coluna muda o layout. A altura muda o tempo todo com a
      própria paginação, e responder a ela fazia a folha se refazer em ciclo. */
-  var larguraDaFolhaMedida = 0;
+  /* Abrir ou fechar o índice e o trilho anima a grade, e a coluna muda de
+     largura a cada quadro da animação. Repaginar a cada quadro um texto
+     comprido travava a aba num computador mais lento: agora a folha espera a
+     largura parar e se refaz uma vez só. Quando a coluna acaba de aparecer
+     (vinha de largura zero), o arquivo está abrindo, e aí não há o que
+     esperar. */
+  var larguraDaFolhaMedida = 0, esperaDaLargura = 0;
   if (window.ResizeObserver) new ResizeObserver(function () {
     var w = folhaDoTexto.parentElement.clientWidth;
     if (w === larguraDaFolhaMedida) return;
+    var acabouDeAparecer = !larguraDaFolhaMedida;
     larguraDaFolhaMedida = w;
-    aplicarLayout();
+    clearTimeout(esperaDaLargura);
+    if (acabouDeAparecer) { aplicarLayout(); return; }
+    esperaDaLargura = setTimeout(aplicarLayout, 120);
   }).observe(folhaDoTexto.parentElement);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(agendarPaginar);
 
