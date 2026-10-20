@@ -7619,7 +7619,6 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
 :root {
   --obra-entrada: .28s;
   --obra-saida: .16s;
-  --obra-passo: 0ms;
   --obra-suave: cubic-bezier(.2, .7, .2, 1);
   --obra-sai: cubic-bezier(.4, 0, 1, 1);
 }
@@ -7671,7 +7670,6 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
 }
 .obra-peca {
   animation: obra-peca var(--obra-entrada) var(--obra-suave) backwards;
-  animation-delay: calc(var(--obra-i, 0) * var(--obra-passo));
 }
 /* O cartão que acabou de sair já não é de ninguém: ele ocupa o lugar só o
    tempo de esmaecer, e não recebe clique nem foco. */
@@ -9327,7 +9325,7 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
      isso quem diz "é o mesmo item" é a chave em `data-obra`, e não o nó. */
   var OBRA_SAIDA = 160; /* espelhado em `--obra-saida`, no estilo */
   var OBRA_ENTRADA = 280;
-  var OBRA_PASSO = 0; /* espelhado em `--obra-passo`: as camadas chegam juntas */
+  var OBRA_PASSO = 0; /* zero: as camadas chegam juntas */
   var OBRA_MAX_PASSOS = 14;
   var semMovimento = window.matchMedia("(prefers-reduced-motion: reduce)");
 
@@ -9362,9 +9360,14 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
       if (!r.width || !r.height || getComputedStyle(p).position === "fixed") return;
       pecas.push(p);
     });
+    /* O atraso vai direto em `animation-delay`, e não numa variável CSS: a
+       variável é herdada, e a peça que é a coluna do texto passava a ter o
+       estilo de cada elemento do arquivo recalculado, milhares num texto
+       grande, só para atrasar a animação dela. Com passo zero não há atraso
+       nenhum a pôr. */
     pecas.forEach(function (p, i) {
       p.classList.remove("obra-peca");
-      p.style.setProperty("--obra-i", Math.min(i, OBRA_MAX_PASSOS));
+      if (OBRA_PASSO) p.style.animationDelay = Math.min(i, OBRA_MAX_PASSOS) * OBRA_PASSO + "ms";
     });
     if (pecas.length) void raiz.offsetWidth;
     pecas.forEach(function (p) { p.classList.add("obra-peca"); });
@@ -9373,7 +9376,7 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
       if (raiz._obraPecas !== vez) return;
       pecas.forEach(function (p) {
         p.classList.remove("obra-peca");
-        p.style.removeProperty("--obra-i");
+        p.style.removeProperty("animation-delay");
       });
     }, OBRA_ENTRADA + OBRA_MAX_PASSOS * OBRA_PASSO + 80);
   }
@@ -10266,7 +10269,10 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
       itensToc.push(b);
     });
     $("tocConta").textContent = itensToc.length;
-    marcarSecao();
+    /* Com o arquivo ainda abrindo, a tela dele está escondida e não há seção
+       à vista: medir agora só obrigaria o navegador a montar a página. Quem
+       marca a seção ao abrir é o `mostrarArquivo`. */
+    if (vistaAtual === "arquivo") marcarSecao();
   }
 
   /* A altura do título dentro da rolagem do editor, medida na tela: o
@@ -16681,6 +16687,28 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
 
   function paginar() {
     if (!paginasNaTela || !folhaDoTexto.offsetParent) return;
+    /* Imagem que ainda está chegando tem altura zero, e o mapa mental só mede
+       a própria altura depois que a tela aparece: paginar antes seria jogado
+       fora logo em seguida, e num arquivo grande cada paginação custa
+       centenas de milissegundos. Ao abrir um arquivo com imagens ou mapa isso
+       acontecia sempre. A paginação espera os dois, mas por pouco: com a rede
+       lenta o texto não fica sem páginas. */
+    var agora = performance.now(), esperar = 0;
+    function aguardar(el) {
+      if (!el._esperaAte) el._esperaAte = agora + 800;
+      esperar = Math.max(esperar, el._esperaAte - agora);
+    }
+    Array.prototype.forEach.call(arquivoCorpo.getElementsByTagName("img"), function (img) {
+      if (!img.complete) aguardar(img);
+    });
+    Array.prototype.forEach.call(arquivoCorpo.querySelectorAll(".mapa-quadro"), function (q) {
+      if (!q.style.height) aguardar(q);
+    });
+    if (esperar > 0) {
+      clearTimeout(esperaDasImagens);
+      esperaDasImagens = setTimeout(agendarPaginar, Math.min(esperar, 300));
+      return;
+    }
     var passo = A4.altura + A4.vao, util = A4.altura - 2 * A4.margem;
     var unidades = unidadesDoTexto();
     /* Esta leitura sai de graça: o navegador ia montar a página para pintar
@@ -16789,12 +16817,16 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
       fundo = Math.max(fundo, topo + alto);
     }
     aplicarEmpurroes();
+    /* Toda medida sai antes de o recorte entrar. O recorte e o fio das tabelas
+       só mudam o desenho, não a altura de nada, mas trocar as regras faz o
+       navegador refazer o estilo do texto inteiro: medido depois dele, cada
+       leitura pagava essa conta de novo. */
     var recorte = regrasDeRecorte(unidades, empurroes);
-    if (recorte) regrasPaginas.textContent += "\n" + recorte;
     /* O retrato guarda a altura com os empurrões postos, que é a que a próxima
        tecla vai medir. */
     if (temLinha || temFlutua || remediu) altos = unidades.map(function (u) { return u.el.offsetHeight; });
     retratoPaginas = { margem: A4.margem, els: unidades.map(function (u) { return u.el; }), altos: altos };
+    var desvioDaAncora = ancora && ancora.el.isConnected ? ancora.el.getBoundingClientRect().top - ancora.top : 0;
     var folhas = Math.max(1, Math.ceil((fundo + A4.margem + A4.vao) / passo));
     arquivoCorpo.style.minHeight = (folhas * passo - A4.vao) + "px";
     while (camadaFolhas.children.length > folhas) camadaFolhas.lastChild.remove();
@@ -16808,7 +16840,8 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
     Array.prototype.forEach.call(camadaFolhas.children, function (f, i) {
       f.firstChild.textContent = (i + 1) + " de " + folhas;
     });
-    segurarAncora(ancora);
+    if (Math.abs(desvioDaAncora) > 1) ancora.rolador.scrollTop += desvioDaAncora;
+    if (recorte) regrasPaginas.textContent += "\n" + recorte;
     /* Os balões da tabela são fixos na tela: se o empurrão moveu a tabela, eles
        vão junto. */
     if (tabelaSobPonteiro) pintarMais();
@@ -16821,8 +16854,9 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
      empurrões para medir e os põe de volta, e virar título troca o próprio
      elemento que ele segurava. Ele se perdia no meio dessa conta e jogava a
      página 15 mil pixels para baixo ao aplicar um título. Com ela desligada
-     (no CSS), quem segura a vista é esta dupla: a linha do cursor, se ela
-     está na tela, ou a do meio da vista, fica no mesmo lugar. */
+     (no CSS), quem segura a vista é a paginação: ela anota aqui a linha do
+     cursor, se ela está na tela, ou a do meio da vista, e no fim devolve essa
+     linha ao mesmo lugar. */
   function roladorDoTexto() { return folhaDoTexto.closest(".admin-content-wrap"); }
   function ancoraDaVista() {
     var rolador = roladorDoTexto();
@@ -16839,11 +16873,6 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
       if (e && e !== arquivoCorpo && arquivoCorpo.contains(e)) el = e;
     }
     return el ? { el: el, top: el.getBoundingClientRect().top, rolador: rolador } : null;
-  }
-  function segurarAncora(a) {
-    if (!a || !a.el.isConnected) return;
-    var d = a.el.getBoundingClientRect().top - a.top;
-    if (Math.abs(d) > 1) a.rolador.scrollTop += d;
   }
 
   var quadroPaginas = 0;
@@ -16868,12 +16897,15 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
   });
   /* As imagens chegam uma a uma ao abrir o arquivo, e cada uma pedia a
      paginação inteira: um texto com quinze imagens repaginava quinze vezes em
-     sequência. Agora a paginação espera as que chegam juntas. */
+     sequência. Agora a paginação espera as que chegam juntas. A que falha
+     também conta: sem ela, a paginação ficaria esperando até o prazo. */
   var esperaDasImagens = 0;
-  arquivoCorpo.addEventListener("load", function () {
+  function imagemChegou() {
     clearTimeout(esperaDasImagens);
     esperaDasImagens = setTimeout(agendarPaginar, 150);
-  }, true);
+  }
+  arquivoCorpo.addEventListener("load", imagemChegou, true);
+  arquivoCorpo.addEventListener("error", imagemChegou, true);
   /* Só a largura da coluna muda o layout. A altura muda o tempo todo com a
      própria paginação, e responder a ela fazia a folha se refazer em ciclo. */
   /* Abrir ou fechar o índice e o trilho anima a grade, e a coluna muda de
@@ -19032,7 +19064,11 @@ button.alternativa:hover { border-color: var(--gray2); background: var(--bg); }
       if (iaNoFim) iaConversa.scrollTop = iaConversa.scrollHeight;
     });
   }
-  function iaRolar() { iaNoFim = true; iaConversa.scrollTop = iaConversa.scrollHeight; iaDescer(); }
+  /* A descida fica para o quadro, como a do `iaDescer`: ler a altura da
+     conversa na hora obrigava o navegador a montar a página inteira, com o
+     texto aberto ao lado, e a resposta que chega em pedaços fazia isso a cada
+     18ms. */
+  function iaRolar() { iaNoFim = true; iaDescer(); }
   iaConversa.addEventListener("scroll", function () {
     iaNoFim = iaConversa.scrollHeight - iaConversa.scrollTop - iaConversa.clientHeight < 48;
   }, { passive: true });
