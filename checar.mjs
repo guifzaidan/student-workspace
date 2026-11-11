@@ -61,6 +61,16 @@ if (ausentes.length) {
   console.log(`  ~   ids buscados e ausentes (tolerados): ${ausentes.join(', ')}`);
 }
 
+console.log('\ninício');
+// O lugar do quarto: a saudação, o cartão do dia nas três faces e as portas.
+dizer(/^(Bom dia|Boa tarde|Boa noite)/.test(doc.getElementById('inicioSaudacao')?.textContent || ''), 'a saudação foi pintada');
+dizer(doc.querySelectorAll('#inicioPortas .inicio-porta').length === 4, 'as quatro portas para as telas');
+for (const aba of ['foco', 'semana', 'hoje']) {
+  doc.querySelector(`.inicio-abas [data-aba="${aba}"]`).dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  await esperar(300);
+  dizer(doc.getElementById('inicioCartao').dataset.aba === aba, `o cartão do dia troca para ${aba}`);
+}
+
 console.log('\nnavegação pelo menu');
 const itens = [...doc.querySelectorAll('[data-ir]')];
 dizer(itens.length > 0, `${itens.length} itens de menu`);
